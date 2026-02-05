@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orbit v7.0 | Cloud Study OS Ultimate (Enhanced)</title>
+    <title>Orbit</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Orbit">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5404/5404967.png ">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5404/5404967.png ">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1485,7 +1492,7 @@
             render() {
                 const list = document.getElementById('quiz-list');
                 const search = document.getElementById('q-search').value.toLowerCase();
-                const filtered = Store.state.quiz.filter(q => q.text.toLowerCase().includes(search));
+                const filtered = Store.state.quiz.filter(q => q.text.toLowerCase().includes(search) || (q.topic && q.topic.toLowerCase().includes(search)));
                 
                 // ATUALIZAR GRÁFICO SEMPRE (Mesmo se lista vazia)
                 this.updateChart();
@@ -1545,26 +1552,35 @@
             },
 
             processImport() {
-                const text = document.getElementById('import-area').value.trim();
+                let text = document.getElementById('import-area').value.trim();
                 const subject = document.getElementById('import-subject').value || 'Geral';
                 
+                // FIX: Detecta e corrige lista de objetos sem colchetes (Ex: {...}, {...})
+                if (text.startsWith('{') && text.endsWith('}') && text.includes('}')) {
+                    // Se não começa com [ mas parece ser múltiplos objetos ou um único objeto, tenta parsear
+                    // Se falhar o parse direto, tenta envolver em colchetes
+                    try {
+                        JSON.parse(text);
+                    } catch {
+                        text = `[${text}]`;
+                    }
+                }
+
                 // Tenta importar como JSON
                 try {
                     if(text.startsWith('[') || text.startsWith('{')) {
                         const data = JSON.parse(text);
                         const items = Array.isArray(data) ? data : [data];
                         let count = 0;
+                        
                         items.forEach(item => {
                             if(item.text && item.options) {
-                                // CORREÇÃO DE INDEX (1-based input -> 0-based internal)
-                                // Se o usuário coloca "2", ele quer a 2ª opção (B), que é index 1.
-                                // Se coloca "1", quer A (index 0).
+                                // CORREÇÃO DE INDEX (1=A -> 0=A)
                                 let rawIndex = (item.correctIndex !== undefined) ? parseInt(item.correctIndex) : 1;
-                                // Garante que seja pelo menos 1 antes de subtrair
                                 if(rawIndex < 1) rawIndex = 1;
                                 
                                 Store.state.quiz.push({
-                                    id: Date.now() + Math.random(),
+                                    id: Date.now() + Math.random(), // ID único garantido
                                     topic: item.topic || subject,
                                     text: item.text,
                                     options: item.options,
@@ -1573,36 +1589,54 @@
                                 count++;
                             }
                         });
-                        UI.toast(`Importadas ${count} questões via JSON!`);
-                        finishImport(); return;
+                        
+                        if (count > 0) {
+                            UI.toast(`Sucesso! ${count} questões importadas.`);
+                            finishImport(); 
+                            return;
+                        }
                     }
-                } catch(e) { console.log("Não é JSON, tentando texto..."); }
+                } catch(e) { 
+                    console.error("Erro JSON:", e);
+                    // Se o usuário tentou colar JSON (começa com [ ou {) e falhou, avise o erro
+                    if(text.startsWith('[') || text.startsWith('{')) {
+                        alert("Erro no formato JSON: " + e.message + "\n\nDica: Verifique se usou aspas duplas (\") em tudo e se não sobrou vírgula no final.");
+                        return; // Impede fallback para texto que geraria lixo
+                    }
+                }
 
-                // Parser Texto (Fallback)
+                // Parser Texto (Fallback para colar 1 questão direto do PDF)
                 const lines = text.split('\n').map(l => l.trim()).filter(l => l);
                 if(lines.length === 0) return;
-                let questionText = lines[0]; let options = [];
+                
+                let questionText = lines[0]; 
+                let options = [];
                 const optRegex = /^[a-eA-E][).]\s*(.*)/;
+                
                 lines.forEach((line, i) => {
                     if(i === 0) return;
                     const match = line.match(optRegex);
-                    if(match) options.push(match[1]); else if(options.length === 0) questionText += " " + line; 
+                    if(match) options.push(match[1]); 
+                    else if(options.length === 0) questionText += " " + line; 
                 });
+                
                 if(options.length < 2) options = ["Verdadeiro", "Falso"];
                 
                 Store.state.quiz.push({ 
-                    id: Date.now(), 
+                    id: Date.now() + Math.random(), 
                     topic: subject, 
                     text: questionText, 
                     options: options, 
                     correctIndex: 0 
                 });
+                
                 finishImport();
 
                 function finishImport() {
                     document.getElementById('modal-import').close();
                     document.getElementById('import-area').value = '';
-                    Store.save(); UI.renderAll();
+                    Store.save(); 
+                    UI.renderAll();
                 }
             },
 
