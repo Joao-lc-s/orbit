@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbit v5.5 | Cloud Study OS</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Phosphor -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Configuração Tailwind e Temas -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    },
+                    colors: {
+                        brand: {
+                            50: 'var(--brand-50)', 100: 'var(--brand-100)', 200: 'var(--brand-200)',
+                            300: 'var(--brand-300)', 400: 'var(--brand-400)', 500: 'var(--brand-500)',
+                            600: 'var(--brand-600)', 700: 'var(--brand-700)', 800: 'var(--brand-800)',
+                            900: 'var(--brand-900)',
+                        },
+                        bg: {
+                            main: 'var(--bg-main)',
+                            panel: 'var(--bg-panel)',
+                            card: 'var(--bg-card)',
+                        },
+                        txt: {
+                            main: 'var(--text-main)',
+                            muted: 'var(--text-muted)',
+                        }
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    },
+                    keyframes: {
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- SISTEMA DE TEMAS --- */
+        :root {
+            /* Light */
+            --bg-main: #f1f5f9; --bg-panel: #ffffff; --bg-card: #ffffff;
+            --text-main: #0f172a; --text-muted: #64748b;
+            --brand-50: #eef2ff; --brand-100: #e0e7ff; --brand-200: #c7d2fe;
+            --brand-500: #6366f1; --brand-600: #4f46e5; --brand-900: #312e81;
+        }
+        .theme-dark {
+            --bg-main: #0b0e14; --bg-panel: #151921; --bg-card: #1e232e;
+            --text-main: #e2e8f0; --text-muted: #94a3b8;
+            --brand-50: #1e1b4b; --brand-100: #312e81; --brand-200: #3730a3;
+            --brand-500: #818cf8; --brand-600: #6366f1; --brand-900: #e0e7ff;
+        }
+        .theme-dracula {
+            --bg-main: #282a36; --bg-panel: #44475a; --bg-card: #44475a;
+            --text-main: #f8f8f2; --text-muted: #bd93f9;
+            --brand-50: #ff79c6; --brand-100: #bd93f9; --brand-200: #bd93f9;
+            --brand-500: #ff79c6; --brand-600: #ff5555; --brand-900: #f1fa8c;
+        }
+        .theme-forest {
+            --bg-main: #1a2f23; --bg-panel: #243c2f; --bg-card: #2f4b3b;
+            --text-main: #e8f5e9; --text-muted: #a5d6a7;
+            --brand-50: #1b5e20; --brand-100: #2e7d32; --brand-200: #4caf50;
+            --brand-500: #66bb6a; --brand-600: #81c784; --brand-900: #c8e6c9;
+        }
+        .theme-sunset {
+            --bg-main: #2a1b2e; --bg-panel: #422240; --bg-card: #572d4d;
+            --text-main: #ffe4e1; --text-muted: #ffadad;
+            --brand-50: #ffd1dc; --brand-100: #ff9aa2; --brand-200: #ffb7b2;
+            --brand-500: #ffdac1; --brand-600: #e2f0cb; --brand-900: #b5ead7;
+        }
+
+        /* --- TEMA CYBERPUNK (AZUL NÉON CUSTOM) --- */
+        .theme-cyberpunk {
+            --bg-main: #050505; 
+            --bg-panel: #000000; 
+            --bg-card: #0a1020;
+            
+            --text-main: #cffafe;
+            --text-muted: #4a4680;
+            
+            --brand-50: #0f172a; 
+            --brand-100: #1e293b; 
+            --brand-200: #334155;
+            --brand-500: #00f3ff;
+            --brand-600: #00bcd4; 
+            --brand-900: #ecfeff;
+            
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        body { background-color: var(--bg-main); color: var(--text-main); transition: all 0.4s ease; margin: 0; padding: 0; }
+        .bg-panel { background-color: var(--bg-panel); }
+        .bg-card { background-color: var(--bg-card); }
+        .text-main {
+            color: var(--text-main);
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--text-muted); opacity: 0.3; border-radius: 10px; }
+        
+        /* Custom Checkbox */
+        .custom-checkbox input:checked + div { background-color: var(--brand-600); border-color: var(--brand-600); color: var(--bg-panel); }
+        
+        /* Zen Mode Transitions */
+        .zen-hidden { display: none !important; }
+        .zen-expand { width: 100% !important; max-width: 100% !important; padding: 4rem !important; margin: 0 auto; }
+
+        /* Timer Input */
+        .timer-input { background: transparent; border: none; color: inherit; width: 100%; text-align: center; font-family: inherit; font-size: inherit; outline: none; border-bottom: 2px solid var(--brand-500); }
+        
+        /* Quiz Styles */
+        .quiz-option { transition: all 0.2s; }
+        .quiz-correct { background-color: #10b981 !important; border-color: #10b981 !important; color: white !important; }
+        .quiz-wrong { background-color: #ef4444 !important; border-color: #ef4444 !important; color: white !important; }
+
+        /* Loading Screen - Z-Index 100 */
+        #loading-screen { position: fixed; inset: 0; background: var(--bg-main); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        
+        /* Setup Modal (Available but hidden by default) */
+        #setup-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 110; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden selection:bg-brand-500 selection:text-white font-sans">
+
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen">
+        <div class="w-16 h-16 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <h2 class="text-xl font-bold tracking-widest animate-pulse text-txt-main">CONECTANDO...</h2>
+        <p class="text-xs text-txt-muted mt-2" id="loading-status">Aguarde a sincronização</p>
+    </div>
+
+    <div id="layout-wrapper" class="flex flex-row h-full w-full overflow-hidden opacity-0 transition-opacity duration-1000">
+
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="flex-none w-20 lg:w-72 bg-panel border-r border-slate-200/10 flex flex-col justify-between z-30 transition-all duration-500 shadow-xl overflow-y-auto">
+            <div>
+                <div class="h-24 flex items-center justify-center lg:justify-start lg:px-8 border-b border-slate-200/10 shrink-0">
+                    <div class="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/30 shrink-0">
+                        <i class="ph-fill ph-planet text-2xl"></i>
+                    </div>
+                    <div class="hidden lg:block ml-4">
+                        <h1 class="font-bold text-xl tracking-tight text-txt-main">Orbit <span class="text-brand-500">v5.5</span></h1>
+                        <p class="text-[10px] uppercase tracking-widest text-txt-muted font-bold">Cloud OS</p>
+                    </div>
+                </div>
+
+                <nav class="p-4 space-y-2 mt-4">
+                    <button onclick="router('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center p-3 rounded-2xl text-txt-muted hover:bg-brand-50 hover:text-brand-600 transition-all group">
+                        <i class="ph ph-squares-four text-2xl shrink-0"></i>
+                        <span class="hidden lg:block ml-3 font-semibold whitespace-nowrap">Visão Geral</span>
+                    </button>
+                    <button onclick="router('cronograma')" id="nav-cronograma" class="nav-item w-full flex items-center p-3 rounded-2xl text-txt-muted hover:bg-brand-50 hover:text-brand-600 transition-all group">
+                        <i class="ph ph-calendar-blank text-2xl shrink-0"></i>
+                        <span class="hidden lg:block ml-3 font-semibold whitespace-nowrap">Cronograma</span>
+                    </button>
+                    <button onclick="router('foco')" id="nav-foco" class="nav-item w-full flex items-center p-3 rounded-2xl text-txt-muted hover:bg-brand-50 hover:text-brand-600 transition-all group">
+                        <i class="ph ph-timer text-2xl shrink-0"></i>
+                        <span class="hidden lg:block ml-3 font-semibold whitespace-nowrap">Modo Foco</span>
+                    </button>
+                    
+                    <div class="pt-4 pb-2">
+                        <p class="hidden lg:block px-4 text-xs font-bold text-txt-muted uppercase mb-2">Ferramentas</p>
+                        <button onclick="router('questoes')" id="nav-questoes" class="nav-item w-full flex items-center p-3 rounded-2xl text-txt-muted hover:bg-brand-50 hover:text-brand-600 transition-all group">
+                            <i class="ph ph-exam text-2xl shrink-0"></i>
+                            <span class="hidden lg:block ml-3 font-semibold whitespace-nowrap">Vestibular</span>
+                        </button>
+                        <button onclick="router('loja')" id="nav-loja" class="nav-item w-full flex items-center p-3 rounded-2xl text-txt-muted hover:bg-brand-50 hover:text-brand-600 transition-all group">
+                            <i class="ph ph-medal text-2xl shrink-0"></i>
+                            <span class="hidden lg:block ml-3 font-semibold whitespace-nowrap">Conquistas</span>
+                        </button>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- AUTH & SETTINGS FOOTER -->
+            <div class="p-2 border-t border-slate-200/10 shrink-0 space-y-2">
+                <!-- User Profile / Login Button -->
+                <div id="auth-section" class="w-full">
+                    <button onclick="loginGoogle()" id="btn-login" class="w-full flex items-center justify-center lg:justify-start p-3 rounded-2xl bg-brand-50 text-brand-600 hover:bg-brand-100 transition-all mb-2 hidden">
+                        <i class="ph-bold ph-google-logo text-xl shrink-0"></i>
+                        <span class="hidden lg:block ml-3 font-bold whitespace-nowrap">Entrar com Google</span>
+                    </button>
+                    
+                    <div id="user-profile" class="flex flex-col lg:flex-row items-center justify-center lg:justify-start p-2 rounded-2xl bg-bg-main border border-slate-200/10 mb-2 gap-1 lg:gap-0">
+                        <!-- USER AVATAR -->
+                        <img id="user-avatar" src="https://lh3.googleusercontent.com/a/ACg8ocI52GjjM2ODsZK7FFl9_LAgafXDpSyuYvFP4SNIaKDf2XpQNm0=s96-c" alt="User" class="w-10 h-10 rounded-full border-2 border-brand-500 shrink-0 object-cover aspect-square">
+                        
+                        <div class="hidden lg:block ml-3 overflow-hidden w-full">
+                            <p id="user-name" class="text-xs font-bold text-txt-main truncate">Usuário</p>
+                            <p class="text-[10px] text-txt-muted truncate">Conectado</p>
+                        </div>
+                        
+                        <!-- Logout Button -->
+                        <button onclick="logout()" class="lg:ml-auto text-txt-muted hover:text-red-500 p-1 rounded-lg hover:bg-slate-200/10 transition-colors" title="Sair">
+                            <i class="ph-bold ph-sign-out text-xl lg:text-base"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="openModal('modal-settings')" class="w-full flex items-center justify-center lg:justify-start p-3 rounded-2xl hover:bg-brand-50 text-txt-muted transition-all">
+                    <i class="ph-fill ph-gear text-xl shrink-0"></i>
+                    <span class="hidden lg:block ml-3 font-medium whitespace-nowrap">Configurações</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN AREA -->
+        <main id="main-area" class="flex-1 min-w-0 flex flex-col h-full relative overflow-hidden transition-all duration-500">
+            
+            <!-- HEADER -->
+            <header id="top-header" class="h-20 px-8 flex items-center justify-between bg-panel/80 backdrop-blur-md border-b border-slate-200/10 sticky top-0 z-20 shrink-0 transition-all duration-500">
+                <div>
+                    <h2 class="text-2xl font-bold text-txt-main" id="header-title">Dashboard</h2>
+                    <div class="flex items-center gap-2 text-xs text-txt-muted font-medium">
+                        <span id="header-date">...</span>
+                        <span class="ml-2 px-2 py-0.5 rounded bg-brand-50 text-brand-500 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hidden" id="sync-status">
+                            <i class="ph-fill ph-cloud-check"></i> Sync
+                        </span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleZenMode()" class="p-2 rounded-xl text-txt-muted hover:text-brand-600 hover:bg-brand-50 transition-all" title="Modo Zen (Z)">
+                        <i class="ph ph-arrows-out-simple text-xl"></i>
+                    </button>
+
+                    <div class="flex items-center gap-2 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
+                        <i class="ph-fill ph-star text-brand-500"></i>
+                        <span class="font-bold text-brand-700 text-sm" id="header-xp">0 XP</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTENT -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth" id="scroll-content">
+                
+                <!-- VIEW: DASHBOARD -->
+                <div id="view-dashboard" class="space-y-8 max-w-7xl mx-auto animate-slide-up">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-card p-6 rounded-3xl border border-slate-200/10 shadow-sm relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="ph-fill ph-fire text-6xl"></i></div>
+                            <p class="text-txt-muted text-sm font-medium">Ofensiva</p>
+                            <h3 class="text-3xl font-bold mt-1 text-txt-main" id="stat-streak">0 Dias</h3>
+                        </div>
+                        <div class="bg-card p-6 rounded-3xl border border-slate-200/10 shadow-sm relative overflow-hidden group">
+                             <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="ph-fill ph-check-circle text-6xl"></i></div>
+                            <p class="text-txt-muted text-sm font-medium">Tarefas Hoje</p>
+                            <h3 class="text-3xl font-bold mt-1 text-txt-main" id="stat-tasks">0 / 0</h3>
+                        </div>
+                        <div class="bg-gradient-to-br from-brand-600 to-brand-800 p-6 rounded-3xl text-white shadow-lg shadow-brand-500/20 relative">
+                            <p class="text-brand-100 text-sm font-medium">Nível Atual</p>
+                            <h3 class="text-3xl font-bold mt-1" id="stat-level">Novato</h3>
+                            <div class="w-full bg-white/20 h-1.5 mt-4 rounded-full overflow-hidden">
+                                <div id="stat-progress-bar" class="bg-white h-full transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <section>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-txt-main">Matérias Âncora</h3>
+                            <button onclick="openModal('modal-anchor')" class="text-xs font-bold bg-brand-100 text-brand-700 px-3 py-1.5 rounded-lg hover:bg-brand-200 transition-colors">+ Hábito</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="anchors-list"></div>
+                    </section>
+
+                    <section>
+                        <h3 class="text-lg font-bold mb-4 text-txt-main">Missão de Hoje</h3>
+                        <div class="bg-card rounded-3xl p-6 border border-slate-200/10 shadow-sm min-h-[200px]" id="dashboard-tasks"></div>
+                    </section>
+                </div>
+
+                <!-- VIEW: CRONOGRAMA -->
+                <div id="view-cronograma" class="hidden h-full flex flex-col animate-slide-up">
+                    <div class="flex-1 overflow-x-auto pb-6">
+                        <div class="flex gap-6 min-w-max h-full" id="week-columns">
+                            <!-- JS Generated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: FOCO -->
+                <div id="view-foco" class="hidden h-full flex flex-col items-center justify-center relative animate-slide-up">
+                    <div id="focus-context" class="mb-6 hidden animate-slide-up">
+                        <div class="bg-brand-100 text-brand-700 px-6 py-2 rounded-full font-bold text-sm shadow-sm flex items-center gap-2">
+                            <i class="ph-fill ph-target"></i>
+                            <span id="focus-context-text">Estudando...</span>
+                            <button onclick="clearFocusContext()" class="hover:text-red-500"><i class="ph-bold ph-x"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="z-10 bg-panel/60 backdrop-blur-xl p-10 rounded-[40px] shadow-2xl border border-white/10 text-center w-full max-w-lg">
+                        <div class="flex justify-center gap-2 mb-8">
+                            <button id="btn-mode-focus" onclick="setTimerMode('focus')" class="px-4 py-1.5 rounded-full text-sm font-bold bg-brand-100 text-brand-700">Foco</button>
+                            <button id="btn-mode-break" onclick="setTimerMode('break')" class="px-4 py-1.5 rounded-full text-sm font-bold text-txt-muted hover:bg-brand-50">Pausa</button>
+                        </div>
+                        
+                        <div class="mb-8 relative group">
+                            <div id="timer-display" class="text-[100px] md:text-[120px] leading-none font-mono font-bold tracking-tighter tabular-nums select-none cursor-pointer hover:text-brand-500 transition-colors text-txt-main" onclick="enableTimerEdit()">
+                                25:00
+                            </div>
+                            <input type="text" id="timer-input" class="hidden text-[100px] md:text-[120px] leading-none font-mono font-bold tracking-tighter timer-input text-txt-main" onblur="disableTimerEdit()" onkeypress="handleTimerInput(event)">
+                            <p class="text-xs text-txt-muted opacity-0 group-hover:opacity-100 transition-opacity absolute w-full text-center -bottom-4">Clique para editar (ex: 25:00 ou 40)</p>
+                        </div>
+
+                        <div class="flex justify-center gap-6">
+                            <button onclick="toggleTimer()" id="btn-timer-action" class="h-20 w-20 rounded-2xl bg-brand-600 text-white text-3xl flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer"><i class="ph-fill ph-play"></i></button>
+                            <button onclick="resetTimer()" class="h-20 w-20 rounded-2xl bg-brand-50 text-brand-600 text-3xl flex items-center justify-center hover:bg-brand-100 transition-all z-20 cursor-pointer"><i class="ph-bold ph-arrow-counter-clockwise"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: QUESTÕES -->
+                <div id="view-questoes" class="hidden max-w-5xl mx-auto animate-slide-up space-y-6">
+                    <div class="bg-card p-6 rounded-3xl border border-slate-200/10">
+                        <div class="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-txt-main">Simulado & Questões</h2>
+                            <div class="flex gap-2 w-full md:w-auto">
+                                <input type="text" id="questions-search" placeholder="Pesquisar assunto..." oninput="renderQuestions()" class="bg-bg-main border border-slate-200/10 text-txt-main text-sm rounded-xl px-4 py-2 focus:ring-brand-500 focus:outline-none w-full">
+                                <select id="subject-selector" onchange="renderQuestions()" class="bg-bg-main border border-slate-200/10 text-txt-main text-sm rounded-xl focus:ring-brand-500 focus:outline-none p-2 min-w-[150px]">
+                                    <option value="">Todas</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="questions-container" class="space-y-6 pb-20"></div>
+                    </div>
+                </div>
+
+                <!-- VIEW: LOJA -->
+                <div id="view-loja" class="hidden max-w-5xl mx-auto animate-slide-up">
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl font-bold mb-2 text-txt-main">Galeria de Conquistas</h2>
+                        <p class="text-txt-muted">Use seu XP para desbloquear insignias.</p>
+                        <div class="mt-4 inline-flex items-center gap-2 bg-brand-500 text-white px-6 py-2 rounded-full font-bold shadow-lg shadow-brand-500/40">
+                            <i class="ph-fill ph-star"></i> <span id="shop-balance">0 XP</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-card p-6 rounded-3xl border border-slate-200/10 relative overflow-hidden group hover:border-brand-500 transition-all text-center">
+                            <i class="ph-fill ph-trophy text-6xl text-amber-400 mb-4 inline-block"></i>
+                            <h3 class="font-bold text-lg text-txt-main">Mestre do Foco</h3>
+                            <p class="text-xs text-txt-muted mb-4">Mostre que você é disciplinado.</p>
+                            <button onclick="buyItem('badge_gold', 2000)" id="btn-buy-badge_gold" class="w-full py-2 rounded-xl font-bold bg-brand-50 text-brand-600 hover:bg-brand-100 transition-colors">2000 XP</button>
+                        </div>
+                        <div class="bg-card p-6 rounded-3xl border border-slate-200/10 relative overflow-hidden group hover:border-brand-500 transition-all text-center">
+                            <i class="ph-fill ph-brain text-6xl text-pink-400 mb-4 inline-block"></i>
+                            <h3 class="font-bold text-lg text-txt-main">Cérebro Gigante</h3>
+                            <p class="text-xs text-txt-muted mb-4">Para quem estuda muito.</p>
+                            <button onclick="buyItem('badge_brain', 1000)" id="btn-buy-badge_brain" class="w-full py-2 rounded-xl font-bold bg-brand-50 text-brand-600 hover:bg-brand-100 transition-colors">1000 XP</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- TOASTS -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[60] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- CONFIG MODAL -->
+    <dialog id="modal-settings" class="backdrop:bg-black/50 bg-transparent p-0 w-full max-w-4xl h-[80vh] rounded-3xl shadow-2xl overflow-hidden animate-slide-up">
+        <div class="bg-panel h-full flex flex-col md:flex-row">
+            <div class="w-full md:w-64 bg-bg-main border-r border-slate-200/10 p-6">
+                <h3 class="font-bold text-xl mb-6 text-txt-main">Configurações</h3>
+                <div class="space-y-2">
+                    <button onclick="switchTab('tab-general')" class="w-full text-left p-3 rounded-xl text-sm font-medium transition-colors tab-btn active-tab bg-brand-100 text-brand-700 text-main" data-tab="tab-general">Geral & Aparência</button>
+                    <button onclick="switchTab('tab-json')" class="w-full text-left p-3 rounded-xl text-sm font-medium transition-colors tab-btn text-main" data-tab="tab-json">Banco de Questões</button>
+                    <button onclick="switchTab('tab-cloud')" class="w-full text-left p-3 rounded-xl text-sm font-medium transition-colors tab-btn text-main" data-tab="tab-cloud">Nuvem / API</button>
+                    <button onclick="switchTab('tab-shortcuts')" class="w-full text-left p-3 rounded-xl text-sm font-medium transition-colors tab-btn text-main" data-tab="tab-shortcuts">Atalhos</button>
+                </div>
+                <div class="mt-auto pt-6">
+                    <button onclick="closeModal('modal-settings')" class="w-full py-2 border border-slate-200/20 rounded-xl text-sm font-bold hover:bg-bg-card transition-colors text-txt-muted">Fechar</button>
+                </div>
+            </div>
+
+            <div class="flex-1 p-8 overflow-y-auto bg-card text-txt-main">
+                <div id="tab-general" class="settings-tab">
+                    <h4 class="text-lg font-bold mb-4 text-txt-main">Aparência</h4>
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <button onclick="applyTheme('light')" class="p-4 rounded-xl border border-slate-200 bg-slate-100 hover:ring-2 ring-brand-500 text-slate-800 font-bold">Light</button>
+                        <button onclick="applyTheme('dark')" class="p-4 rounded-xl border border-slate-700 bg-slate-900 hover:ring-2 ring-brand-500 text-white font-bold">Dark</button>
+                        <button onclick="applyTheme('dracula')" class="p-4 rounded-xl border border-purple-900 bg-[#282a36] hover:ring-2 ring-pink-500 text-[#f8f8f2] font-bold">Dracula</button>
+                        <button onclick="applyTheme('forest')" class="p-4 rounded-xl border border-green-900 bg-[#1a2f23] hover:ring-2 ring-green-500 text-[#e8f5e9] font-bold">Forest</button>
+                        <button onclick="applyTheme('sunset')" class="p-4 rounded-xl border border-pink-900 bg-[#2a1b2e] hover:ring-2 ring-orange-500 text-[#ffe4e1] font-bold">Sunset</button>
+                        <button onclick="applyTheme('cyberpunk')" class="p-4 rounded-xl border border-blue-900 bg-[#5c8fb5] hover:ring-2 ring-blue-500 text-[#ffffff] font-bold">Cyberpunk</button>
+                    </div>
+
+                    <h4 class="text-lg font-bold mb-4 text-txt-main">Timer Pomodoro</h4>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-txt-main mb-2">Tempo de Foco (min)</label>
+                            <input type="range" id="set-focus" min="5" max="90" step="5" class="w-full accent-brand-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                            <span id="lbl-focus" class="text-sm font-bold text-brand-600">25</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-txt-main mb-2">Tempo de Pausa (min)</label>
+                            <input type="range" id="set-break" min="1" max="30" step="1" class="w-full accent-brand-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                            <span id="lbl-break" class="text-sm font-bold text-brand-600">5</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-200/10">
+                        <h4 class="text-lg font-bold mb-4 text-txt-main">Zona de Perigo</h4>
+                        <button onclick="hardReset()" class="text-red-500 border border-red-200 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-bold transition-colors">Resetar Todo o Progresso</button>
+                    </div>
+                </div>
+
+                <div id="tab-json" class="settings-tab hidden">
+                    <h4 class="text-lg font-bold mb-2 text-txt-main">Importar Questões (Modo Prova)</h4>
+                    <p class="text-sm text-txt-muted mb-2">Use o campo "correta" (a, b, c, d) para validação.</p>
+                    <textarea id="json-input" class="w-full h-64 bg-bg-main border border-slate-200/10 rounded-xl p-4 font-mono text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none text-txt-main" placeholder='{
+    "Matemática": {
+        "Q1 - Básica": {
+            "pergunta": "Quanto é 10 + 10?",
+            "a": "10",
+            "b": "20",
+            "c": "30",
+            "d": "40",
+            "correta": "b"
+        }
+    }
+}'></textarea>
+                    <button onclick="saveJSON()" class="mt-4 bg-brand-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-brand-500/20 hover:bg-brand-700 transition-colors">Salvar e Carregar</button>
+                </div>
+
+                <div id="tab-cloud" class="settings-tab hidden">
+                    <h4 class="text-lg font-bold mb-4 text-txt-main">Conexão & API</h4>
+                    <div class="bg-bg-main p-4 rounded-xl border border-slate-200/10 mb-6">
+                        <p class="text-sm text-txt-muted mb-1">Status:</p>
+                        <p class="text-brand-500 font-bold flex items-center gap-2" id="firebase-status"><i class="ph-fill ph-check-circle"></i> LocalStorage Ativo (Sem Cloud)</p>
+                        <p class="text-sm text-txt-muted mt-4 mb-1">ID do Usuário:</p>
+                        <p class="font-mono text-xs text-txt-main bg-card p-2 rounded select-all" id="setting-uid">Local</p>
+                    </div>
+                    
+                    <h4 class="text-lg font-bold mb-2 text-txt-main">Configuração Manual (Avançado)</h4>
+                    <p class="text-sm text-txt-muted mb-2">Se estiver a rodar localmente, cole o JSON do Firebase aqui.</p>
+                    <textarea id="manual-firebase-config" class="w-full h-32 bg-bg-main border border-slate-200/10 rounded-xl p-4 font-mono text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none text-txt-main"></textarea>
+                    <button onclick="saveFirebaseConfig(document.getElementById('manual-firebase-config').value)" class="mt-4 bg-slate-700 text-white px-6 py-2 rounded-xl font-bold transition-colors">Atualizar Configuração</button>
+                </div>
+
+                <div id="tab-shortcuts" class="settings-tab hidden">
+                    <h4 class="text-lg font-bold mb-4 text-txt-main">Teclas de Atalho</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-bg-main rounded-xl flex justify-between items-center border border-slate-200/10 text-txt-main">
+                            <span class="text-sm font-medium text-main">Nova Tarefa</span> <kbd class="px-2 py-1 bg-panel border border-slate-200/20 rounded text-xs font-bold font-mono text-main">N</kbd>
+                        </div>
+                        <div class="p-4 bg-bg-main rounded-xl flex justify-between items-center border border-slate-200/10 text-txt-main">
+                            <span class="text-sm font-medium text-main">Modo Zen</span> <kbd class="px-2 py-1 bg-panel border border-slate-200/20 rounded text-xs font-bold font-mono text-main">Z</kbd>
+                        </div>
+                        <div class="p-4 bg-bg-main rounded-xl flex justify-between items-center border border-slate-200/10 text-txt-main">
+                            <span class="text-sm font-medium text-main">Timer</span> <kbd class="px-2 py-1 bg-panel border border-slate-200/20 rounded text-xs font-bold font-mono text-main">T</kbd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <script type="module">
+        // --- FIREBASE IMPORTS ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- FIREBASE VARS ---
+        let appFirebase, auth, db, appId;
+        let isCloudMode = false;
+
+        // --- APP STATE (DEFAULT) ---
+        const DEFAULT_STATE = {
+            user: { xp: 0, level: 1, streak: 0, inventory: [] },
+            settings: { focusTime: 25, breakTime: 5, theme: 'light' },
+            anchors: [{ id: 'a1', title: 'Inglês', icon: 'translate', streak: 0, completed: false }],
+            weekPlan: { 'segunda': [], 'terca': [], 'quarta': [], 'quinta': [], 'sexta': [], 'sabado': [], 'domingo': [] },
+            questions: {}, lastLogin: new Date().toDateString()
+        };
+
+        // Initialize Global State from LocalStorage first
+        window.app = JSON.parse(localStorage.getItem('orbit_v5_data')) || JSON.parse(JSON.stringify(DEFAULT_STATE));
+        let userDocRef = null;
+        let unsubscribeSnapshot = null;
+        let saveTimeout = null;
+
+        // --- FIREBASE CONFIG RESOLUTION ---
+        async function initFirebase() {
+            // Hardcoded Embedded Config provided by user
+            const config = {
+              "apiKey": "AIzaSyB8HXoAZkq9uPVbN3SjISFcrl6EgsFcxRc",
+              "authDomain": "orbit-study.firebaseapp.com",
+              "projectId": "orbit-study",
+              "storageBucket": "orbit-study.firebasestorage.app",
+              "messagingSenderId": "1084558202713",
+              "appId": "1:1084558202713:web:8419805db15349cead1e48",
+              "measurementId": "G-FLCZBTKFWJ"
+            };
+
+            // Force hide loading screen after 5 seconds to prevent getting stuck
+            setTimeout(() => {
+                const loading = document.getElementById('loading-screen');
+                if (loading && window.getComputedStyle(loading).display !== 'none' && loading.style.opacity !== '0' && !auth?.currentUser) {
+                    console.warn("Auth timeout - forcing offline load");
+                    loading.style.display = 'none';
+                    document.getElementById('layout-wrapper').style.opacity = '1';
+                    window.showToast("Modo Offline Ativado (Tempo limite)", "info");
+                }
+            }, 5000);
+
+            try {
+                // Initialize with hardcoded config
+                appFirebase = initializeApp(config);
+                auth = getAuth(appFirebase);
+                db = getFirestore(appFirebase);
+                appId = 'orbit-study-os';
+                
+                // Start Auth Listener
+                initAuthObserver();
+                
+            } catch (e) {
+                console.error("Firebase Init Error:", e);
+                // Fallback to local mode UI if critical failure
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('layout-wrapper').style.opacity = '1';
+                refreshUI();
+            }
+        }
+
+        window.saveFirebaseConfig = (jsonString) => {
+            let val = jsonString || document.getElementById('firebase-config-input').value;
+            if(!val) return;
+            
+            // Try to fix loose JSON keys (e.g. apiKey: "..." -> "apiKey": "...")
+            if (!val.trim().startsWith('"') && val.includes(':')) {
+                val = val.replace(/(\w+):/g, '"$1":');
+            }
+
+            try {
+                // Validate JSON syntax
+                JSON.parse(val); 
+                localStorage.setItem('orbit_firebase_config', val);
+                location.reload();
+            } catch (e) {
+                alert("JSON Inválido: Verifique a sintaxe. Certifique-se de que todas as chaves estão entre aspas duplas.");
+            }
+        }
+
+        // --- AUTH LOGIC ---
+        const initAuthObserver = async () => {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    isCloudMode = true;
+                    document.getElementById('setting-uid').innerText = user.uid;
+                    document.getElementById('firebase-status').innerHTML = `<i class="ph-fill ph-cloud text-brand-500"></i> Conectado: ${user.email}`;
+                    document.getElementById('sync-status').classList.remove('hidden');
+                    
+                    // UI Update
+                    document.getElementById('btn-login').classList.add('hidden');
+                    document.getElementById('user-profile').classList.remove('hidden');
+                    document.getElementById('user-profile').classList.add('flex');
+                    document.getElementById('user-name').innerText = user.displayName || 'Estudante';
+                    // Ensure we use the photoURL or fallback
+                    document.getElementById('user-avatar').src = user.photoURL || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.uid}`;
+
+                    // Firestore Sync
+                    if (unsubscribeSnapshot) unsubscribeSnapshot();
+                    userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'app_data', 'storage');
+                    
+                    // Error handling in onSnapshot
+                    unsubscribeSnapshot = onSnapshot(userDocRef, (docSnap) => {
+                        document.getElementById('loading-screen').style.opacity = '0';
+                        setTimeout(() => document.getElementById('loading-screen').style.display = 'none', 500);
+                        document.getElementById('layout-wrapper').style.opacity = '1';
+
+                        if (docSnap.exists()) {
+                            window.app = { ...DEFAULT_STATE, ...docSnap.data() };
+                        } else {
+                            save(true); // Save current local state to cloud for new user
+                        }
+                        refreshUI();
+                    }, (error) => {
+                        console.error("Firestore Error:", error);
+                        // Fallback if permission denied or other error
+                        document.getElementById('loading-screen').style.display = 'none';
+                        document.getElementById('layout-wrapper').style.opacity = '1';
+                        window.showToast("Erro na sincronização: " + error.code, "error");
+                    });
+                } else {
+                    // Logged out
+                    isCloudMode = false;
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('layout-wrapper').style.opacity = '1';
+                    document.getElementById('btn-login').classList.remove('hidden');
+                    document.getElementById('user-profile').classList.add('hidden');
+                    refreshUI();
+                }
+            });
+        };
+
+        // --- GOOGLE LOGIN ---
+        window.loginGoogle = async () => {
+            if (!auth) {
+                // If auth is null, it means no config. Open settings to Cloud tab.
+                window.openModal('modal-settings');
+                window.switchTab('tab-cloud');
+                alert("Por favor, configure o Firebase na aba 'Nuvem / API' antes de fazer login.");
+                return;
+            }
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                window.showToast("Login realizado!", "success");
+            } catch (error) {
+                console.error(error);
+                window.showToast("Erro no login: " + error.message, "error");
+            }
+        };
+
+        window.logout = async () => {
+            await signOut(auth);
+            location.reload();
+        };
+
+        // --- SAVE FUNCTION ---
+        window.save = (immediate = false) => {
+            refreshUI();
+            
+            // Always save to LocalStorage as backup
+            localStorage.setItem('orbit_v5_data', JSON.stringify(window.app));
+
+            // If Cloud, save to Firestore
+            if (isCloudMode && userDocRef) {
+                clearTimeout(saveTimeout);
+                const doSave = async () => {
+                    try { await setDoc(userDocRef, window.app, { merge: true }); } 
+                    catch (e) { console.error("Cloud save failed", e); }
+                };
+                if (immediate) doSave(); else saveTimeout = setTimeout(doSave, 1000); 
+            }
+        };
+
+        // --- UI REFRESHER ---
+        function refreshUI() {
+            renderDashboard();
+            renderCronograma();
+            updateHeader();
+            loadSettingsToUI();
+            
+            const currentThemeClass = `theme-${window.app.settings.theme}`;
+            if (window.app.settings.theme === 'light') {
+                document.body.className = "h-screen w-screen overflow-hidden selection:bg-brand-500 selection:text-white font-sans";
+            } else if (!document.body.classList.contains(currentThemeClass)) {
+                document.body.className = `h-screen w-screen overflow-hidden selection:bg-brand-500 selection:text-white font-sans ${currentThemeClass}`;
+            }
+        }
+
+        // --- GLOBAL ACTIONS ---
+        window.initIcons = () => {
+            const icons = ['book', 'calculator', 'globe', 'atom', 'laptop', 'pencil', 'brain', 'translate'];
+            const container = document.getElementById('anchor-icons');
+            if (container) {
+                container.innerHTML = icons.map(i => `
+                    <div onclick="selectAnchorIcon('${i}', this)" class="h-10 w-10 bg-bg-main rounded-lg flex items-center justify-center cursor-pointer hover:bg-brand-100 hover:text-brand-600 transition-colors icon-opt ${i === 'book' ? 'bg-brand-500 text-white' : 'text-txt-muted'}">
+                        <i class="ph-fill ph-${i}"></i>
+                    </div>
+                `).join('');
+            }
+        }
+
+        window.checkDailyReset = () => {
+            const today = new Date().toDateString();
+            if (window.app.lastLogin !== today) {
+                window.app.anchors.forEach(a => { if (!a.completed) a.streak = 0; a.completed = false; });
+                window.app.lastLogin = today;
+                window.save();
+            }
+        }
+
+        window.applyTheme = (themeName) => {
+            window.app.settings.theme = themeName;
+            window.save();
+        }
+
+        window.router = (view) => {
+            ['dashboard', 'cronograma', 'foco', 'questoes', 'loja'].forEach(v => {
+                document.getElementById('view-'+v).classList.add('hidden');
+                document.getElementById('nav-'+v).classList.remove('bg-brand-50', 'text-brand-600');
+            });
+            document.getElementById('view-'+view).classList.remove('hidden');
+            document.getElementById('nav-'+view).classList.add('bg-brand-50', 'text-brand-600');
+            if(view === 'questoes') window.renderQuestionsSelector();
+            if(view === 'loja') window.updateShopUI();
+        }
+
+        // --- DASHBOARD ---
+        window.renderDashboard = () => {
+            document.getElementById('stat-streak').innerText = window.app.user.streak + ' Dias';
+            
+            document.getElementById('anchors-list').innerHTML = window.app.anchors.map(a => `
+                <div onclick="toggleAnchor('${a.id}')" class="bg-card p-4 rounded-2xl border ${a.completed ? 'border-brand-500 bg-brand-50/50' : 'border-slate-200/10'} shadow-sm cursor-pointer hover:scale-[1.02] transition-all relative group">
+                    <button onclick="event.stopPropagation(); deleteAnchor('${a.id}')" class="absolute top-2 right-2 text-txt-muted hover:text-red-500 opacity-0 group-hover:opacity-100"><i class="ph-bold ph-trash"></i></button>
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 rounded-lg ${a.completed ? 'bg-brand-500 text-white' : 'bg-bg-main text-txt-muted'} flex items-center justify-center transition-colors"><i class="ph-fill ph-${a.icon} text-xl"></i></div>
+                        <div><h4 class="font-bold text-sm text-txt-main ${a.completed ? 'line-through text-txt-muted' : ''}">${a.title}</h4><div class="text-[10px] font-bold text-orange-500 flex items-center gap-1"><i class="ph-fill ph-fire"></i> ${a.streak}</div></div>
+                    </div>
+                </div>
+            `).join('');
+
+            const today = window.getDayKey();
+            const tasks = window.app.weekPlan[today] || [];
+            const taskContainer = document.getElementById('dashboard-tasks');
+            document.getElementById('stat-tasks').innerText = `${tasks.filter(t => t.completed).length} / ${tasks.length}`;
+
+            if (tasks.length === 0) taskContainer.innerHTML = `<div class="text-center py-10 opacity-50"><p class="text-txt-muted">Nada para hoje.</p><button onclick="openTaskModal('${today}')" class="text-brand-600 font-bold text-sm mt-2 hover:underline">Adicionar</button></div>`;
+            else taskContainer.innerHTML = tasks.map(t => window.generateTaskHTML(t, today, false)).join('');
+        }
+
+        window.renderCronograma = () => {
+            const container = document.getElementById('week-columns');
+            const days = { 'segunda': 'Seg', 'terca': 'Ter', 'quarta': 'Qua', 'quinta': 'Qui', 'sexta': 'Sex', 'sabado': 'Sáb', 'domingo': 'Dom' };
+            const todayKey = window.getDayKey();
+
+            container.innerHTML = Object.keys(window.app.weekPlan).map(day => `
+                <div class="w-72 flex-shrink-0 bg-card rounded-2xl border ${day === todayKey ? 'border-brand-500' : 'border-slate-200/10'} flex flex-col h-full overflow-hidden">
+                    <div class="p-3 bg-bg-main border-b border-slate-200/10 flex justify-between items-center">
+                        <span class="font-bold text-sm text-txt-main ${day === todayKey ? 'text-brand-600' : ''}">${days[day]}</span>
+                        <button onclick="openTaskModal('${day}')" class="hover:text-brand-600 text-txt-muted"><i class="ph-bold ph-plus"></i></button>
+                    </div>
+                    <div class="p-3 overflow-y-auto flex-1 space-y-2 custom-scrollbar">
+                        ${(window.app.weekPlan[day] || []).map(t => window.generateTaskHTML(t, day, true)).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.generateTaskHTML = (t, day, isCronograma) => {
+            return `
+            <div class="group bg-bg-main p-3 rounded-xl border ${t.completed ? 'border-brand-200 bg-brand-50/20' : 'border-slate-200/10'} hover:border-brand-300 transition-all">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-2">
+                        <button onclick="toggleTask('${day}', '${t.id}')" class="mt-0.5 w-5 h-5 rounded border ${t.completed ? 'bg-brand-500 border-brand-500 text-white' : 'border-slate-300'} flex items-center justify-center transition-colors">
+                            <i class="ph-bold ph-check text-xs ${t.completed ? '' : 'hidden'}"></i>
+                        </button>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold leading-tight text-txt-main ${t.completed ? 'line-through text-txt-muted' : ''}">${t.title}</p>
+                            ${t.topic ? `<p class="text-xs text-txt-muted mt-1 flex items-center gap-1"><i class="ph-fill ph-tag"></i> ${t.topic}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 flex gap-2 justify-end border-t border-slate-200/10 pt-2 ${isCronograma ? '' : 'hidden group-hover:flex'}">
+                    <button onclick="startPomodoroWithTask('${t.title}')" class="text-xs flex items-center gap-1 text-txt-muted hover:text-brand-600 px-2 py-1 rounded hover:bg-brand-50 transition-colors" title="Iniciar Pomodoro">
+                        <i class="ph-fill ph-play-circle"></i> Focar
+                    </button>
+                    <button onclick="deleteTask('${day}', '${t.id}')" class="text-xs flex items-center gap-1 text-txt-muted hover:text-red-500 px-2 py-1 rounded hover:bg-red-50 transition-colors" title="Remover">
+                        <i class="ph-bold ph-trash"></i>
+                    </button>
+                </div>
+            </div>`;
+        }
+
+        // --- ACTIONS ---
+        window.toggleTask = (day, id) => {
+            const t = window.app.weekPlan[day].find(x => x.id == id);
+            if(t) {
+                t.completed = !t.completed;
+                if(t.completed) { window.app.user.xp += 20; window.showToast("+20 XP", "success"); }
+                else window.app.user.xp -= 20;
+                window.save();
+            }
+        }
+
+        window.startPomodoroWithTask = (title) => {
+            document.getElementById('focus-context').classList.remove('hidden');
+            document.getElementById('focus-context-text').innerText = title;
+            window.router('foco');
+        }
+
+        window.clearFocusContext = () => {
+            document.getElementById('focus-context').classList.add('hidden');
+        }
+
+        window.deleteTask = (day, id) => {
+            if(confirm("Remover esta tarefa?")) {
+                window.app.weekPlan[day] = window.app.weekPlan[day].filter(t => t.id != id);
+                window.save();
+            }
+        }
+
+        window.openTaskModal = (day) => {
+            document.getElementById('task-day-input').value = day;
+            document.getElementById('task-title-input').value = ''; 
+            document.getElementById('task-topic-input').value = ''; 
+            window.openModal('modal-task');
+            setTimeout(() => document.getElementById('task-title-input').focus(), 100);
+        }
+
+        window.confirmAddTask = () => {
+            const day = document.getElementById('task-day-input').value;
+            const title = document.getElementById('task-title-input').value;
+            const topic = document.getElementById('task-topic-input').value;
+            if(title) {
+                window.app.weekPlan[day].push({ id: Date.now().toString(), title, topic, completed: false });
+                window.save(); window.closeModal('modal-task');
+            }
+        }
+
+        window.toggleAnchor = (id) => {
+            const a = window.app.anchors.find(x => x.id == id);
+            if(a) {
+                a.completed = !a.completed;
+                if(a.completed) { a.streak++; window.app.user.xp += 50; } else a.streak = Math.max(0, a.streak-1);
+                window.save();
+            }
+        }
+
+        window.selectAnchorIcon = (icon, el) => {
+            document.getElementById('anchor-icon-input').value = icon;
+            document.querySelectorAll('.icon-opt').forEach(e => e.className = 'h-10 w-10 bg-bg-main rounded-lg flex items-center justify-center cursor-pointer hover:bg-brand-100 hover:text-brand-600 transition-colors icon-opt text-txt-muted');
+            el.className = 'h-10 w-10 bg-brand-500 rounded-lg flex items-center justify-center cursor-pointer text-white icon-opt';
+        }
+
+        window.confirmAddAnchor = () => {
+            const title = document.getElementById('anchor-title-input').value;
+            const icon = document.getElementById('anchor-icon-input').value;
+            if(title) {
+                window.app.anchors.push({ id: 'a'+Date.now(), title, icon, completed: false, streak: 0 });
+                window.save(); window.closeModal('modal-anchor');
+            }
+        }
+
+        window.deleteAnchor = (id) => {
+            if(confirm("Remover hábito?")) {
+                window.app.anchors = window.app.anchors.filter(a => a.id != id);
+                window.save();
+            }
+        }
+
+        // --- POMODORO ---
+        let timer = null; let timeLeft = 25 * 60; let isRunning = false;
+
+        window.enableTimerEdit = () => {
+            if(isRunning) return;
+            const display = document.getElementById('timer-display');
+            const input = document.getElementById('timer-input');
+            input.value = display.innerText;
+            display.classList.add('hidden');
+            input.classList.remove('hidden');
+            input.focus();
+        }
+
+        window.disableTimerEdit = () => {
+            const display = document.getElementById('timer-display');
+            const input = document.getElementById('timer-input');
+            const val = input.value.trim();
+            const match = val.match(/^(\d+)(?::(\d+))?$/);
+            
+            if (match) {
+                const mins = parseInt(match[1]);
+                const secs = match[2] ? parseInt(match[2]) : 0;
+                if (mins >= 0 && secs >= 0 && secs < 60) {
+                    timeLeft = (mins * 60) + secs;
+                    window.updateTimerDisplay();
+                }
+            }
+            input.classList.add('hidden');
+            display.classList.remove('hidden');
+        }
+
+        window.handleTimerInput = (e) => { if(e.key === 'Enter') window.disableTimerEdit(); }
+
+        window.updateTimerDisplay = () => {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${m}:${s}`;
+            document.title = `${m}:${s} - Orbit`;
+        }
+
+        window.toggleTimer = () => {
+            if(isRunning) { clearInterval(timer); isRunning = false; document.getElementById('btn-timer-action').innerHTML = '<i class="ph-fill ph-play"></i>'; }
+            else {
+                isRunning = true;
+                document.getElementById('btn-timer-action').innerHTML = '<i class="ph-fill ph-pause"></i>';
+                timer = setInterval(() => {
+                    timeLeft--;
+                    window.updateTimerDisplay();
+                    if(timeLeft <= 0) { 
+                        clearInterval(timer); 
+                        isRunning = false; 
+                        try { new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play(); } catch(e) {}
+                        window.showToast("Tempo esgotado!", "info"); 
+                    }
+                }, 1000);
+            }
+        }
+
+        window.resetTimer = () => {
+            clearInterval(timer); isRunning = false;
+            document.getElementById('btn-timer-action').innerHTML = '<i class="ph-fill ph-play"></i>';
+            timeLeft = window.app.settings.focusTime * 60;
+            window.updateTimerDisplay();
+        }
+
+        window.setTimerMode = (m) => {
+            timeLeft = (m === 'focus' ? 25 : 5) * 60;
+            window.resetTimer();
+        }
+
+        // --- UTILS ---
+        window.openModal = (id) => { document.getElementById(id).showModal(); }
+        window.closeModal = (id) => { document.getElementById(id).close(); }
+        
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.settings-tab').forEach(t => t.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('bg-brand-100', 'text-brand-700', 'active-tab'));
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('bg-brand-100', 'text-brand-700', 'text-main');
+        }
+
+        window.showToast = (msg, type='info') => {
+            const toast = document.createElement('div');
+            const colors = { success: 'bg-emerald-500', error: 'bg-red-500', info: 'bg-slate-800' };
+            toast.className = `${colors[type]} text-white px-4 py-3 rounded-xl shadow-lg text-sm font-bold flex items-center gap-2 animate-slide-up`;
+            toast.innerHTML = msg;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        window.updateHeader = () => {
+            document.getElementById('header-date').innerText = new Date().toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long' });
+            document.getElementById('header-xp').innerText = window.app.user.xp + ' XP';
+            document.getElementById('shop-balance').innerText = window.app.user.xp + ' XP';
+        }
+
+        window.updateShopUI = () => {
+            if(window.app.user.inventory.includes('badge_gold')) document.getElementById('btn-buy-badge_gold').innerText = "Adquirido";
+            if(window.app.user.inventory.includes('badge_brain')) document.getElementById('btn-buy-badge_brain').innerText = "Adquirido";
+        }
+
+        window.buyItem = (id, cost) => {
+            if(window.app.user.inventory.includes(id)) return;
+            if(window.app.user.xp >= cost) {
+                window.app.user.xp -= cost; window.app.user.inventory.push(id); window.save(); window.updateShopUI(); window.showToast("Conquista desbloqueada!", "success");
+            } else window.showToast("XP Insuficiente", "error");
+        }
+
+        window.renderQuestionsSelector = () => {
+            const sel = document.getElementById('subject-selector');
+            const subs = Object.keys(window.app.questions || {});
+            const current = sel.value;
+            sel.innerHTML = '<option value="">Todas</option>' + subs.map(s => `<option value="${s}">${s}</option>`).join('');
+            if (subs.includes(current)) sel.value = current;
+        }
+
+        window.renderQuestions = () => {
+            const subject = document.getElementById('subject-selector').value;
+            const search = document.getElementById('questions-search').value.toLowerCase();
+            const container = document.getElementById('questions-container');
+            
+            let html = '';
+            
+            Object.keys(window.app.questions).forEach(sub => {
+                if(subject && sub !== subject) return;
+                
+                const questions = window.app.questions[sub];
+                Object.keys(questions).forEach(qTitle => {
+                    if(search && !qTitle.toLowerCase().includes(search)) return;
+
+                    const q = questions[qTitle];
+                    const questionText = q.pergunta || qTitle;
+                    const optionsKeys = Object.keys(q).filter(k => k !== 'pergunta' && k !== 'correta');
+                    
+                    html += `
+                    <div class="bg-card p-6 rounded-3xl border border-slate-200/10 shadow-sm animate-slide-up">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="text-xs font-bold text-brand-500 uppercase tracking-wider mb-1 block">${sub}</span>
+                                <h4 class="font-bold text-lg leading-tight text-txt-main">${questionText}</h4>
+                            </div>
+                        </div>
+                        <div class="grid gap-2">
+                            ${optionsKeys.map(key => `
+                                <button onclick="checkAnswer(this, '${q.correta || ''}', '${key}')" class="quiz-option w-full text-left p-3 rounded-xl border border-slate-200/10 hover:bg-brand-50 hover:border-brand-200 flex gap-3 group">
+                                    <span class="font-mono font-bold uppercase text-txt-muted bg-bg-main w-6 h-6 flex items-center justify-center rounded text-xs border border-slate-200/20">${key}</span>
+                                    <span class="text-sm text-txt-main">${q[key]}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>`;
+                });
+            });
+            container.innerHTML = html || '<div class="text-center py-20 opacity-50"><p class="text-txt-muted">Nenhuma questão encontrada.</p></div>';
+        }
+
+        window.checkAnswer = (btn, correctKey, selectedKey) => {
+            if (!correctKey) return;
+            const parent = btn.parentElement;
+            Array.from(parent.children).forEach(b => {
+                b.disabled = true;
+                b.classList.remove('hover:bg-brand-50', 'hover:border-brand-200');
+            });
+
+            if (selectedKey === correctKey) {
+                btn.classList.add('quiz-correct');
+                window.showToast("Resposta Correta! +10 XP", "success");
+                window.app.user.xp += 10; window.save();
+            } else {
+                btn.classList.add('quiz-wrong');
+                const correctBtn = Array.from(parent.children).find(b => b.querySelector('span').innerText.toLowerCase() === correctKey.toLowerCase());
+                if (correctBtn) correctBtn.classList.add('quiz-correct');
+                window.showToast("Resposta Incorreta", "error");
+            }
+        }
+
+        window.saveJSON = () => {
+            try {
+                const input = document.getElementById('json-input').value;
+                window.app.questions = JSON.parse(input);
+                window.save(); window.renderQuestionsSelector(); window.renderQuestions();
+                window.showToast("Questões salvas!", "success");
+            } catch(e) { window.showToast("Erro no JSON: " + e.message, "error"); }
+        }
+
+        window.getDayKey = () => ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'][new Date().getDay()];
+        
+        window.hardReset = () => { 
+            if(confirm("Apagar todos os dados na nuvem?")) { 
+                setDoc(userDocRef, DEFAULT_STATE);
+                location.reload(); 
+            } 
+        }
+
+        window.toggleZenMode = () => {
+            const sidebar = document.getElementById('sidebar');
+            const header = document.getElementById('top-header');
+            if(sidebar.classList.contains('zen-hidden')) {
+                sidebar.classList.remove('zen-hidden'); header.classList.remove('zen-hidden');
+                document.getElementById('scroll-content').classList.remove('zen-expand');
+            } else {
+                sidebar.classList.add('zen-hidden'); header.classList.add('zen-hidden');
+                document.getElementById('scroll-content').classList.add('zen-expand');
+            }
+        }
+
+        // Init
+        initFirebase();
+        window.initIcons();
+        document.addEventListener('keydown', (e) => {
+            if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            switch(e.key.toLowerCase()) {
+                case 'n': window.openTaskModal(window.getDayKey()); e.preventDefault(); break;
+                case 'z': window.toggleZenMode(); break;
+                case 't': window.router('foco'); break;
+                case 'c': window.router('cronograma'); break;
+                case 'd': window.router('dashboard'); break;
+            }
+        });
+
+        window.loadSettingsToUI = () => {
+            document.getElementById('set-focus').oninput = (e) => {
+                window.app.settings.focusTime = parseInt(e.target.value);
+                document.getElementById('lbl-focus').innerText = window.app.settings.focusTime;
+                window.save(); window.updateTimerDisplay();
+            };
+             document.getElementById('set-break').oninput = (e) => {
+                window.app.settings.breakTime = parseInt(e.target.value);
+                document.getElementById('lbl-break').innerText = window.app.settings.breakTime;
+                window.save();
+            };
+            if(window.app.questions && Object.keys(window.app.questions).length > 0) {
+                document.getElementById('json-input').value = JSON.stringify(window.app.questions, null, 4);
+            }
+        }
+
+    </script>
+</body>
+</html>
