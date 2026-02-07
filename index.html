@@ -15,6 +15,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -130,6 +131,7 @@
             border: 2px solid; 
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            -webkit-user-select: none;
             user-select: none;
             transition: box-shadow 0.2s;
             cursor: grab;
@@ -172,6 +174,12 @@
         /* Re-habilita edição ao focar/clicar explicitamente */
         .mm-node.editing textarea { pointer-events: auto; }
 
+        #mm-svg {
+            width: 10000px;
+            height: 10000px;
+            transform: translate(-5000px, -5000px);
+        }
+
         /* Utilitários */
         .zen-hidden { display: none !important; }
         .active-nav { background-color: var(--brand-50); color: var(--brand-600); border-left: 4px solid var(--brand-600); }
@@ -179,8 +187,24 @@
         
         /* Modo Leitura */
         .readonly .mm-toolbar { display: none !important; }
-        .readonly .mm-node { resize: none; cursor: default; }
+        
+        .readonly .mm-node { 
+            resize: none !important; 
+            cursor: default !important;
+            pointer-events: none !important;
+        }
+        
+        .readonly .mm-node textarea {
+            pointer-events: none !important;
+        }
+        
         .readonly .mm-node::-webkit-resizer { display: none; }
+
+        /* Efeito 3D para Flashcards */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
     </style>
 </head>
 <body class="h-screen w-screen font-sans selection:bg-brand-500 selection:text-white">
@@ -211,7 +235,7 @@
                         <p class="text-[10px] uppercase font-bold text-txt-muted tracking-widest">Enhanced</p>
                     </div>
                 </div>
-                <button onclick="toggleSidebar()" class="ml-auto lg:hidden text-txt-muted p-2 rounded hover:bg-bg-main"><i class="ph-bold ph-x"></i></button>
+                <button title="Sair do menu" onclick="toggleSidebar()" class="ml-auto lg:hidden text-txt-muted p-2 rounded hover:bg-bg-main"><i class="ph-bold ph-x"></i></button>
             </div>
 
             <nav class="flex-1 overflow-y-auto p-4 space-y-2">
@@ -236,6 +260,15 @@
                 <button onclick="router('questoes')" id="nav-questoes" class="w-full flex items-center p-3 rounded-xl text-txt-muted hover:bg-bg-main hover:text-brand-600 transition-all font-medium text-sm group">
                     <i class="ph ph-graduation-cap text-xl mr-3 group-hover:scale-110 transition-transform"></i> Vestibular
                 </button>
+                <button onclick="router('flashcards')" id="nav-flashcards" class="w-full flex items-center p-3 rounded-xl text-txt-muted hover:bg-bg-main hover:text-brand-600 transition-all font-medium text-sm group">
+                    <i class="ph ph-cards text-xl mr-3 group-hover:scale-110 transition-transform"></i> Flashcards
+                </button>
+                <button onclick="router('redacao')" id="nav-redacao" class="w-full flex items-center p-3 rounded-xl text-txt-muted hover:bg-bg-main hover:text-brand-600 transition-all font-medium text-sm group">
+                    <i class="ph ph-pen-nib text-xl mr-3 group-hover:scale-110 transition-transform"></i> Redação
+                </button>
+                <button onclick="router('simulado')" id="nav-simulado" class="w-full flex items-center p-3 rounded-xl text-txt-muted hover:bg-bg-main hover:text-brand-600 transition-all font-medium text-sm group">
+                    <i class="ph ph-timer text-xl mr-3 group-hover:scale-110 transition-transform"></i> Simulado
+                </button>
                 <button onclick="router('loja')" id="nav-loja" class="w-full flex items-center p-3 rounded-xl text-txt-muted hover:bg-bg-main hover:text-brand-600 transition-all font-medium text-sm group">
                     <i class="ph ph-storefront text-xl mr-3 group-hover:scale-110 transition-transform"></i> Conquistas
                 </button>
@@ -243,7 +276,7 @@
 
             <div class="p-4 border-t border-slate-200/10 bg-bg-main/50 relative">
                 <button onclick="toggleUserMenu()" class="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-bg-card transition-all border border-transparent hover:border-slate-200/10">
-                    <img id="user-avatar" src="https://ui-avatars.com/api/?name=Estudante&background=random" class="w-9 h-9 rounded-full border-2 border-brand-200">
+                    <img title="Imagem de estudante" id="user-avatar" src="https://ui-avatars.com/api/?name=Estudante&background=random" class="w-9 h-9 rounded-full border-2 border-brand-200">
                     <div class="flex-1 min-w-0 text-left">
                         <p id="user-name" class="text-xs font-bold text-txt-main truncate">Visitante</p>
                         <p class="text-[10px] text-txt-muted truncate">Clique para menu</p>
@@ -276,7 +309,7 @@
             
             <header class="h-16 px-6 flex items-center justify-between z-30 shrink-0">
                 <div class="flex items-center gap-4">
-                    <button onclick="toggleSidebar()" class="lg:hidden p-2 text-txt-main rounded-lg bg-bg-main shadow-sm border border-slate-200/10 w-10 h-10"><i class="ph-bold ph-list"></i></button>
+                    <button title="Menu" onclick="toggleSidebar()" class="lg:hidden p-2 text-txt-main rounded-lg bg-bg-main shadow-sm border border-slate-200/10 w-10 h-10"><i class="ph-bold ph-list"></i></button>
                     <div>
                         <h2 id="page-title" class="text-xl font-bold text-txt-main leading-tight">Dashboard</h2>
                         <p id="current-date" class="text-[11px] font-mono text-txt-muted hidden md:block opacity-70">...</p>
@@ -361,6 +394,43 @@
                     </div>
                 </div>
 
+                <div id="view-flashcards" class="hidden h-full flex flex-col animate-slide-up max-w-5xl mx-auto">
+                    <div id="fc-decks-view">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-bold text-txt-main">Meus Baralhos</h2>
+                            <button onclick="document.getElementById('modal-create-deck').showModal()" class="bg-brand-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-brand-700 shadow-lg">
+                                <i class="ph-bold ph-plus"></i> Novo Baralho
+                            </button>
+                        </div>
+                        <div id="fc-decks-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            </div>
+                    </div>
+
+                    <div id="fc-study-view" class="hidden flex flex-col items-center justify-center h-full relative">
+                        <button onclick="Flashcards.closeStudy()" class="absolute top-0 left-0 text-txt-muted hover:text-brand-600 flex items-center gap-2">
+                            <i class="ph-bold ph-arrow-left"></i> Voltar
+                        </button>
+
+                        <div class="perspective-1000 w-full max-w-lg h-80 cursor-pointer group" onclick="Flashcards.flip()">
+                            <div id="fc-card-inner" class="relative w-full h-full text-center transition-transform duration-500 transform-style-3d shadow-2xl rounded-3xl">
+                                <div class="absolute w-full h-full backface-hidden bg-bg-card border border-slate-200/10 rounded-3xl p-8 flex flex-col items-center justify-center">
+                                    <span class="text-xs font-bold text-brand-500 uppercase tracking-widest mb-4">PERGUNTA</span>
+                                    <h3 id="fc-front-text" class="text-2xl font-bold text-txt-main">?</h3>
+                                    <p class="text-xs text-txt-muted mt-8 opacity-50">(Clique para virar)</p>
+                                </div>
+                                <div class="absolute w-full h-full backface-hidden bg-brand-600 text-white rounded-3xl p-8 flex flex-col items-center justify-center rotate-y-180">
+                                    <span class="text-xs font-bold text-brand-200 uppercase tracking-widest mb-4">RESPOSTA</span>
+                                    <h3 id="fc-back-text" class="text-xl font-bold">!</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="fc-controls" class="mt-8 flex gap-4 opacity-0 transition-opacity pointer-events-none">
+                            <button onclick="Flashcards.next()" class="px-6 py-3 rounded-xl bg-brand-100 text-brand-700 font-bold hover:bg-brand-200">Próximo</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="view-cronograma" class="hidden h-full flex flex-col animate-slide-up">
                     <div class="flex justify-end mb-4 px-2 gap-3">
                          <button onclick="distributePomodoro()" class="flex items-center gap-2 text-xs font-bold bg-brand-100 text-brand-700 px-4 py-2 rounded-xl hover:bg-brand-200 transition shadow-sm">
@@ -395,22 +465,29 @@
                     <!-- 2. WORKSPACE -->
                     <div id="mm-workspace" class="hidden absolute inset-0 z-30 flex flex-col bg-bg-card">
                         <!-- Header do Workspace -->
-                        <div class="absolute top-4 left-4 z-40 flex flex-col gap-2 pointer-events-auto">
+                        <div class="items-start absolute top-4 left-4 z-40 flex flex-col gap-2 pointer-events-auto">
                             <div class="flex items-center gap-2 bg-bg-panel p-2 rounded-xl border border-slate-200 shadow-lg mb-2">
                                 <button onclick="MindMap.close()" class="w-10 h-10 rounded-lg hover:bg-slate-100 text-txt-muted flex items-center justify-center transition-colors text-lg" title="Voltar"><i class="ph-bold ph-arrow-left"></i></button>
                                 <div class="px-2 border-l border-slate-200">
                                     <h4 id="mm-current-title" class="text-xs font-bold text-txt-main">Sem Título</h4>
                                     <p id="mm-current-subject" class="text-[10px] text-txt-muted">Geral</p>
+                                </div>                                
+                                <div class="flex gap-1 justify-center pb-2 mb-2">
+                                    <button onclick="MindMap.zoom(-0.1)" class="w-8 h-8 rounded hover:bg-slate-100 text-txt-muted flex items-center justify-center transition-colors" title="Diminuir Zoom"><i class="ph-bold ph-minus"></i></button>
+                                    <button onclick="MindMap.resetZoom()" class="w-8 h-8 rounded hover:bg-slate-100 text-txt-muted flex items-center justify-center transition-colors" title="Resetar"><i class="ph-bold ph-arrow-counter-clockwise"></i></button>
+                                    <button onclick="MindMap.zoom(0.1)" class="w-8 h-8 rounded hover:bg-slate-100 text-txt-muted flex items-center justify-center transition-colors" title="Aumentar Zoom"><i class="ph-bold ph-plus"></i></button>
                                 </div>
-                                <!-- Modo Visualização apenas indicador -->
-                                <div id="indicator-readonly" class="hidden ml-2 px-2 py-1 bg-brand-100 text-brand-700 text-[10px] font-bold rounded uppercase">Leitura</div>
                             </div>
+
+                            <!-- Modo Visualização apenas indicador -->
+                            <div id="indicator-readonly" class="hidden ml-2 px-2 py-1 bg-brand-100 text-brand-700 text-[10px] font-bold rounded uppercase">Leitura</div>
 
                             <div class="mm-toolbar bg-bg-panel p-2 rounded-xl border border-slate-200 shadow-lg flex flex-col gap-2">
                                 <input type="color" id="mm-color-picker" class="w-10 h-10 rounded-full cursor-pointer border-2 border-slate-200 p-0 overflow-hidden [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-full" value="#2563eb" title="Cor do Nó/Texto" onchange="MindMap.updateColor(this.value)">
                                 <div class="h-px bg-slate-200 my-1"></div>
-                                <button onclick="window.MindMap.addNode()" class="w-10 h-10 rounded-lg hover:bg-brand-50 text-brand-600 flex items-center justify-center transition-colors text-xl" title="Adicionar Nó"><i class="ph-bold ph-plus"></i></button>
                                 
+                                <button onclick="window.MindMap.addNode()" class="w-10 h-10 rounded-lg hover:bg-brand-50 text-brand-600 flex items-center justify-center transition-colors text-xl" title="Adicionar Nó"><i class="ph-bold ph-plus"></i></button>
+
                                 <button onclick="window.MindMap.deleteSelectedNode()" class="w-10 h-10 rounded-lg hover:bg-orange-50 text-orange-500 flex items-center justify-center transition-colors text-xl" title="Excluir Nó"><i class="ph-bold ph-eraser"></i></button>
                                 
                                 <button onclick="window.MindMap.save()" class="w-10 h-10 rounded-lg hover:bg-brand-50 text-brand-600 flex items-center justify-center transition-colors text-xl" title="Salvar"><i class="ph-bold ph-floppy-disk"></i></button>
@@ -423,7 +500,7 @@
                             <div id="mm-world" class="mindmap-world">
                                 <div class="mindmap-bg"></div>
                                 <!-- Camada de Linhas (SVG) -->
-                                <svg id="mm-svg" class="absolute top-0 left-0 overflow-visible pointer-events-none z-0" style="width: 10000px; height: 10000px; transform: translate(-5000px, -5000px);"></svg>
+                                <svg id="mm-svg" class="absolute top-0 left-0 overflow-visible pointer-events-none z-0"></svg>
                                 <!-- Camada de Nós (HTML) -->
                                 <div id="mm-nodes-layer" class="absolute top-0 left-0 w-0 h-0 z-10"></div>
                             </div>
@@ -446,14 +523,14 @@
                         
                         <div class="relative group cursor-pointer" onclick="Timer.edit()">
                             <h1 id="timer-display" class="text-[8rem] md:text-[12rem] font-mono font-bold leading-none tracking-tighter text-txt-main tabular-nums group-hover:text-brand-500 transition-colors">25:00</h1>
-                            <input type="text" id="timer-input" class="hidden text-[8rem] md:text-[12rem] font-mono font-bold leading-none tracking-tighter bg-transparent text-center text-brand-500 w-full outline-none" onblur="Timer.saveEdit()" onkeydown="if(event.key==='Enter')this.blur()">
+                            <input title="Tempo do pomodoro" type="text" id="timer-input" class="hidden text-[8rem] md:text-[12rem] font-mono font-bold leading-none tracking-tighter bg-transparent text-center text-brand-500 w-full outline-none" onblur="Timer.saveEdit()" onkeydown="if(event.key==='Enter')this.blur()">
                         </div>
 
                         <div class="flex gap-6 justify-center mt-12">
-                            <button onclick="Timer.toggle()" id="btn-timer-main" class="w-24 h-24 rounded-3xl bg-brand-600 text-white text-4xl flex items-center justify-center shadow-xl shadow-brand-500/40 hover:scale-110 active:scale-95 transition-all">
+                            <button title="Play/Pause Timer" onclick="Timer.toggle()" id="btn-timer-main" class="w-24 h-24 rounded-3xl bg-brand-600 text-white text-4xl flex items-center justify-center shadow-xl shadow-brand-500/40 hover:scale-110 active:scale-95 transition-all">
                                 <i class="ph-fill ph-play"></i>
                             </button>
-                            <button onclick="Timer.reset()" class="w-24 h-24 rounded-3xl bg-bg-main border-2 border-slate-200/10 text-txt-muted text-4xl flex items-center justify-center hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all">
+                            <button title="Resetar Timer" onclick="Timer.reset()" class="w-24 h-24 rounded-3xl bg-bg-main border-2 border-slate-200/10 text-txt-muted text-4xl flex items-center justify-center hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all">
                                 <i class="ph-bold ph-stop"></i>
                             </button>
                         </div>
@@ -508,7 +585,127 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="shop-grid">
                         </div>
                 </div>
+                <div id="view-redacao" class="hidden h-full flex flex-col animate-slide-up max-w-6xl mx-auto pb-10">
+                    <div class="flex justify-between items-center mb-4 shrink-0">
+                        <h2 class="text-xl font-bold text-txt-main">Laboratório de Redação</h2>
+                        <div class="flex gap-2">
+                            <button onclick="Redacao.toggleTimer()" id="btn-red-timer" class="flex items-center gap-2 bg-bg-card border border-slate-200/10 px-4 py-2 rounded-xl font-mono font-bold text-brand-600 hover:bg-brand-50 transition-colors">
+                                <i class="ph-bold ph-clock"></i> <span id="red-timer-display">01:00:00</span>
+                            </button>
+                            <button onclick="GeminiProcessor.analyze()" id="btn-ai-analyze" class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2">
+                                <i class="ph-bold ph-sparkle"></i> Corrigir com IA
+                            </button>
+                            <button onclick="Redacao.openSelfAssess()" class="bg-brand-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-brand-700 shadow-lg transition-transform hover:scale-105">
+                                <i class="ph-bold ph-check-circle"></i> Finalizar & Avaliar
+                            </button>
+                        </div>
+                    </div>
 
+                    <div class="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden min-h-0">
+                        <div class="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+                            <div class="bg-card p-5 rounded-2xl border border-slate-200/10 relative group hover:border-brand-200 transition-colors">
+                                <span class="absolute top-4 right-4 text-[10px] font-bold text-txt-muted bg-bg-main px-2 py-1 rounded border border-slate-200/10">INTRODUÇÃO</span>
+                                <textarea id="red-intro" class="w-full bg-transparent resize-none outline-none text-txt-main leading-relaxed" rows="5" placeholder="Contextualização + Tese..." oninput="Redacao.updateStats()"></textarea>
+                            </div>
+                            
+                            <div class="bg-card p-5 rounded-2xl border border-slate-200/10 relative group hover:border-brand-200 transition-colors">
+                                <span class="absolute top-4 right-4 text-[10px] font-bold text-txt-muted bg-bg-main px-2 py-1 rounded border border-slate-200/10">DESENVOLVIMENTO 1</span>
+                                <textarea id="red-d1" class="w-full bg-transparent resize-none outline-none text-txt-main leading-relaxed" rows="6" placeholder="Tópico Frasal + Repertório + Argumentação..." oninput="Redacao.updateStats()"></textarea>
+                            </div>
+
+                            <div class="bg-card p-5 rounded-2xl border border-slate-200/10 relative group hover:border-brand-200 transition-colors">
+                                <span class="absolute top-4 right-4 text-[10px] font-bold text-txt-muted bg-bg-main px-2 py-1 rounded border border-slate-200/10">DESENVOLVIMENTO 2</span>
+                                <textarea id="red-d2" class="w-full bg-transparent resize-none outline-none text-txt-main leading-relaxed" rows="6" placeholder="Segundo argumento + Aprofundamento..." oninput="Redacao.updateStats()"></textarea>
+                            </div>
+
+                            <div class="bg-card p-5 rounded-2xl border border-slate-200/10 relative group hover:border-brand-200 transition-colors">
+                                <span class="absolute top-4 right-4 text-[10px] font-bold text-txt-muted bg-bg-main px-2 py-1 rounded border border-slate-200/10">CONCLUSÃO</span>
+                                <textarea id="red-concl" class="w-full bg-transparent resize-none outline-none text-txt-main leading-relaxed" rows="5" placeholder="Agente, Ação, Meio/Modo, Efeito e Detalhamento..." oninput="Redacao.updateStats()"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="lg:w-72 shrink-0 flex flex-col gap-4 overflow-y-auto pb-4 custom-scrollbar">
+                            <div class="bg-brand-50 p-4 rounded-2xl border border-brand-100">
+                                <h4 class="font-bold text-brand-800 text-xs uppercase mb-3 flex items-center gap-2"><i class="ph-fill ph-chart-bar"></i> Estatísticas</h4>
+                                <div class="grid grid-cols-2 gap-2 text-center">
+                                    <div class="bg-white/60 p-2 rounded-lg">
+                                        <span class="block text-xl font-bold text-brand-600" id="stat-words">0</span>
+                                        <span class="text-[10px] text-brand-400 font-bold uppercase">Palavras</span>
+                                    </div>
+                                    <div class="bg-white/60 p-2 rounded-lg">
+                                        <span class="block text-xl font-bold text-brand-600" id="stat-lines">0</span>
+                                        <span class="text-[10px] text-brand-400 font-bold uppercase">Linhas (aprox)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-card flex-1 rounded-2xl border border-slate-200/10 p-4">
+                                <h4 class="font-bold text-txt-muted text-xs uppercase mb-4 flex items-center gap-2"><i class="ph-fill ph-puzzle-piece"></i> Conectivos</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <p class="text-[10px] font-bold text-brand-500 mb-2">Início D1/D2</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <button onclick="Redacao.insert('Em primeira análise, ')" class="btn-connective">Em 1ª análise</button>
+                                            <button onclick="Redacao.insert('Ademais, ')" class="btn-connective">Ademais</button>
+                                            <button onclick="Redacao.insert('Outrossim, ')" class="btn-connective">Outrossim</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-brand-500 mb-2">Oposição</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <button onclick="Redacao.insert('Entretanto, ')" class="btn-connective">Entretanto</button>
+                                            <button onclick="Redacao.insert('Contudo, ')" class="btn-connective">Contudo</button>
+                                            <button onclick="Redacao.insert('Todavia, ')" class="btn-connective">Todavia</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-brand-500 mb-2">Conclusão</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <button onclick="Redacao.insert('Portanto, ')" class="btn-connective">Portanto</button>
+                                            <button onclick="Redacao.insert('Dessa forma, ')" class="btn-connective">Dessa forma</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                    .btn-connective { font-size: 0.7rem; background: var(--bg-main); border: 1px solid var(--text-muted); opacity: 0.7; padding: 4px 8px; border-radius: 6px; color: var(--text-main); transition: all 0.2s; font-weight: bold; }
+                    .btn-connective:hover { opacity: 1; background: var(--brand-50); color: var(--brand-600); border-color: var(--brand-200); transform: translateY(-1px); }
+                </style>
+
+                <div id="view-simulado" class="hidden h-full flex flex-col animate-slide-up max-w-4xl mx-auto">
+                    <div id="sim-start" class="flex flex-col items-center justify-center h-full text-center space-y-6">
+                        <div class="w-24 h-24 bg-brand-100 rounded-full flex items-center justify-center mb-4 animate-bounce">
+                            <i class="ph-fill ph-timer text-5xl text-brand-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-txt-main">Simulado Cronometrado</h2>
+                        <p class="text-txt-muted max-w-md">Modo prova: sem feedback imediato. O gabarito só aparece ao final. Prepare-se!</p>
+                        
+                        <div class="flex gap-4">
+                            <button onclick="Simulado.start(10)" class="px-6 py-3 rounded-xl border border-slate-200/10 hover:bg-brand-50 font-bold text-txt-main transition-colors">10 Questões</button>
+                            <button onclick="Simulado.start(30)" class="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold shadow-lg shadow-brand-500/20 transition-transform hover:scale-105">30 Questões</button>
+                            <button onclick="Simulado.start(90)" class="px-6 py-3 rounded-xl border border-slate-200/10 hover:bg-brand-50 font-bold text-txt-main transition-colors">90 Questões</button>
+                        </div>
+                    </div>
+
+                    <div id="sim-exam" class="hidden flex flex-col h-full">
+                        <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-200/10">
+                            <h3 class="font-bold text-xl text-txt-main">Em andamento...</h3>
+                            <button onclick="Simulado.finish()" class="bg-red-500 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-red-600">Entregar Prova</button>
+                        </div>
+                        <div id="sim-questions" class="flex-1 overflow-y-auto space-y-8 pr-2 custom-scrollbar"></div>
+                    </div>
+
+                    <div id="sim-result" class="hidden flex flex-col items-center justify-center h-full text-center">
+                        <h2 class="text-2xl font-bold text-txt-main mb-2">Resultado Final</h2>
+                        <div class="text-6xl font-bold text-brand-600 mb-6" id="sim-score-display">0%</div>
+                        <p class="text-txt-muted mb-8" id="sim-msg">...</p>
+                        <button onclick="Simulado.close()" class="bg-bg-card border border-slate-200/10 px-6 py-3 rounded-xl font-bold text-txt-main hover:bg-bg-main">Voltar</button>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -608,10 +805,29 @@
                 </div>
 
                 <div id="tab-data" class="sett-content hidden space-y-6">
-                    <h4 class="text-xl font-bold">Nuvem Orbit</h4>
+                    <h4 class="text-xl font-bold">Dados & Inteligência</h4>
+                    
+                    <div class="bg-card border border-brand-200 p-4 rounded-xl shadow-sm">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="p-2 bg-brand-100 rounded-lg text-brand-600"><i class="ph-fill ph-robot"></i></div>
+                            <div>
+                                <h5 class="font-bold text-txt-main text-sm">Google Gemini API</h5>
+                                <p class="text-[10px] text-txt-muted">Necessário para correção automática de redação.</p>
+                            </div>
+                        </div>
+                        <input type="password" id="sett-gemini-key" placeholder="Cole sua API Key aqui (começa com AIza...)" 
+                            class="w-full bg-bg-main border border-slate-200/10 rounded-lg p-3 text-xs text-txt-main focus:ring-2 focus:ring-brand-500 outline-none mb-2 font-mono">
+                        <button onclick="Settings.saveGeminiKey()" class="w-full bg-brand-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-brand-700 transition-colors">
+                            Salvar Chave
+                        </button>
+                        <p class="mt-2 text-[10px] text-txt-muted">
+                            Não tem uma chave? <a rel="noopener" href="https://aistudio.google.com/app/apikey" target="_blank" class="text-brand-600 hover:underline">Gerar chave gratuita no Google AI Studio</a>.
+                        </p>
+                    </div>
+
                     <div class="bg-green-50 text-green-700 p-4 rounded-xl text-sm flex items-center gap-3">
                         <i class="ph-fill ph-cloud-check text-2xl"></i>
-                        <p>O sistema está configurado automaticamente para usar a nuvem Orbit Study.</p>
+                        <p>O sistema salva seus dados automaticamente no navegador.</p>
                     </div>
                 </div>
 
@@ -640,6 +856,82 @@
         </div>
     </dialog>
 
+    <dialog id="modal-redacao-score" class="bg-transparent p-0 backdrop:bg-black/60 w-full max-w-lg rounded-3xl shadow-2xl">
+        <div class="bg-bg-main p-8 border border-slate-200/10 max-h-[90vh] overflow-y-auto">
+            <h3 class="font-bold text-xl mb-2 text-txt-main">Auto-Avaliação (Competências)</h3>
+            <p class="text-xs text-txt-muted mb-6">Como não há API gratuita, seja sincero e avalie seu texto conforme a grade do ENEM.</p>
+            
+            <div class="space-y-5" id="competences-list">
+                </div>
+
+            <div class="mt-8 pt-4 border-t border-slate-200/10 flex justify-between items-center">
+                <div class="text-left">
+                    <span class="text-xs font-bold text-txt-muted uppercase">Nota Total</span>
+                    <p class="text-3xl font-bold text-brand-600" id="red-total-score">0</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="document.getElementById('modal-redacao-score').close()" class="px-4 py-2 rounded-xl text-txt-muted font-bold hover:bg-bg-card">Cancelar</button>
+                    <button onclick="Redacao.save()" class="bg-brand-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="modal-create-deck" class="bg-transparent p-0 backdrop:bg-black/60 w-full max-w-sm rounded-3xl shadow-2xl">
+        <div class="bg-bg-main p-6 border border-slate-200/10">
+            <h3 class="font-bold text-xl mb-4 text-txt-main">Novo Baralho</h3>
+            <input type="text" id="deck-name" class="w-full bg-bg-main border border-slate-200/10 rounded-xl p-3 mb-6 text-txt-main outline-none" placeholder="Ex: Fórmulas de Física">
+            <div class="flex gap-3">
+                <button onclick="Flashcards.createDeck()" class="flex-1 bg-brand-600 text-white py-3 rounded-xl font-bold">Criar</button>
+                <button onclick="document.getElementById('modal-create-deck').close()" class="px-6 py-3 rounded-xl text-txt-muted font-bold hover:bg-bg-card">Cancelar</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="modal-add-card" class="bg-transparent p-0 backdrop:bg-black/60 w-full max-w-md rounded-3xl shadow-2xl">
+        <div class="bg-bg-main p-6 border border-slate-200/10">
+            <h3 class="font-bold text-xl mb-4 text-txt-main">Adicionar Carta</h3>
+            <input type="hidden" id="card-deck-id">
+            <label class="block text-xs font-bold text-txt-muted uppercase mb-1">Frente (Pergunta)</label>
+            <textarea id="card-front" class="w-full bg-bg-main border border-slate-200/10 rounded-xl p-3 mb-4 text-txt-main resize-none" rows="3"></textarea>
+            <label class="block text-xs font-bold text-txt-muted uppercase mb-1">Verso (Resposta)</label>
+            <textarea id="card-back" class="w-full bg-bg-main border border-slate-200/10 rounded-xl p-3 mb-6 text-txt-main resize-none" rows="3"></textarea>
+            <div class="flex gap-3">
+                <button onclick="Flashcards.addCard()" class="flex-1 bg-brand-600 text-white py-3 rounded-xl font-bold">Salvar</button>
+                <button onclick="document.getElementById('modal-add-card').close()" class="px-6 py-3 rounded-xl text-txt-muted font-bold hover:bg-bg-card">Fechar</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="modal-ai-result" class="bg-transparent p-0 backdrop:bg-black/60 w-full max-w-2xl rounded-3xl shadow-2xl">
+        <div class="bg-bg-main p-0 border border-slate-200/10 flex flex-col max-h-[85vh]">
+            <div class="p-6 border-b border-slate-200/10 flex justify-between items-center bg-bg-card">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white">
+                        <i class="ph-fill ph-sparkle"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-txt-main">Análise do Gemini</h3>
+                        <p class="text-xs text-txt-muted">Correção baseada nas 5 competências do ENEM.</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('modal-ai-result').close()" class="text-txt-muted hover:text-red-500"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+            
+            <div id="ai-content" class="p-8 overflow-y-auto text-sm leading-relaxed text-txt-main space-y-4">
+                <div class="animate-pulse space-y-4">
+                    <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+                    <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                    <div class="h-4 bg-slate-200 rounded w-full"></div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-200/10 bg-bg-card flex justify-end">
+                <button onclick="document.getElementById('modal-ai-result').close()" class="bg-brand-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-brand-700">Entendi</button>
+            </div>
+        </div>
+    </dialog>
+
     <div id="toast-area" class="fixed bottom-6 right-6 z-[80] flex flex-col gap-2 pointer-events-none"></div>
 
     <script type="module">
@@ -659,7 +951,275 @@
            "appId":"1:1084558202713:web:8419805db15349cead1e48",
            "measurementId":"G-FLCZBTKFWJ"
         };
+        
+        // =================================================================
+        // REDAÇÃO & AUTO-AVALIAÇÃO (Itens 6 e 12)
+        // =================================================================
+        window.Redacao = {
+            timer: null,
+            seconds: 3600, // 1 hora padrão
+            isRunning: false,
+            
+            toggleTimer() {
+                const btn = document.getElementById('btn-red-timer');
+                if(this.isRunning) {
+                    clearInterval(this.timer);
+                    this.isRunning = false;
+                    btn.classList.remove('bg-red-50', 'text-red-600', 'border-red-200');
+                    btn.classList.add('bg-bg-card', 'text-brand-600');
+                } else {
+                    this.isRunning = true;
+                    btn.classList.add('bg-red-50', 'text-red-600', 'border-red-200');
+                    btn.classList.remove('bg-bg-card', 'text-brand-600');
+                    this.timer = setInterval(() => {
+                        this.seconds--;
+                        const h = Math.floor(this.seconds / 3600);
+                        const m = Math.floor((this.seconds % 3600) / 60);
+                        const s = this.seconds % 60;
+                        document.getElementById('red-timer-display').innerText = 
+                            `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                        if(this.seconds <= 0) this.toggleTimer();
+                    }, 1000);
+                }
+            },
 
+            updateStats() {
+                const parts = ['red-intro', 'red-d1', 'red-d2', 'red-concl'];
+                let fullText = "";
+                parts.forEach(id => fullText += document.getElementById(id).value + "\n");
+                
+                const words = fullText.trim().split(/\s+/).filter(w => w.length > 0).length;
+                // Estimativa: ~65 caracteres por linha em folha oficial
+                const chars = fullText.length;
+                const lines = Math.ceil(chars / 65); 
+
+                document.getElementById('stat-words').innerText = words;
+                document.getElementById('stat-lines').innerText = lines;
+            },
+
+            insert(text) {
+                // Insere no último textarea focado ou no Intro por padrão
+                const active = document.activeElement;
+                const target = (active && active.tagName === 'TEXTAREA') ? active : document.getElementById('red-intro');
+                
+                const start = target.selectionStart;
+                const end = target.selectionEnd;
+                const val = target.value;
+                target.value = val.substring(0, start) + text + val.substring(end);
+                target.selectionStart = target.selectionEnd = start + text.length;
+                target.focus();
+                this.updateStats();
+            },
+
+            openSelfAssess() {
+                if(this.isRunning) this.toggleTimer();
+                const container = document.getElementById('competences-list');
+                const comps = [
+                    "Domínio da norma culta",
+                    "Compreensão e estrutura dissertativa",
+                    "Seleção e organização de argumentos",
+                    "Demonstração de coesão (conectivos)",
+                    "Proposta de intervenção completa"
+                ];
+                
+                container.innerHTML = comps.map((c, i) => `
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold text-txt-main uppercase">C${i+1}: ${c}</label>
+                            <span class="text-xs font-bold text-brand-600" id="val-c${i+1}">120</span>
+                        </div>
+                        <input type="range" min="0" max="200" step="40" value="120" class="w-full accent-brand-600 cursor-pointer" 
+                            oninput="document.getElementById('val-c${i+1}').innerText = this.value; Redacao.calcTotal()">
+                        <div class="flex justify-between text-[9px] text-txt-muted mt-1 font-mono">
+                            <span>0</span><span>40</span><span>80</span><span>120</span><span>160</span><span>200</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                this.calcTotal();
+                document.getElementById('modal-redacao-score').showModal();
+            },
+
+            calcTotal() {
+                let total = 0;
+                for(let i=1; i<=5; i++) {
+                    total += parseInt(document.getElementById(`val-c${i}`).innerText);
+                }
+                document.getElementById('red-total-score').innerText = total;
+            },
+
+            save() {
+                const total = document.getElementById('red-total-score').innerText;
+                Store.state.user.xp += parseInt(total) / 10; // XP = 10% da nota
+                UI.toast(`Redação Salva! Nota: ${total} (+${parseInt(total)/10} XP)`, "success");
+                Store.save();
+                document.getElementById('modal-redacao-score').close();
+                // Opcional: Salvar histórico de redações no Store
+            }
+        };
+
+        // =================================================================
+        // INTEGRAÇÃO GEMINI AI
+        // =================================================================
+        window.GeminiProcessor = {
+            analyze() {
+                // 1. Verifica se tem a chave
+                const key = Store.state.settings.geminiKey;
+                if (!key) {
+                    alert("Você precisa configurar sua API Key do Gemini nas Configurações > Dados primeiro!");
+                    openSettings();
+                    Settings.tab('data');
+                    return;
+                }
+
+                // 2. Coleta o texto
+                const intro = document.getElementById('red-intro').value;
+                const d1 = document.getElementById('red-d1').value;
+                const d2 = document.getElementById('red-d2').value;
+                const concl = document.getElementById('red-concl').value;
+                const fullText = `INTRODUÇÃO:\n${intro}\n\nDESENVOLVIMENTO 1:\n${d1}\n\nDESENVOLVIMENTO 2:\n${d2}\n\nCONCLUSÃO:\n${concl}`;
+
+                if (fullText.length < 50) {
+                    UI.toast("Texto muito curto para analisar.", "error");
+                    return;
+                }
+
+                // 3. UI de Carregamento
+                const btn = document.getElementById('btn-ai-analyze');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Analisando...`;
+
+                // 4. Monta o Prompt
+                const prompt = `
+                    Aja como um corretor oficial do ENEM. Corrija a seguinte redação com rigor.
+                    
+                    REDAÇÃO:
+                    ${fullText}
+
+                    SAÍDA ESPERADA (Responda APENAS com um HTML simples, sem markdown, usando tags <h3>, <p>, <ul>, <li>, <strong>):
+                    1. Uma nota estimada de 0 a 1000.
+                    2. Uma tabela ou lista com as notas das 5 Competências (0-200 cada).
+                    3. Pontos Fortes (breve).
+                    4. Pontos a Melhorar (breve).
+                    5. Uma dica prática para subir a nota.
+                    
+                    Use classes do Tailwind se quiser, mas mantenha simples. Texto escuro para leitura em fundo claro.
+                `;
+
+                // 5. Chamada API (Usando fetch nativo)
+                fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error.message);
+                    
+                    const aiText = data.candidates[0].content.parts[0].text;
+                    
+                    // Limpa formatação Markdown se o Gemini mandar (```html ...)
+                    const cleanHtml = aiText.replace(/```html|```/g, '');
+                    
+                    document.getElementById('ai-content').innerHTML = cleanHtml;
+                    document.getElementById('modal-ai-result').showModal();
+                    
+                    // Bônus: Se tiver nota numérica no texto, dá XP
+                    Store.state.user.xp += 50;
+                    Store.save();
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Erro ao conectar com Gemini: " + err.message);
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                });
+            }
+        };
+
+        // =================================================================
+        // SIMULADO (Item 8)
+        // =================================================================
+        window.Simulado = {
+            currentQuestions: [],
+            answers: {},
+
+            start(qty) {
+                if(Store.state.quiz.length < qty) {
+                    if(!confirm(`Você tem apenas ${Store.state.quiz.length} questões. Iniciar com todas?`)) return;
+                    qty = Store.state.quiz.length;
+                }
+                
+                // Shuffle simples
+                const shuffled = [...Store.state.quiz].sort(() => 0.5 - Math.random());
+                this.currentQuestions = shuffled.slice(0, qty);
+                this.answers = {};
+
+                document.getElementById('sim-start').classList.add('hidden');
+                document.getElementById('sim-result').classList.add('hidden');
+                document.getElementById('sim-exam').classList.remove('hidden');
+                
+                this.renderQuestions();
+            },
+
+            renderQuestions() {
+                const container = document.getElementById('sim-questions');
+                container.innerHTML = this.currentQuestions.map((q, idx) => `
+                    <div class="bg-card p-6 rounded-2xl border border-slate-200/10">
+                        <div class="flex justify-between mb-4">
+                            <span class="font-bold text-brand-600">Questão ${idx+1}</span>
+                            <span class="text-xs bg-bg-main px-2 py-1 rounded border border-slate-200/10">${q.topic}</span>
+                        </div>
+                        <p class="text-txt-main mb-6 leading-relaxed text-sm">${q.text}</p>
+                        <div class="space-y-2">
+                            ${q.options.map((opt, i) => `
+                                <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200/10 hover:bg-brand-50 cursor-pointer transition-colors">
+                                    <input type="radio" name="sim-q-${q.id}" value="${i}" class="accent-brand-600 w-4 h-4" onchange="Simulado.answers['${q.id}'] = ${i}">
+                                    <span class="text-sm text-txt-muted">${opt}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            finish() {
+                if(!confirm("Entregar prova e ver resultado?")) return;
+                
+                let hits = 0;
+                this.currentQuestions.forEach(q => {
+                    if(this.answers[q.id] === q.correctIndex) hits++;
+                });
+
+                const score = Math.round((hits / this.currentQuestions.length) * 100);
+                
+                document.getElementById('sim-exam').classList.add('hidden');
+                document.getElementById('sim-result').classList.remove('hidden');
+                document.getElementById('sim-score-display').innerText = `${score}%`;
+                
+                let msg = "";
+                if(score === 100) msg = "Perfeito! Você destruiu!";
+                else if(score >= 80) msg = "Excelente desempenho!";
+                else if(score >= 50) msg = "Na média, continue estudando.";
+                else msg = "Precisa revisar mais...";
+                
+                document.getElementById('sim-msg').innerText = `${msg} (${hits}/${this.currentQuestions.length} acertos)`;
+                
+                Store.state.user.xp += (hits * 10) + (score > 80 ? 100 : 0);
+                Store.save();
+            },
+
+            close() {
+                document.getElementById('sim-result').classList.add('hidden');
+                document.getElementById('sim-start').classList.remove('hidden');
+            }
+        };
+        
         // =================================================================
         // SISTEMA DE TIMER (POMODORO)
         // =================================================================
@@ -758,7 +1318,7 @@
                 lastLogin: null
             },
             firebase: { db: null, auth: null, userRef: null },
-            
+
             init() {
                 // Carregar LocalStorage
                 try {
@@ -801,6 +1361,11 @@
 
                 UI.renderAll();
                 setTimeout(() => MindMap.renderExplorer(), 100);
+
+                if (this.state.settings.geminiKey) {
+                    const inputKey = document.getElementById('sett-gemini-key');
+                    if(inputKey) inputKey.placeholder = "Chave salva e segura (Oculta)";
+                }
             },
 
             save() {
@@ -974,19 +1539,26 @@
 
             renderCronograma() {
                 const map = { 'segunda': 'Seg', 'terca': 'Ter', 'quarta': 'Qua', 'quinta': 'Qui', 'sexta': 'Sex', 'sabado': 'Sáb', 'domingo': 'Dom' };
+                
+                // CORREÇÃO: Definimos a ordem exata aqui
+                const daysOrder = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
+                
                 const container = document.getElementById('week-columns');
                 
-                container.innerHTML = Object.keys(Store.state.week).map(day => `
-                    <div class="w-72 bg-card rounded-2xl border border-slate-200/10 flex flex-col h-full shrink-0 shadow-sm">
+                container.innerHTML = daysOrder.map(day => {
+                    const tasks = Store.state.week[day] || [];
+                    
+                    return `
+                    <div class="w-72 bg-card rounded-2xl border border-slate-200/10 flex flex-col h-full shrink-0 shadow-sm snap-center">
                         <div class="p-4 border-b border-slate-200/10 flex justify-between items-center bg-bg-main/50 rounded-t-2xl">
                             <span class="font-bold text-txt-main">${map[day]}</span>
                             <button onclick="Actions.openTaskModal('${day}')" class="w-8 h-8 rounded-lg hover:bg-brand-100 text-brand-600 flex items-center justify-center transition-colors"><i class="ph-bold ph-plus"></i></button>
                         </div>
                         <div class="p-3 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
-                            ${Store.state.week[day].map(t => this.generateTaskHTML(t, day)).join('')}
+                            ${tasks.map(t => this.generateTaskHTML(t, day)).join('')}
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             },
 
             generateTaskHTML(t, day) {
@@ -1250,11 +1822,13 @@
                 if (this.pan.active) {
                     this.pan.active = false;
                 }
-                // Check resize
-                if(this.selected) {
+
+                if(this.selected && this.currentMap) {
                     const el = document.getElementById(`node-${this.selected}`);
+                    if (!el) return;
+
                     const n = this.currentMap.nodes.find(node => node.id === this.selected);
-                    if(el && n && (el.offsetWidth !== n.width || el.offsetHeight !== n.height)) {
+                    if(n && (el.offsetWidth !== n.width || el.offsetHeight !== n.height)) {
                         n.width = el.offsetWidth;
                         n.height = el.offsetHeight;
                         Store.save();
@@ -1434,40 +2008,66 @@
                 this.renderExplorer(); this.open(newMap.id, false);
             },
             
+            zoom(delta) {
+                const newScale = this.scale + delta;
+                if (newScale >= 0.5 && newScale <= 3.0) {
+                    this.scale = newScale;
+                    this.updateWorldTransform();
+                    UI.toast(`Zoom: ${Math.round(this.scale * 100)}%`);
+                }
+            },
+
+            resetZoom() {
+                this.scale = 1;
+                this.pan.offset = {x:0, y:0};
+                this.updateWorldTransform();
+                UI.toast("Zoom resetado");
+            },
+
+            updateWorldTransform() {
+                const world = document.getElementById('mm-world');
+                if(world) {
+                    world.style.transform = `translate(${this.pan.offset.x}px, ${this.pan.offset.y}px) scale(${this.scale})`;
+                }
+            },
+
             open(id, readOnly = false) {
+                // ... (código existente de busca do mapa) ...
                 this.currentMap = Store.state.mindmaps.find(m => m.id === id);
                 if(!this.currentMap) return;
-                
+
                 document.getElementById('mm-explorer').classList.add('hidden');
                 document.getElementById('mm-workspace').classList.remove('hidden');
                 document.getElementById('mm-current-title').innerText = this.currentMap.name;
-                document.getElementById('mm-current-subject').innerText = this.currentMap.subject;
                 
-                // Set ReadOnly State explicitly
+                // Lógica de ReadOnly (CSS cuida do bloqueio de inputs)
                 this.isReadOnly = readOnly;
                 const ws = document.getElementById('mm-workspace');
-                const btn = document.getElementById('btn-mm-view');
                 const indicator = document.getElementById('indicator-readonly');
+                const keys = document.getElementById('keys-map');
                 
                 if(this.isReadOnly) {
                     ws.classList.add('readonly');
-                    btn.classList.add('bg-brand-100', 'text-brand-700');
                     indicator.classList.remove('hidden');
-                    document.getElementById('keys-map').classList.add('hidden');
-
+                    keys.classList.add('hidden');
                 } else {
                     ws.classList.remove('readonly');
-                    btn.classList.remove('bg-brand-100', 'text-brand-700');
                     indicator.classList.add('hidden');
-                    document.getElementById('keys-map').classList.remove('hidden');
+                    keys.classList.remove('hidden');
                 }
 
-                this.pan.offset = {x:0, y:0}; this.updateWorldTransform(); // Reset Cam
+                // Reseta câmera
+                this.scale = 1; 
+                this.pan.offset = {x:0, y:0}; 
+                this.updateWorldTransform();
+                
                 this.render();
             },
             
             close() {
                 this.currentMap = null;
+                this.selected = null;
+                
                 document.getElementById('mm-workspace').classList.add('hidden');
                 document.getElementById('mm-explorer').classList.remove('hidden');
                 document.getElementById('keys-map').classList.remove('hidden');
@@ -1481,6 +2081,7 @@
                     Store.save(); this.close();
                 }
             },
+
             addNode() { this.addNodeAt(300 - this.pan.offset.x, 300 - this.pan.offset.y); },
             addNodeAt(x, y) {
                 if(!this.currentMap) return;
@@ -1507,6 +2108,24 @@
             save() { Store.save(); UI.toast("Mapa salvo!"); }
         };
         setTimeout(() => MindMap.init(), 500);
+
+         // =================================================================
+        // Adicionar botão na toolbar do mapa (já no HTML, adicione este JS)
+        // =================================================================        
+        window.MindMap.exportImage = function() {
+            const el = document.getElementById('mm-viewport');
+            // Remove transform temporariamente para capturar tudo (opcional, html2canvas lida bem com transform)
+            // Mas para garantir qualidade, vamos focar no 'mm-world' centralizado
+            UI.toast("Gerando imagem...", "info");
+            
+            html2canvas(el, { backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-card') }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `mapa-${Date.now()}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                UI.toast("Download iniciado!", "success");
+            });
+        };
 
         // =================================================================
         // LIXEIRA & SETTINGS
@@ -1565,9 +2184,18 @@
             hardReset() { if(confirm("CERTEZA ABSOLUTA?")) { localStorage.clear(); location.reload(); } }
         };
 
-        // =================================================================
-        // QUIZ IMPORT JSON
-        // =================================================================
+        // Atualização no Objeto Settings para salvar a Key
+        Settings.saveGeminiKey = function() {
+            const key = document.getElementById('sett-gemini-key').value.trim();
+            if(key) {
+                if(!Store.state.settings) Store.state.settings = {};
+                Store.state.settings.geminiKey = key;
+                Store.save();
+                UI.toast("Chave Gemini salva!", "success");
+                document.getElementById('sett-gemini-key').value = ""; // Limpa visualmente por segurança
+            }
+        };
+
         // =================================================================
         // QUIZ IMPORT JSON
         // =================================================================
@@ -1789,6 +2417,10 @@
             document.getElementById('view-'+view).classList.remove('hidden');
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('bg-brand-50', 'text-brand-600'));
             document.getElementById('nav-'+view).classList.add('bg-brand-50', 'text-brand-600');
+
+            const title = document.getElementById('page-title');
+            title.innerText = view === 'dashboard' ? 'Dashboard' : view === 'cronograma' ? 'Cronograma' : view === 'mindmap' ? 'Mapas Mentais' : view === 'questoes' ? 'Vestibular' : view === 'foco' ? 'Modo Foco' : view === 'flashcards' ? 'Flashcards' : view === 'redacao' ? 'Redação' : view === 'simulado' ? 'Simulado' : view === 'loja' ? 'Conquistas' : 'Dashboard';
+
             if(window.innerWidth < 1024) toggleSidebar();
             if(view === 'mindmap') setTimeout(() => { MindMap.renderExplorer(); }, 50);
             if(view === 'questoes') Quiz.updateChart();
@@ -1832,6 +2464,171 @@
             if(e.key.toLowerCase() === 'z') toggleZen();
             if(e.key.toLowerCase() === 'n') Actions.openTaskModal(['domingo','segunda','terca','quarta','quinta','sexta','sabado'][new Date().getDay()]);
         });
+
+        // =================================================================
+        // FLASHCARDS (Item 17) - CÓDIGO CORRIGIDO
+        // =================================================================
+        window.Flashcards = {
+            activeDeck: null,
+            queue: [],
+            currentCardIndex: 0,
+            isFlipped: false,
+
+            init: function() {
+                if(!Store.state.decks) Store.state.decks = [];
+                this.renderDecks();
+            },
+
+            renderDecks: function() {
+                const grid = document.getElementById('fc-decks-grid');
+                // Segurança: Se não existir array de decks, cria um vazio
+                if(!Store.state.decks) Store.state.decks = [];
+                
+                if(Store.state.decks.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center py-10 opacity-50">Nenhum baralho criado.</div>';
+                    return;
+                }
+                
+                // Mapeia os baralhos para HTML
+                grid.innerHTML = Store.state.decks.map(d => `
+                    <div class="bg-card p-6 rounded-2xl border border-slate-200/10 hover:border-brand-500 transition-all group relative">
+                        <button onclick="Flashcards.deleteDeck('${d.id}')" class="absolute top-4 right-4 text-txt-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-trash"></i></button>
+                        <h3 class="font-bold text-lg text-txt-main mb-1">${d.name}</h3>
+                        <p class="text-xs text-txt-muted mb-4">${d.cards.length} cartas</p>
+                        <div class="flex gap-2">
+                            <button onclick="Flashcards.openAddCard('${d.id}')" class="flex-1 py-2 bg-bg-main rounded-lg text-xs font-bold text-txt-muted hover:text-brand-600 border border-slate-200/10">+ Carta</button>
+                            <button onclick="Flashcards.startStudy('${d.id}')" class="flex-1 py-2 bg-brand-600 rounded-lg text-xs font-bold text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20">Estudar</button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            createDeck: function() {
+                const nameInput = document.getElementById('deck-name');
+                const name = nameInput.value;
+                if(!name) return;
+                
+                if(!Store.state.decks) Store.state.decks = [];
+                
+                Store.state.decks.push({ id: 'd-' + Date.now(), name: name, cards: [] });
+                Store.save();
+                
+                nameInput.value = '';
+                document.getElementById('modal-create-deck').close();
+                this.renderDecks();
+            },
+
+            deleteDeck: function(id) {
+                if(confirm("Apagar baralho permanentemente?")) {
+                    Store.state.decks = Store.state.decks.filter(d => d.id !== id);
+                    Store.save();
+                    this.renderDecks();
+                }
+            },
+
+            openAddCard: function(deckId) {
+                document.getElementById('card-deck-id').value = deckId;
+                document.getElementById('modal-add-card').showModal();
+            },
+
+            addCard: function() {
+                const deckId = document.getElementById('card-deck-id').value;
+                const frontInput = document.getElementById('card-front');
+                const backInput = document.getElementById('card-back');
+                
+                const front = frontInput.value;
+                const back = backInput.value;
+                
+                if(!front || !back) return;
+                
+                const deck = Store.state.decks.find(d => d.id === deckId);
+                if(deck) {
+                    deck.cards.push({ 
+                        id: 'c-' + Date.now(), 
+                        front: front, 
+                        back: back, 
+                        level: 0 
+                    });
+                    Store.save();
+                    UI.toast("Carta adicionada!");
+                }
+                
+                frontInput.value = '';
+                backInput.value = '';
+                frontInput.focus();
+                this.renderDecks();
+            },
+
+            startStudy: function(deckId) {
+                const deck = Store.state.decks.find(d => d.id === deckId);
+                if(!deck || deck.cards.length === 0) {
+                    UI.toast("Baralho vazio!", "error");
+                    return;
+                }
+                
+                this.activeDeck = deck;
+                // Embaralha as cartas
+                this.queue = [...deck.cards].sort(() => Math.random() - 0.5);
+                this.currentCardIndex = 0;
+                this.isFlipped = false;
+
+                document.getElementById('fc-decks-view').classList.add('hidden');
+                document.getElementById('fc-study-view').classList.remove('hidden');
+                this.showCard();
+            },
+
+            showCard: function() {
+                // Verifica se acabou
+                if(this.currentCardIndex >= this.queue.length) {
+                    UI.toast("Estudo concluído! +100XP", "success");
+                    Store.state.user.xp += 100;
+                    Store.save();
+                    this.closeStudy();
+                    return;
+                }
+
+                const card = this.queue[this.currentCardIndex];
+                document.getElementById('fc-front-text').innerText = card.front;
+                document.getElementById('fc-back-text').innerText = card.back;
+                
+                // Reset visual (garante que começa mostrando a frente)
+                this.isFlipped = false;
+                document.getElementById('fc-card-inner').classList.remove('rotate-y-180');
+                
+                // Esconde controles
+                const controls = document.getElementById('fc-controls');
+                controls.classList.remove('opacity-100', 'pointer-events-auto');
+                controls.classList.add('opacity-0', 'pointer-events-none');
+            },
+
+            flip: function() {
+                if(this.isFlipped) return;
+                this.isFlipped = true;
+                document.getElementById('fc-card-inner').classList.add('rotate-y-180');
+                
+                // Mostra controles
+                const controls = document.getElementById('fc-controls');
+                controls.classList.remove('opacity-0', 'pointer-events-none');
+                controls.classList.add('opacity-100', 'pointer-events-auto');
+            },
+
+            next: function(difficulty) {
+                // Aqui entraria a lógica de SRS (repetição espaçada)
+                // Por enquanto apenas avança
+                this.currentCardIndex++;
+                this.showCard();
+            },
+
+            closeStudy: function() {
+                document.getElementById('fc-study-view').classList.add('hidden');
+                document.getElementById('fc-decks-view').classList.remove('hidden');
+                this.renderDecks();
+            }
+        };
+
+        // Inicializa após 1 segundo
+        setTimeout(() => { if(window.Flashcards) window.Flashcards.init(); }, 1000);
+
         Store.init();
     </script>
 </body>
