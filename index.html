@@ -1904,7 +1904,7 @@
                             <p class="text-sm font-bold text-txt-main truncate ${t.completed ? 'line-through text-txt-muted' : ''}">${t.title}</p>
                             <div class="flex items-center gap-2 mt-1">
                                 ${t.tag ? `<span class="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-bold">${t.tag}</span>` : ''}
-                                ${t.pomodoros ? `<button title="Tempo pomodoro" onclick="Timer.set(${t.pomodoros}), router('foco')" class="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded font-bold flex items-center gap-1"><i class="ph-fill ph-clock"></i> ${t.pomodoros}m</button>` : ''}
+                                ${t.pomodoros ? `<button title="Tempo pomodoro" onclick="Timer.set(${t.pomodoros}), router('foco', true)" class="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded font-bold flex items-center gap-1"><i class="ph-fill ph-clock"></i> ${t.pomodoros}m</button>` : ''}
                             </div>
                         </div>
                         <div class="hidden group-hover:flex flex-col gap-1">
@@ -2819,7 +2819,7 @@
 
         window.openTrash = () => Trash.open();
         // Resto dos utils permanece...
-        window.router = (view) => {
+        window.router = (view, closesidebar) => {
             document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
             document.getElementById('view-'+view).classList.remove('hidden');
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('bg-brand-50', 'text-brand-600'));
@@ -2828,7 +2828,7 @@
             const title = document.getElementById('page-title');
             title.innerText = view === 'dashboard' ? 'Dashboard' : view === 'cronograma' ? 'Cronograma' : view === 'mindmap' ? 'Mapas Mentais' : view === 'questoes' ? 'Vestibular' : view === 'foco' ? 'Modo Foco' : view === 'flashcards' ? 'Flashcards' : view === 'redacao' ? 'Redação' : view === 'simulado' ? 'Simulado' : view === 'loja' ? 'Conquistas' : 'Dashboard';
 
-            //if(window.innerWidth < 1024); closeSidebar();
+            if(closesidebar); closeSidebar();
             if(view === 'mindmap') setTimeout(() => { MindMap.renderExplorer(); }, 50);
             if(view === 'questoes') Quiz.updateChart();
         };
