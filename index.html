@@ -351,7 +351,7 @@
             
             <header class="h-16 px-6 flex items-center justify-between z-30 shrink-0">
                 <div class="flex items-center gap-4">
-                    <button title="Menu" onclick="toggleSidebar()" class="lg:hidden p-2 text-txt-main rounded-lg bg-bg-main shadow-sm border border-slate-200/10 w-10 h-10"><i class="ph-bold ph-list"></i></button>
+                    <button title="Menu" id="sidebarMenu" onclick="toggleSidebar()" class="lg:hidden p-2 text-txt-main rounded-lg bg-bg-main shadow-sm border border-slate-200/10 w-10 h-10"><i class="ph-bold ph-list"></i></button>
                     <div>
                         <h2 id="page-title" class="text-xl font-bold text-txt-main leading-tight">Dashboard</h2>
                         <p id="current-date" class="text-[11px] font-mono text-txt-muted hidden md:block opacity-70">...</p>
@@ -2848,9 +2848,9 @@
         window.openSettings = () => document.getElementById('modal-settings').showModal();
         window.toggleUserMenu = () => { const m = document.getElementById('user-menu'); m.classList.toggle('hidden'); m.classList.toggle('flex'); };
         window.toggleZen = () => {
-            const sb = document.getElementById('sidebar'); const hdr = document.querySelector('header');
-            if(sb.classList.contains('zen-hidden')) { sb.classList.remove('zen-hidden'); hdr.classList.remove('zen-hidden'); } 
-            else { sb.classList.add('zen-hidden'); UI.toast("Modo Zen Ativado (Z para sair)"); }
+            const sb = document.getElementById('sidebar'); const hdr = document.querySelector('header'); const menu = document.getElementById('sidebarMenu');
+            if(sb.classList.contains('zen-hidden')) { sb.classList.remove('zen-hidden'); hdr.classList.remove('zen-hidden'); menu.classList.remove('hidden'); UI.toast("Modo Zen Desativado"); } 
+            else { sb.classList.add('zen-hidden'); UI.toast("Modo Zen Ativado (Z para sair)"); menu.classList.add('hidden');}
         };
         window.distributePomodoro = () => {
             const min = prompt("Minutos totais para hoje:", "120"); if(!min) return;
