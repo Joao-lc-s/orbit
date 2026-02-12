@@ -10,8 +10,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5404/5404967.png ">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/5404/5404967.png ">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/FL1VDQtv/Gemini-Generated-Image-uf01f5uf01f5uf01-1.png">
+    <link rel="icon" type="image/png" href="https://i.ibb.co/FL1VDQtv/Gemini-Generated-Image-uf01f5uf01f5uf01-1.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -262,7 +262,7 @@
         
         <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden backdrop-blur-sm transition-opacity"></div>
         
-        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-[280px] bg-bg-main border-r border-slate-200 flex flex-col z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 shadow-2xl lg:shadow-none">
+        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-[280px] bg-bg-main border-slate-200 flex flex-col z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 shadow-2xl lg:shadow-none">
             <div class="h-20 flex items-center px-6 border-b border-slate-200/10 shrink-0">
                 <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
                     <i class="ph-bold ph-planet text-xl"></i>
@@ -421,8 +421,8 @@
                         </div>
 
                         <div class="space-y-6">
-                            <div class="bg-bg-main p-6 rounded-3xl border border-slate-200/10">
-                                <h4 class="font-bold text-txt-main mb-4">Acesso Rápido</h4>
+                            <div class="bg-bg-main p-6 rounded-3xl border border-slate-200/10 h-full">
+                                <h4 class="font-bold text-txt-main mb-4" style="margin-bottom: 40px;">Acesso Rápido</h4>
                                 <div class="grid grid-cols-2 gap-3">
                                     <button onclick="router('mindmap')" class="p-3 bg-bg-main rounded-xl text-xs font-bold text-txt-muted hover:bg-brand-50 hover:text-brand-600 transition-colors text-center">
                                         <i class="ph-bold ph-tree-structure text-2xl mb-1 block"></i> Mapa
@@ -482,7 +482,7 @@
                 <div id="view-cronograma" class="hidden h-full flex flex-col animate-slide-up">
                     <div class="flex justify-end mb-4 px-2 gap-3">
                          <button onclick="distributePomodoro()" class="flex items-center gap-2 text-xs font-bold bg-brand-100 text-brand-700 px-4 py-2 rounded-xl hover:bg-brand-200 transition shadow-sm">
-                            <i class="ph-fill ph-calculator"></i> Calcular Tempo (Pomodoro)
+                            <i class="ph-fill ph-calculator"></i> Calcular Tempo
                         </button>
                     </div>
                     <div class="flex-1 overflow-x-auto pb-4 cursor-grab active:cursor-grabbing" id="kanban-container">
@@ -767,40 +767,45 @@
     </dialog>
 
     <dialog id="modal-task" class="bg-transparent p-0 backdrop:bg-black/60 w-full max-w-md rounded-3xl shadow-2xl">
-        <div class="bg-bg-main p-6 border border-slate-200/10">
-            <h3 class="font-bold text-xl mb-4 text-txt-main">Nova Atividade</h3>
-            
-            <input type="text" id="task-text" class="w-full bg-bg-main border border-slate-200/10 rounded-xl p-3 mb-4 text-txt-main outline-none focus:border-brand-500 transition-colors" placeholder="Ex: Resolver lista de exercícios" autofocus>
-            
-            <div class="flex gap-3 mb-6">
-                <div class="w-1/4">
-                    <label class="text-[10px] font-bold text-txt-muted uppercase mb-1 block">Minutos</label>
-                    <input type="number" id="task-duration" value="25" class="w-full bg-bg-main border border-slate-200/10 rounded-xl p-2.5 text-txt-main text-sm outline-none focus:border-brand-500 font-mono text-center">
-                </div>
+        <div class="bg-bg-main p-6 shadow-2xl rounded-3xl">
+        <h3 class="font-bold text-xl mb-4 text-txt-main">Nova Atividade</h3>
+        
+        <input type="text" id="task-text" class="w-full bg-bg-main border border-slate-200 rounded-xl p-3 mb-4 text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-base" placeholder="Ex: Resolver lista de exercícios" autofocus="">
+        
+        <div class="flex gap-3 mb-6">
+            <div class="w-1/4">
+                <label class="text-[10px] font-bold text-txt-main uppercase mb-1 block">Minutos</label>
+                <input type="number" id="task-duration" value="25" class="w-full bg-bg-main border border-slate-200 rounded-xl p-2.5 text-txt-main text-base outline-none focus:border-indigo-500 font-mono text-center appearance-none m-0">
+            </div>
 
-                <div class="w-1/4">
-                    <label class="text-[10px] font-bold text-txt-muted uppercase mb-1 block">Horário</label>
-                    <input type="time" id="task-time" class="w-full bg-bg-main border border-slate-200/10 rounded-xl p-2.5 text-txt-main text-sm outline-none focus:border-brand-500 font-mono">
-                </div>
+            <div class="w-1/4">
+                <label class="text-[10px] font-bold text-txt-main uppercase mb-1 block">Horário</label>
+                <input type="time" id="task-time" class="w-full bg-bg-main border border-slate-200 rounded-xl p-2.5 text-txt-main text-base outline-none focus:border-indigo-500 font-mono appearance-none min-h-[46px]">
+            </div>
 
-                <div class="flex-1">
-                    <label class="text-[10px] font-bold text-txt-muted uppercase mb-1 block">Matéria</label>
-                    <select id="task-tag" class="w-full bg-bg-main border border-slate-200/10 rounded-xl p-3 text-txt-main text-sm outline-none focus:border-brand-500 appearance-none">
-                        <option value="geral">Geral</option>
+            <div class="flex-1">
+                <label class="text-[10px] font-bold text-txt-main uppercase mb-1 block">Matéria</label>
+                <div class="relative">
+                    <select id="task-tag" class="w-full bg-bg-main border border-slate-200 rounded-xl p-3 text-txt-main text-base outline-none focus:border-indigo-500 appearance-none">
+                        <option value="atividades">Atividades</option>
                         <option value="matematica">Matemática</option>
                         <option value="natureza">Natureza</option>
                         <option value="humanas">Humanas</option>
                         <option value="linguagens">Linguagens</option>
                         <option value="redacao">Redação</option>
                     </select>
+                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-500">
+                        <i class="ph-bold ph-caret-down"></i>
+                    </div>
                 </div>
             </div>
-
-            <div class="flex gap-3">
-                <button onclick="Actions.addTask()" class="flex-1 bg-brand-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-brand-500/20 hover:scale-105 transition-transform">Adicionar</button>
-                <button onclick="document.getElementById('modal-task').close()" class="px-6 py-3 rounded-xl text-txt-muted font-bold hover:bg-bg-card transition-colors">Cancelar</button>
-            </div>
         </div>
+
+        <div class="flex gap-3">
+            <button onclick="Actions.addTask()" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 hover:scale-105 transition-transform">Adicionar</button>
+            <button onclick="document.getElementById('modal-task').close()" class="px-6 py-3 rounded-xl text-slate-500 font-bold hover:bg-slate-50 transition-colors">Cancelar</button>
+        </div>
+    </div>
     </dialog>
 
     <dialog id="modal-import" class="bg-transparent p-0 backdrop:bg-black/60 w-full max-w-2xl rounded-3xl shadow-2xl">
@@ -1083,9 +1088,9 @@
     <script type="module">
         // 1. IMPORTS
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+        import { getAuth, signInAnonymously, signInWithCustomToken, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, deleteDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
         // 2. CONFIGURAÇÃO (Com o nome antigo 'embeddedFirebaseConfig' para não quebrar o Store.init)
         const embeddedFirebaseConfig = {
             apiKey: "AIzaSyB8HXoAZkq9uPVbN3SjISFcrl6EgsFcxRc",
@@ -1702,11 +1707,15 @@
             },
 
             save() {
+            // TRAVA DE SEGURANÇA MÁXIMA
+            if (window.isResetting === true) return;
+
+                // ... resto do código ...
                 localStorage.setItem('orbit_v7_state', JSON.stringify(this.state));
                 if(this.firebase.userRef) {
                     setDoc(this.firebase.userRef, this.state, {merge: true}).catch(console.error);
                 }
-                UI.renderStats(); 
+                if(window.UI) UI.renderStats();
             },
 
             async connectFirebase(config) {
@@ -1896,7 +1905,7 @@
 
             generateTaskHTML(t, day) {
                 return `
-                <div class="group bg-bg-bg-main p-3 rounded-xl border ${t.completed ? 'border-brand-200 bg-brand-50/30' : 'border-slate-200/10'} hover:border-brand-300 transition-all shadow-sm">
+                <div class="group bg-bg-main p-3 rounded-xl border ${t.completed ? 'border-brand-200 bg-brand-50/30' : 'border-slate-200/10'} hover:border-brand-300 transition-all shadow-sm">
                     <div class="flex items-start gap-3">
                         <div onclick="Actions.toggleTask('${day}', '${t.id}')" class="mt-1 w-5 h-5 rounded border cursor-pointer flex items-center justify-center transition-colors ${t.completed ? 'bg-brand-500 border-brand-500 text-white' : 'border-slate-300 bg-white'}">
                             ${t.completed ? '<i class="ph-bold ph-check text-xs"></i>' : ''}
@@ -2011,7 +2020,7 @@
         
         UI.generateTaskHTML = function(t, day) {
             const colors = { 
-                geral: 'bg-gray-100 text-gray-700 border-gray-200',
+                atividades: 'bg-yellow-100 text-yellow-700 border-yellow-200', 
                 matematica: 'bg-blue-100 text-blue-700 border-blue-200', 
                 natureza: 'bg-green-100 text-green-700 border-green-200', 
                 humanas: 'bg-orange-100 text-orange-700 border-orange-200',
@@ -2534,74 +2543,63 @@
                 document.getElementById('tab-btn-'+id).classList.add('active-sett-tab');
             },
             saveCloud() {
-                // Deprecated manual config
                 UI.toast("Configuração automática ativa.");
             },
-            // Dentro de window.Settings = { ... }
 
-            // Dentro de window.Settings = { ... }
+        async confirmHardReset() {
+            if(!confirm("⚠️ PERIGO: Apagar tudo para sempre?")) return;
 
-            // Dentro de window.Settings = { ... }
+                window.isResetting = true; 
+                if(window.saveInterval) clearInterval(window.saveInterval);
 
-            confirmHardReset() {
-                const btn = document.getElementById('btn-nuke');
-                
-                // 1. Feedback Visual
-                if(btn) {
-                    btn.disabled = true;
-                    btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Saindo...`;
-                    btn.classList.add('opacity-75');
-                }
-
-                // Função auxiliar: Limpa o navegador e recarrega
-                const limparLocalmente = () => {
-                    localStorage.clear(); 
-                    // Se quiser manter APENAS a chave da API do Gemini, descomente abaixo:
-                    // if(Store.state.settings.geminiKey) localStorage.setItem('saved_gemini_key', Store.state.settings.geminiKey);
-                    
-                    location.reload();
+                // 1. Zera a Memória RAM
+                const zeroState = {
+                    user: { name: 'Visitante', xp: 0, level: 1, streak: 0, inventory: [] },
+                    tasks: [], habits: [], history: {}, mindmaps: [], quiz: [],
+                    settings: { theme: 'light' },
+                    lastLogin: new Date().toISOString()
                 };
+                Store.state = zeroState; 
+                
+                UI.toast("Formatando Nuvem...", "warning");
 
-                // 2. Tenta Deslogar do Firebase
-                if (window.orbitAuth && window.orbitSignOut) {
-                    // Chama a função de sair
-                    window.orbitSignOut(window.orbitAuth)
-                        .then(() => {
-                            // SUCESSO
-                            console.log("Firebase: Logout realizado.");
-                            UI.toast("Conta desconectada. Tchau! 👋", "success");
-                            
-                            // Espera 1seg para o usuário ler e reseta
-                            setTimeout(limparLocalmente, 1000);
-                        })
-                        .catch((error) => {
-                            // ERRO (O que você pediu)
-                            console.error("Erro no Logout:", error);
-                            
-                            // Mostra o alerta técnico na tela
-                            alert("ERRO AO SAIR DO FIREBASE:\nCódigo: " + error.code + "\nMensagem: " + error.message);
-                            
-                            // Mesmo com erro na nuvem, limpa o computador para destravar o usuário
-                            UI.toast("Forçando saída local...", "warning");
-                            setTimeout(limparLocalmente, 2000);
-                        });
-                } else {
-                    // Caso o Firebase não esteja carregado
-                    console.warn("Firebase não detectado. Limpando apenas localmente.");
-                    limparLocalmente();
+                try {
+                    const user = auth.currentUser;
+                    if (user) {
+                        // --- CORREÇÃO DO CAMINHO AQUI ---
+                        // O app usa esse caminho longo, o reset tem que usar o mesmo!
+                        const appId = 'orbit-v7'; 
+                        const correctPath = doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'orbit_state');
+                        
+                        // Sobrescreve o arquivo exato com zeros
+                        await setDoc(correctPath, zeroState);
+                        console.log("Banco de dados REAL sobrescrito.");
+                    }
+
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    await signOut(auth);
+
+                    alert("Reset Realizado com Sucesso!");
+                    window.location.reload();
+
+                } catch (error) {
+                    console.error("Erro fatal:", error);
+                    alert("Erro: " + error.message);
+                    window.isResetting = false; 
                 }
             },
         };
 
         // Atualização no Objeto Settings para salvar a Key
-        Settings.saveGeminiKey = function() {
+        window.Settings.saveGeminiKey = function() {
             const key = document.getElementById('sett-gemini-key').value.trim();
             if(key) {
                 if(!Store.state.settings) Store.state.settings = {};
                 Store.state.settings.geminiKey = key;
                 Store.save();
                 UI.toast("Chave Gemini salva!", "success");
-                document.getElementById('sett-gemini-key').value = ""; // Limpa visualmente por segurança
+                document.getElementById('sett-gemini-key').value = "";
             }
         };
 
