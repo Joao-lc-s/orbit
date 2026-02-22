@@ -242,8 +242,42 @@
         /* Utilitários */
         .zen-hidden { display: none !important; }
         input:focus, textarea:focus, select:focus { outline: none; border-color: var(--brand-500);}
-    </style>
-</head>
+
+        .border-dashed-node { border-style: dashed !important; border-width: 2px !important; }
+        .border-dotted-node { border-style: dotted !important; border-width: 3px !important; }
+
+        .mm-line { cursor: pointer; pointer-events: auto; transition: stroke-width 0.2s, stroke 0.2s; }
+        .mm-line:hover { stroke-width: 6px !important; }
+        .mm-line.selected-line { stroke: var(--brand-500) !important; filter: drop-shadow(0 0 5px var(--brand-500)); z-index: 50; }
+
+        .node-icon-badge { position: absolute; top: -14px; background: var(--bg-surface); width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--brand-500); z-index: 20; box-shadow: var(--shadow-subtle);}
+        .node-link-badge { position: absolute; bottom: -12px; background: var(--brand-600); padding: 4px 10px; border-radius: 12px; font-size: 10px; color: white; cursor: pointer; z-index: 20; display: flex; align-items: center; gap: 4px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;}
+        .node-link-badge:hover { transform: scale(1.1); background: var(--brand-500); }
+
+        /* --- NOVAS CUSTOMIZAÇÕES DO MAPA MENTAL --- */
+        #mm-advanced-toolbar::-webkit-scrollbar { height: 4px; }
+        #mm-advanced-toolbar::-webkit-scrollbar-thumb { background: var(--brand-500); border-radius: 4px; }
+
+        /* Formatos Geométricos */
+        .shape-rounded { border-radius: 16px !important; }
+        .shape-capsule { border-radius: 999px !important; padding: 12px 32px !important; }
+        .shape-circle { border-radius: 50% !important; aspect-ratio: 1/1; padding: 20px !important; }
+
+        /* Textos nas conexões */
+        .line-label {
+            position: absolute; transform: translate(-50%, -50%);
+            background: var(--bg-surface); color: var(--text-main);
+            padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800;
+            border: 1px solid rgba(0,0,0,0.1); cursor: text; pointer-events: auto;
+            box-shadow: var(--shadow-subtle); z-index: 15;
+        }
+        .theme-dark .line-label { border-color: rgba(255,255,255,0.1); }
+
+        #toast-area {
+            inset: auto 32px 32px auto;
+        }
+            </style>
+    </head>
 <body class="h-screen w-screen overflow-hidden text-sm md:text-base selection:bg-brand-500 selection:text-white">
 
     <!-- Loading Screen -->
@@ -458,25 +492,25 @@
                             <h4 class="font-bold text-txt-main mb-6 text-sm uppercase tracking-wide opacity-70">Acesso Rápido</h4>
                             <div class="grid grid-cols-2 gap-4 flex-1">
                                 <button onclick="router('mindmap')" class="p-4 bg-bg-main rounded-2xl flex flex-col items-center justify-center gap-2 text-xs font-bold text-txt-muted hover:bg-brand-50 hover:text-brand-600 transition-all group">
-                                    <div class="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center text-brand-500 shadow-sm group-hover:scale-110 transition-transform">
+                                    <div class="w-10 h-10 bg-bg-surface dark:bg-white/5 rounded-xl flex items-center justify-center text-brand-500 shadow-sm group-hover:scale-110 transition-transform">
                                         <i class="ph-bold ph-tree-structure text-xl"></i>
                                     </div>
                                     Mapa
                                 </button>
                                 <button onclick="router('questoes')" class="p-4 bg-bg-main rounded-2xl flex flex-col items-center justify-center gap-2 text-xs font-bold text-txt-muted hover:bg-brand-50 hover:text-brand-600 transition-all group">
-                                    <div class="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center text-purple-500 shadow-sm group-hover:scale-110 transition-transform">
+                                    <div class="w-10 h-10 bg-bg-surface dark:bg-white/5 rounded-xl flex items-center justify-center text-purple-500 shadow-sm group-hover:scale-110 transition-transform">
                                         <i class="ph-bold ph-exam text-xl"></i>
                                     </div>
                                     Prova
                                 </button>
                                 <button onclick="router('flashcards')" class="p-4 bg-bg-main rounded-2xl flex flex-col items-center justify-center gap-2 text-xs font-bold text-txt-muted hover:bg-brand-50 hover:text-brand-600 transition-all group">
-                                    <div class="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center text-orange-500 shadow-sm group-hover:scale-110 transition-transform">
+                                    <div class="w-10 h-10 bg-bg-surface dark:bg-white/5 rounded-xl flex items-center justify-center text-orange-500 shadow-sm group-hover:scale-110 transition-transform">
                                         <i class="ph-bold ph-cards text-xl"></i>
                                     </div>
                                     Cards
                                 </button>
                                 <button onclick="router('foco')" class="p-4 bg-bg-main rounded-2xl flex flex-col items-center justify-center gap-2 text-xs font-bold text-txt-muted hover:bg-brand-50 hover:text-brand-600 transition-all group">
-                                    <div class="w-10 h-10 bg-white dark:bg-white/5 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm group-hover:scale-110 transition-transform">
+                                    <div class="w-10 h-10 bg-bg-surface dark:bg-white/5 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm group-hover:scale-110 transition-transform">
                                         <i class="ph-bold ph-timer text-xl"></i>
                                     </div>
                                     Foco
@@ -539,64 +573,159 @@
 
                 <!-- MINDMAP VIEW -->
                 <div id="view-mindmap" class="hidden h-full flex flex-col animate-slide-up relative bg-bg-surface rounded-3xl border border-white/5 overflow-hidden shadow-subtle">
-                    <div id="mm-explorer" class="absolute inset-0 bg-bg-main z-20 flex flex-col p-8 overflow-y-auto">
-                        <div class="flex justify-between items-center mb-8">
-                            <h2 class="text-2xl font-bold text-txt-main flex items-center gap-3">
-                                <div class="p-2 bg-brand-100 dark:bg-brand-500/20 rounded-lg text-brand-600"><i class="ph-fill ph-tree-structure"></i></div>
-                                Mapas Mentais
-                            </h2>
-                            <button onclick="document.getElementById('modal-create-map').showModal()" class="bg-brand-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-brand-700 transition shadow-lg flex items-center gap-2">
-                                <i class="ph-bold ph-plus"></i> Novo
-                            </button>
+                    <div id="mm-explorer" class="p-8 h-full overflow-y-auto w-full custom-scrollbar bg-bg-main">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                            <div>
+                                <h2 class="text-3xl font-black text-txt-main tracking-tight">Mapas Mentais</h2>
+                                <p class="text-txt-muted mt-1 text-sm">Visualize e conecte seus resumos de forma orgânica.</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button onclick="document.getElementById('modal-ai-map').showModal()" class="px-5 py-3 rounded-2xl bg-brand-50 text-brand-600 font-bold hover:bg-brand-100 transition-colors flex items-center gap-2">
+                                    <i class="ph-fill ph-magic-wand"></i> Gerar com IA
+                                </button>
+                                <button onclick="window.MindMap.createNew()" class="px-5 py-3 rounded-2xl bg-brand-600 text-white font-bold shadow-lg hover:scale-105 transition-transform flex items-center gap-2">
+                                    <i class="ph-bold ph-plus"></i> Novo Mapa
+                                </button>
+                            </div>
                         </div>
-                        <div id="mm-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-                    </div>
+
+                        <div class="mb-8">
+                            <div class="relative x-full">
+                                <i class="ph-bold ph-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-txt-muted text-lg pointer-events-none"></i>
+                                <input type="text" id="mm-search" oninput="MindMap.renderExplorer(this.value)" class="w-full bg-bg-panel border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-txt-main font-medium outline-none focus:ring-2 focus:ring-brand-500 shadow-sm transition-all placeholder:text-txt-light/70" placeholder="Buscar mapas por título ou matéria...">
+                            </div>
+                        </div>
+
+                        <div id="mm-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+                        </div>
+                </div>
 
                     <div id="mm-workspace" class="hidden absolute inset-0 z-30 flex flex-col bg-bg-main">
-                        <div class="items-start absolute top-4 left-4 z-40 flex flex-col gap-2 pointer-events-auto">
-                            <div class="flex items-center gap-2 bg-bg-panel glass p-1.5 rounded-xl shadow-float mb-2">
-                                <button onclick="MindMap.close()" class="w-9 h-9 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Voltar"><i class="ph-bold ph-arrow-left"></i></button>
-                                <div class="px-2 border-l border-txt-muted/20">
-                                    <h4 id="mm-current-title" class="text-xs font-bold text-txt-main">Sem Título</h4>
-                                </div>                                
-                                <div class="flex gap-0.5 justify-center">
-                                    <button onclick="MindMap.zoom(-0.1)" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Diminuir zoom"><i class="ph-bold ph-minus"></i></button>
-                                    <button onclick="MindMap.resetZoom()" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Resetar zoom"><i class="ph-bold ph-arrow-clockwise"></i></button>
-                                    <button  onclick="MindMap.zoom(0.1)" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Aumentar zoom"><i class="ph-bold ph-plus"></i></button>
+                        <div class="absolute top-4 left-4 right-4 z-40 flex flex-col gap-2 pointer-events-none">
+                            <div class="flex items-center gap-2 max-w-full">
+                                <div class="flex shrink-0 items-center gap-2 bg-bg-panel glass p-1.5 rounded-xl shadow-float pointer-events-auto">
+                                <button onclick="MindMap.close()" class="w-9 h-9 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Voltar"><i class="ph-bold ph-arrow-left"></i></button>       
+                                <div id="mm-header-content" class="flex items-center gap-2 overflow-hidden transition-all duration-300 max-w-[400px] opacity-100">
+                                    <div class="px-2 border-l border-txt-muted/20">
+                                        <h4 id="mm-current-title" class="text-xs font-bold text-txt-main whitespace-nowrap">Sem Título</h4>
+                                    </div>                                
+                                    <div class="flex gap-0.5 justify-center">
+                                        <button onclick="MindMap.zoom(-0.1)" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Diminuir zoom"><i class="ph-bold ph-minus"></i></button>
+                                        <button onclick="MindMap.resetZoom()" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Resetar zoom"><i class="ph-bold ph-arrow-clockwise"></i></button>
+                                        <button onclick="MindMap.zoom(0.1)" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Aumentar zoom"><i class="ph-bold ph-plus"></i></button>
+                                    </div>
                                 </div>
+                                <button id="btn-toggle-header" title="Ocultar Menu" onclick="window.MindMap.toggleHeader()" class="w-8 h-8 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors">
+                                    <i class="ph-bold ph-caret-left"></i>
+                                </button>
+                                
+                                <div id="indicator-readonly" class="hidden ml-1 px-2 py-1 bg-brand-100 text-brand-700 text-[10px] font-bold rounded uppercase border border-brand-200">Leitura</div>
                             </div>
-                            
-                            <div id="indicator-readonly" class="hidden ml-1 px-2 py-1 bg-brand-100 text-brand-700 text-[10px] font-bold rounded uppercase border border-brand-200">Leitura</div>
 
-                            <div class="mm-toolbar bg-bg-panel glass p-2 rounded-xl shadow-float flex flex-col gap-2">
-                                <div class="relative w-9 h-9 rounded-full overflow-hidden cursor-pointer border border-white/10 shadow-sm hover:scale-110 transition-transform">
-                                     <input title="Cor" type="color" id="mm-color-picker" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] p-0 border-0 cursor-pointer" value="#3b82f6" onchange="MindMap.updateColor(this.value)">
-                                </div>
-                                <div class="h-px bg-txt-muted/10 my-1"></div>
-                                <button title="adicionar" onclick="window.MindMap.addNode()" class="w-9 h-9 rounded-lg bg-brand-50 text-brand-600 hover:bg-brand-100 flex items-center justify-center transition-all shadow-sm active:scale-95"><i class="ph-bold ph-plus"></i></button>
-                                <button title="remover nó selecionado" onclick="window.MindMap.deleteSelectedNode()" class="w-9 h-9 rounded-lg hover:bg-red-50 text-red-500 flex items-center justify-center transition-colors active:scale-95"><i class="ph-bold ph-eraser"></i></button>
-                                <button title="salvar mapa" onclick="window.MindMap.save()" class="w-9 h-9 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors"><i class="ph-bold ph-floppy-disk"></i></button>
-                                <button title="excluir mapa" onclick="window.MindMap.deleteMap()" class="w-9 h-9 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted hover:text-red-500 flex items-center justify-center transition-colors"><i class="ph-bold ph-trash"></i></button>
-                            </div>
-                        </div>
+            <div id="mm-advanced-toolbar" class="flex-1 flex items-center gap-3 bg-bg-panel glass px-3 py-1.5 rounded-xl shadow-float overflow-x-auto overflow-y-hidden pointer-events-auto custom-scrollbar mm-toolbar">
+                <div class="flex items-center gap-1 border-r border-txt-muted/20 pr-3 shrink-0">
+                    <button onclick="MindMap.changeZIndex(1)" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Trazer para Frente"><i class="ph-bold ph-stack-plus"></i></button>
+                    <button onclick="MindMap.changeZIndex(-1)" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Enviar para Trás"><i class="ph-bold ph-stack-minus"></i></button>
+                    
+                    <div class="w-px h-4 bg-txt-muted/20 mx-1"></div>
+                    
+                    <button onclick="MindMap.setShape('rounded')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Formato: Retângulo"><i class="ph-bold ph-rectangle"></i></button>
+                    <button onclick="MindMap.setShape('circle')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Formato: Círculo"><i class="ph-bold ph-circle"></i></button>
+                    <button onclick="MindMap.setShape('capsule')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Formato: Cápsula"><i class="ph-bold ph-pill"></i></button>
+                    <div class="w-px h-4 bg-txt-muted/20 mx-1"></div>
+                    <button onclick="MindMap.setBorderStyle('solid')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Borda Sólida"><i class="ph-bold ph-line-segment"></i></button>
+                    <button onclick="MindMap.setBorderStyle('dashed')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Borda Tracejada"><i class="ph-bold ph-dots-three"></i></button>
+                    <button onclick="MindMap.setBorderStyle('dotted')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Borda Pontilhada"><i class="ph-bold ph-dots-nine"></i></button>
+                    <input type="number" id="mm-border-width" min="0" max="10" value="1" onchange="MindMap.setBorderWidth(this.value)" class="w-8 h-8 rounded bg-black/5 dark:bg-white/10 text-txt-main font-bold outline-none text-center cursor-ns-resize" title="Espessura da Borda">
+                </div>
 
-                        <div id="mm-viewport" class="mindmap-viewport">
-                            <div id="mm-world" class="mindmap-world">
-                                <div class="mindmap-bg"></div>
-                                <svg id="mm-svg" class="absolute top-0 left-0 overflow-visible pointer-events-none z-0"></svg>
-                                <div id="mm-nodes-layer" class="absolute top-0 left-0 w-0 h-0 z-10"></div>
-                            </div>
-                        </div>
+                <div class="flex items-center gap-1 border-r border-txt-muted/20 pr-3 shrink-0">
+                     <button onclick="MindMap.promptIcon()" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Adicionar Emoji no Topo"><i class="ph-bold ph-smiley"></i></button>
+                     <button onclick="MindMap.toggleDone()" class="w-8 h-8 rounded hover:bg-emerald-50 text-emerald-600 flex items-center justify-center transition-colors" title="Marcar como Concluído / Estudado"><i class="ph-bold ph-check-circle"></i></button>
+                     <button onclick="MindMap.promptLink()" class="w-8 h-8 rounded hover:bg-brand-50 text-brand-600 flex items-center justify-center transition-colors" title="Adicionar Link Externo/Vídeo"><i class="ph-bold ph-link"></i></button>
+                </div>
+
+                <div class="flex items-center gap-1 border-r border-txt-muted/20 pr-3 shrink-0">
+                    <button onclick="MindMap.changeFontSize(-2)" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Diminuir Fonte"><i class="ph-bold ph-text-aa"></i><span class="text-[10px] -ml-1">-</span></button>
+                    <button onclick="MindMap.changeFontSize(2)" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Aumentar Fonte"><i class="ph-bold ph-text-aa"></i><span class="text-[10px] -ml-1">+</span></button>
+                    <button onclick="MindMap.toggleTextStyle('bold')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors font-serif font-bold" title="Negrito">B</button>
+                    <button onclick="MindMap.toggleTextStyle('italic')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors font-serif italic pr-1" title="Itálico">I</button>
+                    <button onclick="MindMap.updateTextAlign('left')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Alinhar à Esquerda"><i class="ph-bold ph-text-align-left"></i></button>
+                    <button onclick="MindMap.updateTextAlign('center')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Centralizar Texto"><i class="ph-bold ph-text-align-center"></i></button>
+                    <button onclick="MindMap.updateTextAlign('right')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Alinhar à Direita"><i class="ph-bold ph-text-align-right"></i></button>
+                     
+                     <div class="w-px h-4 bg-txt-muted/20 mx-1"></div>
+
+                     <div class="flex items-center gap-1.5 ml-1">
+                        <button onclick="MindMap.updateTextColor('#ef4444')" class="w-4 h-4 rounded-full bg-[#ef4444] shadow-sm hover:scale-125 transition-transform" title="Texto Vermelho"></button>
+                        <button onclick="MindMap.updateTextColor('#f59e0b')" class="w-4 h-4 rounded-full bg-[#f59e0b] shadow-sm hover:scale-125 transition-transform" title="Texto Laranja"></button>
+                        <button onclick="MindMap.updateTextColor('#10b981')" class="w-4 h-4 rounded-full bg-[#10b981] shadow-sm hover:scale-125 transition-transform" title="Texto Verde"></button>
+                        <button onclick="MindMap.updateTextColor('#3b82f6')" class="w-4 h-4 rounded-full bg-[#3b82f6] shadow-sm hover:scale-125 transition-transform" title="Texto Azul"></button>
+                        <button onclick="MindMap.updateTextColor('#8b5cf6')" class="w-4 h-4 rounded-full bg-[#8b5cf6] shadow-sm hover:scale-125 transition-transform" title="Texto Roxo"></button>
+                        <button onclick="MindMap.updateTextColor('#ffffff')" class="w-4 h-4 rounded-full bg-[#ffffff] shadow-sm border border-slate-200 hover:scale-125 transition-transform" title="Texto Branco"></button>
+                        <button onclick="MindMap.updateTextColor('#000000')" class="w-4 h-4 rounded-full bg-[#000000] shadow-sm hover:scale-125 transition-transform" title="Texto Preto"></button>
+                        <label id="custom-text-color" class="hidden relative w-5 h-5 rounded-full flex items-center justify-center shadow-sm hover:scale-125 transition-transform cursor-pointer border border-slate-300 dark:border-slate-600 overflow-hidden bg-slate-800" title="Cor Customizada">
+                            <i class="ph-bold ph-palette text-[10px] text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] z-10 pointer-events-none"></i>
+                            <input title="Selecionar cor customizada" type="color" value="#1e293b" oninput="document.getElementById('custom-text-color').style.backgroundColor = this.value; MindMap.updateTextColor(this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        </label>
+                     </div>
+                </div>
+
+                <div class="flex items-center gap-1 shrink-0">
+                    <button onclick="MindMap.promptLineLabel()" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Adicionar Texto na Conexão"><i class="ph-bold ph-text-t"></i></button>
+                    <div class="w-px h-4 bg-txt-muted/20 mx-1"></div>
+                    <button onclick="MindMap.setLineStyle('straight')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Linha Reta"><i class="ph-bold ph-line-segment"></i></button>
+                    <button onclick="MindMap.setLineStyle('bezier')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Curva Suave"><i class="ph-bold ph-bezier-curve"></i></button>
+                    <button onclick="MindMap.setLineStyle('orthogonal')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Linha em L"><i class="ph-bold ph-steps"></i></button>
+                    <div class="w-px h-4 bg-txt-muted/20 mx-1"></div>
+                    <button onclick="MindMap.setLineDirection('uni')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Seta Simples (A -> B)"><i class="ph-bold ph-arrow-right"></i></button>
+                    <button onclick="MindMap.setLineDirection('bi')" class="w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors" title="Seta Dupla (A <-> B)"><i class="ph-bold ph-arrows-left-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mm-toolbar bg-bg-panel glass p-2 rounded-xl shadow-float flex flex-col gap-2 overflow-y-auto max-h-[65vh] custom-scrollbar pointer-events-auto w-max">
+            
+            <div class="relative w-9 h-9 rounded-full overflow-hidden cursor-pointer border border-white/10 shadow-sm hover:scale-110 transition-transform">
+                 <input title="Cor do Nó" type="color" id="mm-color-picker" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] p-0 border-0 cursor-pointer" value="#3b82f6" onchange="MindMap.updateColor(this.value)">
+            </div>
+            
+            <div class="h-px bg-txt-muted/10 my-1"></div>
                         
-                        <div id="keys-map" class="absolute bottom-4 right-4 bg-bg-panel glass px-4 py-3 rounded-xl text-[10px] text-txt-muted pointer-events-none shadow-float z-40">
-                            <p class="font-bold text-txt-main mb-1 uppercase tracking-wider">Atalhos</p>
-                            <ul class="space-y-1 font-medium opacity-80">
-                                <li>Duplo clique: <span class="text-txt-main">Novo Nó</span></li>
-                                <li>Arrastar fundo: <span class="text-txt-main">Mover</span></li>
-                                <li>Ctrl+Click: <span class="text-txt-main">Conectar</span></li>
-                            </ul>
-                        </div>
-                    </div>
+            <button title="Adicionar Nó Solto" onclick="window.MindMap.addNode()" class="w-9 h-9 rounded-lg bg-brand-50 text-brand-600 hover:bg-brand-100 flex items-center justify-center transition-all shadow-sm active:scale-95"><i class="ph-bold ph-plus"></i></button>
+            <button title="Criar Nó Filho (Ligado)" onclick="window.MindMap.addChildNode()" class="w-9 h-9 rounded-lg bg-brand-50 text-brand-600 hover:bg-brand-100 flex items-center justify-center transition-all shadow-sm active:scale-95"><i class="ph-bold ph-flow-arrow"></i></button>
+            <button title="Apagar Nó/Linha Selecionada" onclick="window.MindMap.deleteSelectedElement()" class="w-9 h-9 rounded-lg hover:bg-red-50 text-red-500 flex items-center justify-center transition-colors active:scale-95"><i class="ph-bold ph-eraser"></i></button>
+            <button title="Duplicar Nó Atual" onclick="window.MindMap.cloneNode()" class="w-9 h-9 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors active:scale-95"><i class="ph-bold ph-copy"></i></button>
+            <label title="Adicionar Imagem" class="w-9 h-9 mt-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted flex items-center justify-center transition-colors cursor-pointer active:scale-95">
+                <i class="ph-bold ph-image"></i>
+                <input title="adicionar imagem" type="file" accept="image/*" class="hidden" onchange="window.MindMap.addImage(this)">
+            </label>
+
+            <div class="h-px bg-txt-muted/10 my-1"></div>
+            
+            <button title="Salvar Mapa Manualmente" onclick="window.MindMap.save()" class="w-9 h-9 rounded-lg hover:bg-emerald-50 text-emerald-600 flex items-center justify-center transition-colors active:scale-95"><i class="ph-bold ph-floppy-disk"></i></button>
+            <button title="Excluir o Mapa Inteiro" onclick="window.MindMap.deleteMap()" class="w-9 h-9 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-colors active:scale-95"><i class="ph-bold ph-trash"></i></button>
+            
+        </div>
+    </div>
+
+    <div id="mm-viewport" class="mindmap-viewport">
+        <div id="mm-world" class="mindmap-world">
+            <div class="mindmap-bg"></div>
+            <svg id="mm-svg" class="absolute top-0 left-0 overflow-visible pointer-events-none z-0"></svg>
+            <div id="mm-nodes-layer" class="absolute top-0 left-0 w-0 h-0 z-10"></div>
+        </div>
+    </div>
+    
+    <div id="keys-map" class="absolute bottom-4 right-4 bg-bg-panel glass px-4 py-3 rounded-xl text-[10px] text-txt-muted pointer-events-none shadow-float z-40">
+        <p class="font-bold text-txt-main mb-1 uppercase tracking-wider">Atalhos</p>
+        <ul class="space-y-1 font-medium opacity-80">
+            <li>Duplo clique: <span class="text-txt-main">Novo Nó</span></li>
+            <li>Arrastar fundo: <span class="text-txt-main">Mover</span></li>
+            <li>Ctrl+Click: <span class="text-txt-main">Conectar</span></li>
+        </ul>
+    </div>
+</div>
                 </div>
 
                 <!-- FOCUS VIEW -->
@@ -805,24 +934,97 @@
         </div>
     </dialog>
 
+    <dialog id="modal-ai-map" class="bg-transparent p-0 backdrop:bg-black/60 backdrop-blur-sm w-full max-w-lg rounded-[32px] shadow-2xl">
+        <div class="bg-bg-surface p-8 border border-white/10 rounded-[32px]">
+            <h3 class="font-bold text-2xl mb-6 text-txt-main tracking-tight flex items-center gap-2">
+                <i class="ph-fill ph-magic-wand text-brand-500"></i> Inteligência Artificial
+            </h3>
+            
+            <label class="block text-xs font-bold text-txt-muted uppercase mb-2 tracking-wide">Salvar na Pasta (Matéria)</label>
+            <input type="text" id="map-ai-subject" class="w-full bg-bg-main border-none rounded-xl p-4 mb-4 text-txt-main font-medium outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-txt-light" placeholder="Ex: Biologia, História...">
+
+            <label class="block text-xs font-bold text-txt-muted uppercase mb-2 tracking-wide">Assunto / Prompt</label>
+            <textarea id="map-ai-prompt" class="w-full h-32 bg-bg-main border-none rounded-xl p-4 mb-6 text-txt-main outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-txt-light resize-none" placeholder="Ex: O Sistema Solar. Faça o Sol no centro e os planetas orbitando..."></textarea>
+            
+            <div class="flex gap-4">
+                <button id="btn-generate-ai" onclick="MindMap.generateAI()" class="flex-1 bg-brand-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-brand-500/30 hover:scale-105 transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-sparkle"></i> Gerar Mapa
+                </button>
+                <button onclick="document.getElementById('modal-ai-map').close()" class="px-6 py-4 rounded-2xl text-txt-muted font-bold hover:bg-bg-main transition-colors">Cancelar</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="modal-prompt" class="bg-transparent p-0 backdrop:bg-black/60 backdrop-blur-sm w-full max-w-sm rounded-[32px] shadow-2xl">
+        <div class="bg-bg-surface p-8 border border-white/10 rounded-[32px] text-center">
+            
+            <div class="w-16 h-16 rounded-full bg-brand-50 dark:bg-brand-500/10 border border-brand-100 dark:border-brand-500/20 text-brand-500 flex items-center justify-center mx-auto mb-6 text-3xl">
+                <i class="ph-bold ph-pencil-simple"></i>
+            </div>
+            
+            <h3 id="prompt-title" class="font-bold text-2xl mb-6 text-txt-main tracking-tight">Digite o valor</h3>
+            
+            <input type="text" id="prompt-input" class="w-full bg-bg-main border-none rounded-2xl p-4 mb-8 text-txt-main text-center font-medium outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-txt-light" autocomplete="off">
+            
+            <div class="flex gap-3">
+                <button id="btn-prompt-cancel" class="flex-1 py-3.5 rounded-2xl text-txt-muted font-bold bg-bg-main border border-transparent hover:border-white/10 hover:shadow-sm transition-all">Cancelar</button>
+                <button id="btn-prompt-action" class="flex-1 bg-brand-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-brand-500/30 hover:scale-105 transition-all">Confirmar</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="modal-confirm" class="bg-transparent p-0 backdrop:bg-black/60 backdrop-blur-sm w-full max-w-sm rounded-[32px] shadow-2xl">
+        <div class="bg-bg-surface p-8 border border-white/10 rounded-[32px] text-center">
+            
+            <div id="confirm-icon" class="w-16 h-16 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="ph-bold ph-warning-circle"></i>
+            </div>
+            
+            <h3 id="confirm-title" class="font-bold text-2xl mb-2 text-txt-main tracking-tight">Tem certeza?</h3>
+            <p id="confirm-message" class="text-sm text-txt-muted mb-8 leading-relaxed">Essa ação não pode ser desfeita.</p>
+            
+            <div class="flex gap-3">
+                <button id="btn-confirm-cancel" class="flex-1 py-3.5 rounded-2xl text-txt-muted font-bold bg-bg-main border border-transparent hover:border-white/10 hover:shadow-sm transition-all">Cancelar</button>
+                <button id="btn-confirm-action" class="flex-1 bg-red-600 text-white py-3.5 rounded-2xl font-bold shadow-lg hover:scale-105 transition-all">Confirmar</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="modal-habit" class="bg-transparent p-0 backdrop:bg-black/60 backdrop-blur-sm w-full max-w-sm rounded-[32px] shadow-2xl">
+        <div class="bg-bg-surface p-8 border border-white/10 rounded-[32px]">
+            <h3 class="font-bold text-2xl mb-6 text-txt-main tracking-tight">Novo Hábito</h3>
+            
+            <input type="text" id="habit-text" class="w-full bg-bg-main border-none rounded-2xl p-5 mb-6 text-lg text-txt-main outline-none focus:ring-2 focus:ring-brand-500 placeholder:text-txt-light" placeholder="Ex: Ler 10 páginas" autofocus>
+            
+            <label class="block text-xs font-bold text-txt-muted uppercase mb-3 tracking-wide">Escolha um Ícone</label>
+            <div class="grid grid-cols-5 gap-3 mb-8" id="habit-icons-grid">
+                </div>
+
+            <div class="flex gap-4">
+                <button onclick="Actions.addAnchor()" class="flex-1 bg-brand-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:scale-105 transition-all">Criar</button>
+                <button onclick="document.getElementById('modal-habit').close()" class="px-6 py-4 rounded-2xl text-txt-muted font-bold hover:bg-bg-main transition-colors">Cancelar</button>
+            </div>
+        </div>
+    </dialog>
+
     <dialog id="modal-task" class="bg-transparent p-0 backdrop:bg-black/60 backdrop-blur-sm w-full max-w-lg rounded-[32px] shadow-2xl">
         <div class="bg-bg-surface p-8 shadow-2xl rounded-[32px] border border-white/10">
         <h3 class="font-bold text-2xl mb-6 text-txt-main tracking-tight">Nova Atividade</h3>
         
         <input type="text" id="task-text" class="w-full bg-bg-main border-none rounded-2xl p-5 mb-8 text-lg text-txt-main outline-none placeholder:text-txt-light" placeholder="O que vamos estudar?" autofocus>
         
-        <div class="flex gap-4 mb-8">
-            <div class="w-1/3">
+        <div class="grid grid-cols-3 flex gap-4 mb-8">
+            <div class="w-full h-12">
                 <label class="text-[10px] font-bold text-txt-muted uppercase mb-2 block tracking-wider">Duração</label>
                 <input type="number" id="task-duration" value="25" class="w-full bg-bg-main border-none rounded-2xl p-3 text-txt-main text-center font-bold outline-none">
             </div>
 
-            <div class="w-1/3">
+            <div class="w-full h-12">
                 <label class="text-[10px] font-bold text-txt-muted uppercase mb-2 block tracking-wider">Horário</label>
                 <input type="time" id="task-time" class="w-full bg-bg-main border-none rounded-2xl p-3 text-txt-main text-center font-bold outline-none">
             </div>
 
-            <div class="flex-1">
+            <div class="flex-1 h-12">
                 <label class="text-[10px] font-bold text-txt-muted uppercase mb-2 block tracking-wider">Matéria</label>
                 <div class="relative">
                     <select id="task-tag" class="w-full bg-bg-main border-none rounded-2xl p-3 text-txt-main font-bold outline-none appearance-none">
@@ -867,73 +1069,144 @@
         </div>
     </dialog>
 
-    <dialog id="modal-settings" class="bg-transparent p-0 backdrop:bg-black/60 backdrop-blur-md w-full max-w-4xl rounded-[32px] shadow-2xl overflow-hidden">
-        <div class="bg-bg-card flex flex-col md:flex-row h-[650px] border border-white/10">
-            <div class="w-full md:w-72 bg-bg-surface border-r border-white/5 p-6 flex flex-col gap-2">
-                <h3 class="font-bold text-txt-main mb-6 px-2 text-lg">Preferências</h3>
-                <button id="tab-btn-theme" onclick="Settings.tab('theme')" class="sett-tab active-sett-tab w-full text-left p-4 rounded-2xl text-sm font-bold text-txt-muted hover:bg-bg-main transition-all mb-1">Aparência</button>
-                <button id="tab-btn-data" onclick="Settings.tab('data')" class="sett-tab w-full text-left p-4 rounded-2xl text-sm font-bold text-txt-muted hover:bg-bg-main transition-all mb-1">Dados & Nuvem</button>
-                <button id="tab-btn-danger" onclick="Settings.tab('danger')" class="sett-tab w-full text-left p-4 rounded-2xl text-sm font-bold text-txt-muted hover:bg-red-50 hover:text-red-500 transition-all">Zona de Perigo</button>
-                <div class="mt-auto">
-                     <button onclick="document.getElementById('modal-settings').close()" class="w-full py-3 border border-white/10 rounded-2xl text-sm font-bold text-txt-muted hover:bg-bg-main transition-colors">Fechar</button>
-                </div>
+    <dialog id="modal-settings" class="bg-transparent p-0 backdrop:bg-black/40 backdrop-blur-sm w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden font-sans">
+    <div class="bg-bg-card flex flex-col md:flex-row h-[550px] bg-bg-main text-slate-800 dark:text-slate-100">
+        
+        <div class="w-full md:w-64 bg-bg-main dark:bg-[#161b22] border-r border-slate-200 dark:border-white/5 flex flex-col">
+            <div class="p-5">
+                <h3 class="font-semibold text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">Configurações</h3>
             </div>
             
-            <div class="flex-1 p-10 overflow-y-auto bg-bg-main text-txt-main relative">
-                <div id="tab-theme" class="sett-content space-y-8">
-                    <h4 class="text-2xl font-bold tracking-tight">Temas</h4>
-                    <div class="grid grid-cols-2 gap-6">
-                         <button onclick="Settings.setTheme('light')" class="h-32 rounded-3xl border-2 border-slate-200 bg-[#f3f4f6] hover:border-brand-500 hover:scale-[1.02] transition-all relative overflow-hidden group">
-                             <span class="absolute bottom-5 left-6 font-bold text-slate-700">Light</span>
-                             <div class="absolute top-4 right-4 w-6 h-6 rounded-full bg-blue-500 shadow-lg shadow-blue-500/30"></div>
-                          </button>
-                          <button onclick="Settings.setTheme('dark')" class="h-32 rounded-3xl border-2 border-slate-700 bg-[#020617] hover:border-brand-500 hover:scale-[1.02] transition-all relative overflow-hidden group">
-                             <span class="absolute bottom-5 left-6 font-bold text-slate-200">Dark</span>
-                             <div class="absolute top-4 right-4 w-6 h-6 rounded-full bg-indigo-500 shadow-lg shadow-indigo-500/30"></div>
-                          </button>
-                          <button onclick="Settings.setTheme('dracula')" class="h-32 rounded-3xl border-2 border-purple-900 bg-[#282a36] hover:border-pink-500 hover:scale-[1.02] transition-all relative overflow-hidden group">
-                             <span class="absolute bottom-5 left-6 font-bold text-[#f8f8f2]">Dracula</span>
-                             <div class="absolute top-4 right-4 w-6 h-6 rounded-full bg-pink-500 shadow-lg shadow-pink-500/30"></div>
-                          </button>
-                          <button onclick="Settings.setTheme('forest')" class="h-32 rounded-3xl border-2 border-green-900 bg-[#052e16] hover:border-green-500 hover:scale-[1.02] transition-all relative overflow-hidden group">
-                             <span class="absolute bottom-5 left-6 font-bold text-[#e8f5e9]">Forest</span>
-                             <div class="absolute top-4 right-4 w-6 h-6 rounded-full bg-green-500 shadow-lg shadow-green-500/30"></div>
-                          </button>
-                    </div>
-                </div>
+            <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+                <button onclick="Settings.tab('theme')" id="tab-btn-theme" class="sett-tab group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-white dark:hover:bg-white/5 hover:shadow-sm text-slate-600 dark:text-slate-300 aria-selected:bg-white aria-selected:shadow-sm aria-selected:text-blue-600 dark:aria-selected:bg-blue-500/10 dark:aria-selected:text-blue-400">
+                    <i class="ph ph-paint-brush-broad text-lg"></i>
+                    Aparência
+                </button>
 
-                <div id="tab-data" class="sett-content hidden space-y-8">
-                    <h4 class="text-2xl font-bold tracking-tight">Dados & IA</h4>
-                    <div class="bg-bg-surface border border-brand-200/50 p-6 rounded-[24px] shadow-sm">
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="p-3 bg-brand-100 rounded-2xl text-brand-600"><i class="ph-fill ph-robot text-2xl"></i></div>
-                            <div>
-                                <h5 class="font-bold text-txt-main text-lg">Google Gemini API</h5>
-                                <p class="text-xs text-txt-muted mt-0.5">Necessário para correção de redação.</p>
-                            </div>
-                        </div>
-                        <input type="password" id="sett-gemini-key" placeholder="Cole sua API Key aqui (AIza...)" 
-                            class="w-full bg-bg-main border-none rounded-2xl p-4 text-sm text-txt-main focus:ring-2 focus:ring-brand-500 outline-none mb-4 font-mono">
-                        <button onclick="Settings.saveGeminiKey()" class="w-full bg-brand-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-brand-700 transition-all shadow-lg">Salvar Chave</button>
-                        <p class="mt-4 text-[10px] text-center text-txt-muted"><a href="https://aistudio.google.com/app/apikey" rel="noopener" target="_blank" class="text-brand-600 hover:underline font-bold">Gerar chave gratuita</a></p>
-                    </div>
-                </div>
+                <button onclick="Settings.tab('data')" id="tab-btn-data" class="sett-tab group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-white dark:hover:bg-white/5 hover:shadow-sm text-slate-600 dark:text-slate-300">
+                    <i class="ph ph-database text-lg"></i>
+                    Dados & Conexões
+                </button>
 
-                <div id="tab-danger" class="sett-content hidden space-y-8">
-                    <div class="mt-8 pt-6 border-t border-white/10">
-                        <h5 class="text-sm font-bold text-red-500 uppercase mb-6 flex items-center gap-2 tracking-widest"><i class="ph-bold ph-skull"></i> Zona de Perigo</h5>
-                        <div class="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-[24px] p-6 flex items-center justify-between">
-                            <div>
-                                <p class="text-red-900 dark:text-red-200 font-bold text-lg">Resetar Conta</p>
-                                <p class="text-red-700/70 dark:text-red-300/50 text-xs mt-1">Apaga TODOS os dados locais.</p>
-                            </div>
-                            <button onclick="document.getElementById('modal-danger-reset').showModal()" class="bg-bg-surface border border-red-200 text-red-600 px-6 py-3 rounded-2xl text-xs font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm">Resetar</button>
-                        </div>
-                    </div>
-                </div>
+                <button onclick="Settings.tab('danger')" id="tab-btn-danger" class="sett-tab group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-red-50 text-slate-600 hover:text-red-600 dark:text-slate-300 dark:hover:bg-red-900/20 dark:hover:text-red-400">
+                    <i class="ph ph-warning-circle text-lg"></i>
+                    Zona de Perigo
+                </button>
+            </nav>
+
+            <div class="p-4">
+                <button onclick="document.getElementById('modal-settings').close()" class="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+                    <i class="ph ph-x"></i> Fechar
+                </button>
             </div>
         </div>
-    </dialog>
+        
+        <div class="flex-1 bg-white dark:bg-[#0f1117] relative flex flex-col">
+            <div class="flex-1 overflow-y-auto p-8 custom-scrollbarbg-bg-main bg-bg-main">
+                
+                <div id="tab-theme" class="sett-content space-y-6 animate-fade-in">
+                    <div>
+                        <h4 class="text-xl font-bold tracking-tight mb-1">Personalização</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Escolha como a interface se parece para você.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <button onclick="Settings.setTheme('light')" class="group relative flex flex-col gap-2 cursor-pointer">
+                            <div class="h-20 w-full rounded-xl border-2 border-slate-200 bg-gray-100 overflow-hidden relative transition-all group-hover:border-blue-500 group-hover:shadow-md">
+                                <div class="absolute top-2 left-2 right-2 h-2 bg-white rounded-full shadow-sm"></div>
+                                <div class="absolute top-6 left-2 w-8 h-8 bg-white rounded-full shadow-sm"></div>
+                                <div class="absolute top-6 left-12 right-2 h-8 bg-white rounded-lg shadow-sm"></div>
+                                <div class="absolute inset-0 bg-blue-500/10 opacity-0 group-focus:opacity-100 border-2 border-blue-500 rounded-[10px] transition-opacity"></div>
+                            </div>
+                            <span class="text-xs font-medium text-center text-slate-600 dark:text-slate-300">Light</span>
+                        </button>
+
+                        <button onclick="Settings.setTheme('dark')" class="group relative flex flex-col gap-2 cursor-pointer">
+                            <div class="h-20 w-full rounded-xl border-2 border-slate-200 dark:border-white/10 bg-slate-900 overflow-hidden relative transition-all group-hover:border-blue-500 group-hover:shadow-md">
+                                <div class="absolute top-2 left-2 right-2 h-2 bg-white/10 rounded-full"></div>
+                                <div class="absolute top-6 left-2 w-8 h-8 bg-indigo-500 rounded-full shadow-lg shadow-indigo-500/20"></div>
+                                <div class="absolute top-6 left-12 right-2 h-8 bg-white/5 rounded-lg border border-white/5"></div>
+                            </div>
+                            <span class="text-xs font-medium text-center text-slate-600 dark:text-slate-300">Dark</span>
+                        </button>
+                        
+                        <button onclick="Settings.setTheme('dracula')" class="group relative flex flex-col gap-2 cursor-pointer">
+                            <div class="h-20 w-full rounded-xl border-2 border-slate-200 dark:border-white/10 bg-[#282a36] overflow-hidden relative transition-all group-hover:border-pink-500 group-hover:shadow-md">
+                                <div class="absolute top-2 left-2 right-2 h-2 bg-white/10 rounded-full"></div>
+                                <div class="absolute top-6 left-2 w-8 h-8 bg-pink-500 rounded-full shadow-lg shadow-pink-500/20"></div>
+                                <div class="absolute top-6 left-12 right-2 h-8 bg-white/5 rounded-lg border border-white/5"></div>
+                            </div>
+                            <span class="text-xs font-medium text-center text-slate-600 dark:text-slate-300">Dracula</span>
+                        </button>
+
+                         <button onclick="Settings.setTheme('forest')" class="group relative flex flex-col gap-2 cursor-pointer">
+                            <div class="h-20 w-full rounded-xl border-2 border-slate-200 dark:border-white/10 bg-[#052e16] overflow-hidden relative transition-all group-hover:border-green-500 group-hover:shadow-md">
+                                <div class="absolute top-2 left-2 right-2 h-2 bg-white/10 rounded-full"></div>
+                                <div class="absolute top-6 left-2 w-8 h-8 bg-green-500 rounded-full shadow-lg shadow-green-500/20"></div>
+                                <div class="absolute top-6 left-12 right-2 h-8 bg-white/5 rounded-lg border border-white/5"></div>
+                            </div>
+                            <span class="text-xs font-medium text-center text-slate-600 dark:text-slate-300">Forest</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="tab-data" class="sett-content hidden space-y-6 animate-fade-in">
+                    <div>
+                        <h4 class="text-xl font-bold tracking-tight mb-1">Integrações & IA</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Gerencie chaves de API e conexões externas.</p>
+                    </div>
+
+                    <div class="bg-bg-surface rounded-xl p-5">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-bg-main flex items-center justify-center text-txt-muted">
+                                    <i class="ph-fill ph-robot text-xl"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold text-sm text-slate-900 dark:text-white">Google Gemini</h5>
+                                </div>
+                            </div>
+                            <div class="px-2 py-1 bg-bg-main text-green-700 dark:text-green-400 text-[10px] font-bold uppercase rounded tracking-wide">Ativo</div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">API Key</label>
+                            <div class="relative">
+                                <input type="password" id="sett-gemini-key" value="AIzaSy...Oculto" 
+                                    class="w-full bg-bg-main border border-slate-200 dark:border-white/10 rounded-lg py-2.5 pl-3 pr-10 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <button onclick="Settings.toggleKeyVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-blue-500 transition-colors">
+                                    <i class="ph ph-eye"></i>
+                                </button>
+                            </div>
+                            <div class="flex justify-between items-center pt-2">
+                                <a href="#" class="text-xs text-txt-muted hover:underline">Obter chave gratuita ↗</a>
+                                <button onclick="Settings.saveGeminiKey()" class="px-4 py-2 bg-bg-main text-white dark:text-black text-xs font-bold rounded-lg hover:opacity-90 transition-opacity">Salvar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-danger" class="sett-content hidden space-y-6 animate-fade-in">
+                    <div>
+                        <h4 class="text-xl font-bold tracking-tight mb-1 text-red-600">Zona de Perigo</h4>
+                        <p class="text-sm text-slate-500">Ações irreversíveis. Prossiga com cuidado.</p>
+                    </div>
+
+                    <div class="border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/5 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h5 class="font-semibold text-sm text-red-900 dark:text-red-200">Resetar Conta</h5>
+                            <p class="text-xs text-red-700/70 dark:text-red-300/60 mt-1 max-w-xs">Isso apagará todos os seus dados locais, configurações e histórico. Não pode ser desfeito.</p>
+                        </div>
+                        <button onclick="document.getElementById('modal-danger-reset').showModal()" class="shrink-0 px-4 py-2 bg-white dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-600 hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-all shadow-sm">
+                            Apagar Tudo
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</dialog>
     
     <dialog id="modal-trash" class="bg-transparent p-0 backdrop:bg-black/40 backdrop-blur-sm w-full max-w-lg rounded-[32px] shadow-2xl">
         <div class="bg-bg-surface p-8 rounded-[32px] border border-white/10">
@@ -1041,34 +1314,62 @@
 
     <dialog id="modal-whiteboard" class="w-full h-full max-w-full max-h-full bg-[#020617] p-0 backdrop:bg-black/90">
         <div class="h-full flex flex-col relative">
-            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-float rounded-3xl px-6 py-4 flex items-center gap-6 z-50 overflow-x-auto max-w-[90vw]">
-                <div class="relative group flex flex-col items-center gap-1.5 shrink-0">
-                    <div class="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/20 shadow-lg group hover:ring-brand-500 transition-all cursor-pointer">
+            
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-3xl px-5 py-3 flex items-center gap-4 z-50 overflow-x-auto max-w-[95vw] custom-scrollbar">
+                
+                <div class="flex items-center gap-3 shrink-0">
+                    <div class="relative w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/20 shadow-lg hover:ring-brand-500 transition-all cursor-pointer">
                         <input type="color" id="wb-color-picker" value="#3b82f6" onchange="Whiteboard.setColor(this.value)" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] p-0 border-0 cursor-pointer appearance-none bg-transparent">
                     </div>
-                </div>
-                <div class="w-px h-8 bg-white/10 shrink-0"></div>
-                <div class="flex gap-2 bg-black/30 p-1 rounded-xl shrink-0">
-                    <button id="btn-tool-pen" onclick="Whiteboard.setTool('pen')" class="p-2.5 rounded-lg bg-blue-600 text-white transition-all shadow-lg active:scale-95"><i class="ph-bold ph-pencil-simple text-lg"></i></button>
-                    <button id="btn-tool-eraser" onclick="Whiteboard.setTool('eraser')" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all active:scale-95"><i class="ph-bold ph-eraser text-lg"></i></button>
-                </div>
-                <div class="flex flex-col gap-1 w-24 shrink-0">
-                    <label class="text-[9px] text-slate-400 font-bold uppercase flex justify-between">
-                        Espessura <span id="wb-size-val">3px</span>
-                    </label>
-
-                    <input type="range" min="1" max="50" value="3" oninput="Whiteboard.setSize(this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    <div class="flex flex-col gap-1 w-24">
+                        <label class="text-[10px] text-slate-400 font-bold uppercase flex justify-between">Tam. <span id="wb-size-val">3px</span></label>
+                        <input type="range" min="1" max="50" value="3" oninput="Whiteboard.setSize(this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    </div>
                 </div>
                 
                 <div class="w-px h-8 bg-white/10 shrink-0"></div>
-                <button onclick="Whiteboard.clear()" class="text-slate-400 hover:text-red-500 transition-colors p-2 shrink-0"><i class="ph-bold ph-trash text-2xl"></i></button>
-                <button onclick="document.getElementById('modal-whiteboard').close()" class="text-slate-400 hover:text-white transition-colors p-2 ml-2 shrink-0"><i class="ph-bold ph-x text-2xl"></i></button>
+                
+                <div class="flex gap-1.5 bg-black/40 p-1.5 rounded-xl shrink-0">
+                    <button id="btn-tool-pen" onclick="Whiteboard.setTool('pen')" title="Pincel (B)" class="p-2.5 rounded-lg bg-blue-600 text-white transition-all shadow-lg scale-110"><i class="ph-bold ph-pencil-simple text-lg"></i></button>
+                    <button id="btn-tool-highlighter" onclick="Whiteboard.setTool('highlighter')" title="Marca-texto" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-highlighter text-lg"></i></button>
+                    <button id="btn-tool-eraser" onclick="Whiteboard.setTool('eraser')" title="Borracha (E)" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-eraser text-lg"></i></button>
+                </div>
+
+                <div class="flex gap-1.5 bg-black/40 p-1.5 rounded-xl shrink-0">
+                    <button id="btn-tool-line" onclick="Whiteboard.setTool('line')" title="Linha (Segure Shift para retas)" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-line-segment text-lg"></i></button>
+                    <button id="btn-tool-rect" onclick="Whiteboard.setTool('rect')" title="Retângulo" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-rectangle text-lg"></i></button>
+                    <button id="btn-tool-circle" onclick="Whiteboard.setTool('circle')" title="Círculo" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-circle text-lg"></i></button>
+                </div>
+
+                <div class="w-px h-8 bg-white/10 shrink-0"></div>
+
+                <div class="flex gap-1 shrink-0 bg-black/40 p-1.5 rounded-xl">
+                    <button id="btn-wb-mirror" onclick="Whiteboard.toggleMirror()" title="Modo Espelho (Simetria)" class="text-slate-400 hover:text-brand-400 transition-colors p-2.5 rounded-lg"><i class="ph-bold ph-butterfly text-lg"></i></button>
+                    <button id="btn-wb-palm" onclick="Whiteboard.togglePalmRejection()" title="Bloquear Dedo (Apenas Caneta)" class="text-slate-400 hover:text-brand-400 transition-colors p-2.5 rounded-lg"><i class="ph-bold ph-hand-swipe-left text-lg"></i></button>
+                </div>
+
+                <div class="w-px h-8 bg-white/10 shrink-0"></div>
+
+                <div class="flex gap-1 shrink-0">
+                    <button onclick="Whiteboard.undo()" title="Desfazer (Ctrl+Z)" class="text-slate-400 hover:text-white transition-colors p-2.5"><i class="ph-bold ph-arrow-u-up-left text-xl"></i></button>
+                    <button onclick="Whiteboard.redo()" title="Refazer (Ctrl+Y)" class="text-slate-400 hover:text-white transition-colors p-2.5"><i class="ph-bold ph-arrow-u-up-right text-xl"></i></button>
+                </div>
+
+                <div class="w-px h-8 bg-white/10 shrink-0"></div>
+
+                <div class="flex gap-1 shrink-0 items-center">
+                    <button onclick="Whiteboard.toggleGrid()" title="Alterar Fundo/Gabarito" class="text-slate-400 hover:text-white transition-colors p-2"><i class="ph-bold ph-grid-four text-xl"></i></button>
+                    <button onclick="Whiteboard.download()" title="Salvar PNG" class="text-slate-400 hover:text-brand-400 transition-colors p-2"><i class="ph-bold ph-download-simple text-xl"></i></button>
+                    <button onclick="Whiteboard.clear()" title="Apagar Tudo" class="text-slate-400 hover:text-red-500 transition-colors p-2 ml-1"><i class="ph-bold ph-trash text-xl"></i></button>
+                    <button onclick="document.getElementById('modal-whiteboard').close()" title="Fechar" class="text-slate-400 hover:text-white bg-white/5 rounded-xl transition-colors p-2 ml-2"><i class="ph-bold ph-x text-xl"></i></button>
+                </div>
             </div>
-            <canvas id="whiteboard-canvas" class="w-full h-full block bg-[#020617] touch-none cursor-crosshair"></canvas>
+            
+            <canvas id="whiteboard-canvas" class="w-full h-full block touch-none cursor-crosshair"></canvas>
         </div>
     </dialog>
 
-    <div id="toast-area" class="fixed bottom-8 right-8 z-[80] flex flex-col gap-3 pointer-events-none"></div>
+    <div id="toast-area" class="fixed bottom-8 right-8 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
     <script type="module">
         // 1. IMPORTS
@@ -1286,106 +1587,177 @@
             isDrawing: false,
             
             // Estado Atual
-            currentTool: 'pen', // 'pen' ou 'eraser'
+            currentTool: 'pen', // 'pen', 'eraser', 'highlighter', 'line', 'rect', 'circle'
             color: '#3b82f6',
             size: 3,
-            lastX: 0,
-            lastY: 0,
+            
+            // Variáveis de Desenho
+            lastX: 0, lastY: 0,
+            startX: 0, startY: 0,
+            points: [], 
+            snapshot: null, 
+            
+            // Variáveis de Câmera (Pan e Zoom Infinito)
+            scale: 1,
+            offsetX: 0,
+            offsetY: 0,
+            isPanning: false,
+            panStartX: 0, 
+            panStartY: 0,
+            isSpaceDown: false,
+
+            // Ferramentas de UX e Produtividade
+            isMirror: false, // Simetria
+            palmRejection: false, // Rejeição de Palma
+            
+            // Histórico (Undo/Redo)
+            history: [],
+            historyStep: -1,
+
+            // Grades Temáticas
+            grids: ['none', 'dots', 'lines', 'squares', 'music', 'sports'],
+            currentGridIndex: 0,
 
             open() {
                 const modal = document.getElementById('modal-whiteboard');
                 modal.showModal();
-                
-                // Configura o canvas se for a primeira vez
                 if (!this.canvas) {
                     this.init();
-                    // Define o tamanho inicial para preencher a tela
                     this.resize(); 
+                    this.saveState(); 
                 }
             },
 
             init() {
                 this.canvas = document.getElementById('whiteboard-canvas');
-                this.ctx = this.canvas.getContext('2d');
+                this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
 
-                // Mouse Events
-                this.canvas.addEventListener('mousedown', (e) => this.start(e));
-                this.canvas.addEventListener('mousemove', (e) => this.draw(e));
-                this.canvas.addEventListener('mouseup', () => this.stop());
-                this.canvas.addEventListener('mouseout', () => this.stop());
+                // MÁGICA: Eventos de 'Pointer' conseguem ler Mouse, Touch e Caneta (Stylus) ao mesmo tempo!
+                this.canvas.addEventListener('pointerdown', (e) => this.start(e));
+                this.canvas.addEventListener('pointermove', (e) => this.draw(e));
+                this.canvas.addEventListener('pointerup', (e) => this.stop());
+                this.canvas.addEventListener('pointerout', (e) => { if(this.isDrawing || this.isPanning) this.stop(); });
 
-                // Touch Events (Celular/Tablet)
-                this.canvas.addEventListener('touchstart', (e) => {
+                // PAN E ZOOM (Rodinha do Mouse)
+                this.canvas.addEventListener('wheel', (e) => {
                     e.preventDefault();
-                    const touch = e.touches[0];
-                    // Simula evento de mouse
-                    const mouseEvent = new MouseEvent("mousedown", {
-                        clientX: touch.clientX,
-                        clientY: touch.clientY
-                    });
-                    this.canvas.dispatchEvent(mouseEvent);
+                    const zoomIntensity = 0.1;
+                    const wheel = e.deltaY < 0 ? 1 : -1;
+                    this.scale *= Math.exp(wheel * zoomIntensity);
+                    this.applyTransform();
                 }, { passive: false });
 
-                this.canvas.addEventListener('touchmove', (e) => {
-                    e.preventDefault();
-                    const touch = e.touches[0];
-                    const mouseEvent = new MouseEvent("mousemove", {
-                        clientX: touch.clientX,
-                        clientY: touch.clientY
-                    });
-                    this.canvas.dispatchEvent(mouseEvent);
-                }, { passive: false });
+                // ATALHOS DE TECLADO (Shortcuts)
+                window.addEventListener('keydown', (e) => {
+                    if (!document.getElementById('modal-whiteboard').open) return;
+                    
+                    if (e.code === 'Space') {
+                        this.isSpaceDown = true;
+                        this.canvas.style.cursor = 'grab'; // Prepara para arrastar a tela
+                    }
+                    if (e.ctrlKey && e.key.toLowerCase() === 'z') this.undo();
+                    if (e.ctrlKey && e.key.toLowerCase() === 'y') this.redo();
+                    if (!e.ctrlKey) {
+                        if (e.key.toLowerCase() === 'b') this.setTool('pen');
+                        if (e.key.toLowerCase() === 'e') this.setTool('eraser');
+                    }
+                });
 
-                this.canvas.addEventListener('touchend', () => this.stop());
+                window.addEventListener('keyup', (e) => {
+                    if (e.code === 'Space') {
+                        this.isSpaceDown = false;
+                        this.canvas.style.cursor = this.currentTool === 'eraser' ? 'cell' : 'crosshair';
+                    }
+                });
 
-                // Redimensionar tela
                 window.addEventListener('resize', () => this.resize());
+                this.applyGrid();
             },
 
             resize() {
-                // OBS: Ao redimensionar o canvas, o desenho some. 
-                // Para manter, precisaríamos salvar a imagem em memória.
-                // Como é rascunho, vamos apenas resetar o tamanho.
+                let imgData = null;
+                if(this.canvas.width > 0 && this.canvas.height > 0) {
+                     imgData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+                }
                 this.canvas.width = window.innerWidth;
                 this.canvas.height = window.innerHeight;
-                
-                // Reconfigura o contexto (perde-se ao redimensionar)
+                if(imgData) this.ctx.putImageData(imgData, 0, 0);
                 this.updateContext();
             },
 
-            // --- FERRAMENTAS ---
+            // Aplica o Zoom e Pan visualmente via CSS
+            applyTransform() {
+                this.canvas.style.transform = `translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
+            },
 
+            // Corrige a posição do mouse quando a tela está com Zoom ou movida
+            getMousePos(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                return {
+                    x: (e.clientX - rect.left) / this.scale,
+                    y: (e.clientY - rect.top) / this.scale
+                };
+            },
+
+            // --- ESTADOS E HISTÓRICO (UNDO/REDO) ---
+            saveState() {
+                if (this.historyStep < this.history.length - 1) {
+                    this.history.length = this.historyStep + 1;
+                }
+                this.history.push(this.canvas.toDataURL());
+                this.historyStep++;
+            },
+
+            undo() {
+                if (this.historyStep > 0) {
+                    this.historyStep--;
+                    this.restoreState();
+                }
+            },
+
+            redo() {
+                if (this.historyStep < this.history.length - 1) {
+                    this.historyStep++;
+                    this.restoreState();
+                }
+            },
+
+            restoreState() {
+                const img = new Image();
+                img.src = this.history[this.historyStep];
+                img.onload = () => {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.drawImage(img, 0, 0);
+                    this.updateContext(); 
+                };
+            },
+
+            // --- FERRAMENTAS E ESTILOS ---
             setTool(tool) {
                 this.currentTool = tool;
                 
-                // Atualiza visual dos botões
-                const btnPen = document.getElementById('btn-tool-pen');
-                const btnEraser = document.getElementById('btn-tool-eraser');
+                const tools = ['pen', 'eraser', 'highlighter', 'line', 'rect', 'circle'];
+                tools.forEach(t => {
+                    const btn = document.getElementById(`btn-tool-${t}`);
+                    if(btn) btn.className = "p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all";
+                });
 
-                if (tool === 'pen') {
-                    btnPen.className = "p-2 rounded-lg bg-blue-600 text-white transition-all shadow-lg scale-110";
-                    btnEraser.className = "p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-all";
-                    this.canvas.style.cursor = "crosshair";
-                    
-                    // Se a borracha estava gigante, volta o pincel para um tamanho normal (opcional)
-                    if(this.size > 20) { this.setSize(3); document.querySelector('input[type=range]').value = 3; }
-                    
-                } else {
-                    btnEraser.className = "p-2 rounded-lg bg-white text-slate-900 transition-all shadow-lg scale-110";
-                    btnPen.className = "p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-all";
-                    this.canvas.style.cursor = "cell"; // Cursor de borracha
-                    
-                    // Aumenta o tamanho automaticamente para facilitar apagar
-                    this.setSize(30); 
-                    document.querySelector('input[type=range]').value = 30;
+                const btn = document.getElementById(`btn-tool-${tool}`);
+                if (btn) {
+                    if (tool === 'eraser') {
+                        btn.className = "p-2.5 rounded-lg bg-white text-slate-900 transition-all shadow-lg scale-110";
+                        this.canvas.style.cursor = "cell";
+                    } else {
+                        btn.className = "p-2.5 rounded-lg bg-blue-600 text-white transition-all shadow-lg scale-110";
+                        this.canvas.style.cursor = "crosshair";
+                    }
                 }
-                
                 this.updateContext();
             },
 
             setColor(hex) {
                 this.color = hex;
-                this.setTool('pen'); // Se mudou cor, volta para pincel
+                if(this.currentTool === 'eraser') this.setTool('pen');
                 this.updateContext();
             },
 
@@ -1397,53 +1769,192 @@
 
             updateContext() {
                 if(!this.ctx) return;
-                
-                this.ctx.lineWidth = this.size;
-                this.ctx.lineCap = 'round'; // Ponta redonda
-                this.ctx.lineJoin = 'round'; // Curva suave
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+                this.ctx.globalAlpha = 1.0;
 
                 if (this.currentTool === 'eraser') {
-                    // MODO BORRACHA: "destination-out" torna os pixels transparentes
                     this.ctx.globalCompositeOperation = 'destination-out';
+                    this.ctx.lineWidth = this.size;
                 } else {
-                    // MODO PINCEL: "source-over" desenha por cima
                     this.ctx.globalCompositeOperation = 'source-over';
                     this.ctx.strokeStyle = this.color;
+                    
+                    if (this.currentTool === 'highlighter') {
+                        this.ctx.globalAlpha = 0.3; 
+                        this.ctx.lineWidth = this.size * 3; 
+                    } else {
+                        this.ctx.lineWidth = this.size;
+                    }
                 }
             },
 
-            clear() {
-                if(confirm("Limpar todo o quadro?")) {
+            // --- FUNÇÕES MÁGICAS NOVAS ---
+            toggleMirror() {
+                this.isMirror = !this.isMirror;
+                UI.toast(this.isMirror ? "Modo Simetria (Espelho) Ativado" : "Modo Simetria Desativado", "info");
+            },
+
+            togglePalmRejection() {
+                this.palmRejection = !this.palmRejection;
+                UI.toast(this.palmRejection ? "Bloqueio de Dedo Ativado (Use a caneta)" : "Desenho Livre", "info");
+            },
+
+            // --- DESENHO E FORMAS GEOMÉTRICAS ---
+            start(e) {
+                // 1. Lógica do Pan (Arrastar quadro) -> Se segurar Espaço, botão do meio ou Dedo (se palmRejection ligado)
+                if (this.isSpaceDown || e.button === 1 || (e.pointerType === 'touch' && this.palmRejection)) {
+                    this.isPanning = true;
+                    this.panStartX = e.clientX - this.offsetX;
+                    this.panStartY = e.clientY - this.offsetY;
+                    this.canvas.style.cursor = 'grabbing';
+                    return;
+                }
+
+                // 2. Rejeição de Palma: Bloqueia toques que não sejam de caneta
+                if (this.palmRejection && e.pointerType !== 'pen') return;
+
+                this.isDrawing = true;
+                const pos = this.getMousePos(e);
+                this.startX = pos.x;
+                this.startY = pos.y;
+                
+                this.snapshot = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+                
+                if (this.currentTool === 'pen' || this.currentTool === 'highlighter' || this.currentTool === 'eraser') {
+                    this.points = [{x: this.startX, y: this.startY}];
+                }
+            },
+
+            draw(e) {
+                // 1. Move o quadro (Pan)
+                if (this.isPanning) {
+                    this.offsetX = e.clientX - this.panStartX;
+                    this.offsetY = e.clientY - this.panStartY;
+                    this.applyTransform();
+                    return;
+                }
+
+                if (!this.isDrawing) return;
+                
+                const pos = this.getMousePos(e);
+
+                // ATALHO SHIFT: Se segurar shift com a caneta, força ser uma linha reta
+                const isStraightLine = (this.currentTool === 'pen' && e.shiftKey);
+
+                // Limpa o frame se for forma, marca-texto ou linha reta forçada
+                if (this.currentTool === 'highlighter' || this.currentTool === 'line' || this.currentTool === 'rect' || this.currentTool === 'circle' || isStraightLine) {
+                     this.ctx.putImageData(this.snapshot, 0, 0);
+                }
+
+                // Função interna para desenhar (permite repetir no modo espelho facilmente)
+                const drawAction = () => {
+                    this.ctx.beginPath();
+                    
+                    if (isStraightLine || this.currentTool === 'line') {
+                        this.ctx.moveTo(this.startX, this.startY);
+                        this.ctx.lineTo(pos.x, pos.y);
+                    } 
+                    else if (this.currentTool === 'pen' || this.currentTool === 'highlighter' || this.currentTool === 'eraser') {
+                        this.points.push(pos);
+                        this.ctx.moveTo(this.points[0].x, this.points[0].y);
+                        
+                        if(this.points.length < 3) {
+                            this.ctx.lineTo(pos.x, pos.y);
+                        } else {
+                            for (let i = 1; i < this.points.length - 1; i++) {
+                                const xc = (this.points[i].x + this.points[i + 1].x) / 2;
+                                const yc = (this.points[i].y + this.points[i + 1].y) / 2;
+                                this.ctx.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
+                            }
+                        }
+                    } 
+                    else if (this.currentTool === 'rect') {
+                        this.ctx.rect(this.startX, this.startY, pos.x - this.startX, pos.y - this.startY);
+                    } 
+                    else if (this.currentTool === 'circle') {
+                        const radius = Math.hypot(pos.x - this.startX, pos.y - this.startY);
+                        this.ctx.arc(this.startX, this.startY, radius, 0, 2 * Math.PI);
+                    }
+                    this.ctx.stroke();
+                };
+
+                // 1. Desenha o traço normal
+                drawAction();
+
+                // 2. MÁGICA DA SIMETRIA: Inverte a matriz do canvas e desenha de novo!
+                if (this.isMirror) {
+                    this.ctx.save();
+                    this.ctx.translate(this.canvas.width, 0);
+                    this.ctx.scale(-1, 1);
+                    drawAction();
+                    this.ctx.restore();
+                }
+            },
+
+            stop() {
+                if (this.isPanning) {
+                    this.isPanning = false;
+                    this.canvas.style.cursor = this.currentTool === 'eraser' ? 'cell' : 'crosshair';
+                }
+                if (this.isDrawing) {
+                    this.isDrawing = false;
+                    this.saveState(); 
+                    this.points = []; 
+                }
+            },
+
+            // --- AÇÕES ESPECIAIS ---
+            async clear() {
+                if(await UI.confirm("Limpar Quadro", "Tem certeza que deseja apagar todo o desenho?", "Limpar", true)) {
                     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.saveState();
                     UI.toast("Quadro limpo", "info");
                 }
             },
 
-            // --- DESENHO ---
-
-            start(e) {
-                this.isDrawing = true;
-                this.lastX = e.clientX - this.canvas.offsetLeft;
-                this.lastY = e.clientY - this.canvas.offsetTop;
-            },
-
-            draw(e) {
-                if (!this.isDrawing) return;
+            download() {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = this.canvas.width;
+                tempCanvas.height = this.canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
                 
-                const currentX = e.clientX - this.canvas.offsetLeft;
-                const currentY = e.clientY - this.canvas.offsetTop;
+                tempCtx.fillStyle = '#020617'; 
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                tempCtx.drawImage(this.canvas, 0, 0);
 
-                this.ctx.beginPath();
-                this.ctx.moveTo(this.lastX, this.lastY);
-                this.ctx.lineTo(currentX, currentY);
-                this.ctx.stroke();
-
-                this.lastX = currentX;
-                this.lastY = currentY;
+                const link = document.createElement('a');
+                link.download = `rascunho-${Date.now()}.png`;
+                link.href = tempCanvas.toDataURL('image/png');
+                link.click();
+                UI.toast("Imagem salva!", "success");
             },
 
-            stop() {
-                this.isDrawing = false;
+            toggleGrid() {
+                this.currentGridIndex = (this.currentGridIndex + 1) % this.grids.length;
+                this.applyGrid();
+            },
+
+            applyGrid() {
+                const type = this.grids[this.currentGridIndex];
+                const c = this.canvas;
+                c.style.backgroundImage = 'none';
+
+                if (type === 'dots') {
+                    c.style.backgroundImage = 'radial-gradient(#334155 1.5px, transparent 1.5px)';
+                    c.style.backgroundSize = '30px 30px';
+                } else if (type === 'lines') {
+                    c.style.backgroundImage = 'linear-gradient(transparent 95%, #334155 95%)';
+                    c.style.backgroundSize = '100% 40px';
+                } else if (type === 'squares') {
+                    c.style.backgroundImage = 'linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px)';
+                    c.style.backgroundSize = '40px 40px';
+                } else if (type === 'music') { // Pauta Musical
+                    c.style.backgroundImage = 'repeating-linear-gradient(transparent, transparent 10px, #334155 10px, #334155 11px), repeating-linear-gradient(transparent, transparent 60px, transparent 60px)';
+                    c.style.backgroundSize = '100% 80px';
+                } else if (type === 'sports') { // Campo verde
+                     c.style.backgroundImage = 'linear-gradient(#166534, #166534)'; 
+                }
             }
         };
 
@@ -1454,9 +1965,9 @@
             currentQuestions: [],
             answers: {},
 
-            start(qty) {
+            async start(qty) {
                 if(Store.state.quiz.length < qty) {
-                    if(!confirm(`Você tem apenas ${Store.state.quiz.length} questões. Iniciar com todas?`)) return;
+                    if(!(await UI.confirm("Faltam Questões", `Você tem apenas ${Store.state.quiz.length} questões. Iniciar com todas?`, "Iniciar", false))) return;
                     qty = Store.state.quiz.length;
                 }
                 
@@ -1493,8 +2004,8 @@
                 `).join('');
             },
 
-            finish() {
-                if(!confirm("Entregar prova e ver resultado?")) return;
+            async finish() {
+                if(!(await UI.confirm("Entregar Simulado", "Deseja entregar a prova e ver o resultado?", "Entregar", false))) return;
                 
                 let hits = 0;
                 this.currentQuestions.forEach(q => {
@@ -1911,12 +2422,130 @@
             },
 
             toast(msg, type='info') {
+                const area = document.getElementById('toast-area');
+                const activeModal = document.querySelector('dialog[open]');
+
+                if (activeModal) {
+                    if (area.parentNode !== activeModal) activeModal.appendChild(area);
+                        area.style.position = 'absolute';
+                        area.style.bottom = '20px';
+                        area.style.right = '20px';
+                } else {
+                    if (area.parentNode !== document.body) document.body.appendChild(area);
+                        area.style.position = 'fixed';
+                        area.style.bottom = '2rem';
+                        area.style.right = '2rem';
+                }
+
                 const el = document.createElement('div');
-                const colors = { success: 'bg-emerald-600', error: 'bg-red-500', info: 'bg-slate-800' };
-                el.className = `${colors[type]} text-white px-4 py-3 rounded-xl shadow-lg shadow-black/10 text-xs font-bold flex items-center gap-2 animate-slide-up backdrop-blur-md`;
+                const colors = { success: 'bg-emerald-600', error: 'bg-red-500', info: 'bg-slate-800', warning: 'bg-orange-500' };
+                el.className = `${colors[type]} text-white px-4 py-3 rounded-xl shadow-lg shadow-black/20 text-xs font-bold flex items-center gap-2 animate-slide-up backdrop-blur-md`;
                 el.innerHTML = msg;
-                document.getElementById('toast-area').appendChild(el);
-                setTimeout(() => el.remove(), 3500);
+                
+                area.appendChild(el);
+                
+                setTimeout(() => {
+                    el.classList.replace('animate-slide-up', 'opacity-0');
+                    el.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => {
+                        el.remove();
+                        if (area.childNodes.length === 0 && area.parentNode !== document.body) {
+                            document.body.appendChild(area);
+                            area.style.position = 'fixed';
+                        }
+                    }, 300);
+                }, 3500);
+            },
+            confirm(title, message, btnText = "Confirmar", isDanger = true) {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('modal-confirm');
+                    document.getElementById('confirm-title').innerText = title;
+                    document.getElementById('confirm-message').innerText = message;
+                    
+                    const btnAction = document.getElementById('btn-confirm-action');
+                    const btnCancel = document.getElementById('btn-confirm-cancel');
+                    const iconEl = document.getElementById('confirm-icon');
+                    
+                    btnAction.innerText = btnText;
+
+                    // Muda as cores dependendo se é uma ação perigosa (excluir) ou normal (iniciar/finalizar)
+                    if (isDanger) {
+                        btnAction.className = "flex-1 bg-red-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-red-500/30 hover:scale-105 transition-all";
+                        iconEl.className = "w-16 h-16 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-4 text-3xl";
+                        iconEl.innerHTML = '<i class="ph-bold ph-trash"></i>';
+                    } else {
+                        btnAction.className = "flex-1 bg-brand-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-brand-500/30 hover:scale-105 transition-all";
+                        iconEl.className = "w-16 h-16 rounded-full bg-brand-50 dark:bg-brand-500/10 border border-brand-100 dark:border-brand-500/20 text-brand-500 flex items-center justify-center mx-auto mb-4 text-3xl";
+                        iconEl.innerHTML = '<i class="ph-bold ph-question"></i>';
+                    }
+
+                    // Limpa eventos antigos para não encavalar cliques
+                    const cleanup = () => {
+                        btnAction.onclick = null;
+                        btnCancel.onclick = null;
+                        modal.onclose = null;
+                    };
+
+                    btnAction.onclick = () => { cleanup(); modal.close(); resolve(true); };
+                    btnCancel.onclick = () => { cleanup(); modal.close(); resolve(false); };
+                    modal.onclose = () => { cleanup(); resolve(false); }; // Caso aperte "ESC"
+
+                    modal.showModal();
+                });
+            },
+            // NOVA FUNÇÃO: Substituta do prompt() nativo
+            prompt(title, placeholder = "", defaultValue = "") {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('modal-prompt');
+                    document.getElementById('prompt-title').innerText = title;
+                    
+                    const input = document.getElementById('prompt-input');
+                    input.placeholder = placeholder;
+                    input.value = defaultValue;
+                    
+                    const btnAction = document.getElementById('btn-prompt-action');
+                    const btnCancel = document.getElementById('btn-prompt-cancel');
+                    
+                    // Limpa eventos para não encavalar
+                    const cleanup = () => {
+                        btnAction.onclick = null;
+                        btnCancel.onclick = null;
+                        input.onkeydown = null;
+                        modal.onclose = null;
+                    };
+
+                    const submit = () => {
+                        const val = input.value;
+                        cleanup();
+                        modal.close();
+                        resolve(val);
+                    };
+
+                    const cancel = () => {
+                        cleanup();
+                        modal.close();
+                        resolve(null);
+                    };
+
+                    btnAction.onclick = submit;
+                    btnCancel.onclick = cancel;
+                    
+                    // Permite dar Enter para confirmar
+                    input.onkeydown = (e) => {
+                        if (e.key === 'Enter') submit();
+                    };
+
+                    // Se fechar pelo ESC do teclado
+                    modal.onclose = cancel;
+
+                    modal.showModal();
+                    
+                    // Foca e seleciona o texto automaticamente
+                    setTimeout(() => {
+                        input.focus();
+                        input.select();
+                    }, 10);
+                });
             }
         };
 
@@ -1925,6 +2554,51 @@
         // =================================================================
         window.Actions = {
             activeDay: null,
+
+            // --- ADICIONE ESTAS DUAS FUNÇÕES DE HÁBITOS AQUI ---
+            toggleAnchor(index) {
+                if (Store.state.anchors[index]) {
+                    Store.state.anchors[index].completed = !Store.state.anchors[index].completed;
+                    Store.save();
+                    UI.renderDashboard(); // Atualiza a tela
+                }
+            },
+
+            async deleteAnchor(index) {
+                if (await UI.confirm("Apagar Hábito", "Deseja mandar este hábito para a lixeira?", "Apagar", true)) {
+                    const item = Store.state.anchors[index];
+                    
+                    // 1. Envia para a lixeira
+                    Trash.add(item, 'anchor', 'Dashboard');
+                    
+                    // 2. Remove da tela
+                    Store.state.anchors.splice(index, 1);
+                    Store.save();
+                    UI.renderDashboard();
+                    UI.toast("Hábito movido para a lixeira.", "info");
+                }
+            },
+            addAnchor() {
+                const title = document.getElementById('habit-text').value.trim();
+                if (title) {
+                    // Pega o título digitado e o ícone que estava selecionado
+                    Store.state.anchors.push({ title: title, icon: window.selectedHabitIcon, completed: false });
+                    Store.save();
+                    UI.renderDashboard();
+                    document.getElementById('modal-habit').close();
+                    UI.toast("Hábito criado!", "success");
+                } else {
+                    UI.toast("Digite um nome para o hábito!", "error");
+                }
+            },
+            
+            openTaskModal(day) {
+                this.activeDay = day;
+                document.getElementById('task-text').value = '';
+                document.getElementById('task-time').value = '';
+                document.getElementById('task-duration').value = '25'; // Padrão 25min
+                document.getElementById('modal-task').showModal();
+            },
             
             openTaskModal(day) {
                 this.activeDay = day;
@@ -1934,11 +2608,12 @@
                 document.getElementById('modal-task').showModal();
             },
 
+
             addTask() {
                 const text = document.getElementById('task-text').value;
                 const tag = document.getElementById('task-tag').value;
                 const time = document.getElementById('task-time').value;
-                const duration = document.getElementById('task-duration').value; // Pega os minutos
+                const duration = document.getElementById('task-duration').value;
 
                 if(text) {
                     if(!Store.state.week[this.activeDay]) Store.state.week[this.activeDay] = [];
@@ -1948,7 +2623,7 @@
                         text, 
                         tag, 
                         time, 
-                        pomodoros: duration ? parseInt(duration) : null, // Salva para usar no seu botão
+                        pomodoros: duration ? parseInt(duration) : null,
                         done: false 
                     });
                     
@@ -1974,13 +2649,25 @@
                 }
             },
 
-            deleteTask(day, id) {
-                if(confirm("Apagar tarefa?")) {
-                    Store.state.week[day] = Store.state.week[day].filter(t => t.id !== id);
-                    Store.save();
-                    UI.renderCronograma();
+            async deleteTask(day, id) {
+                if (await UI.confirm("Excluir Tarefa", "Deseja mandar esta tarefa para a lixeira?", "Apagar", true)) {
+                    
+                    // Encontra a tarefa exata no dia
+                    const taskIndex = Store.state.week[day].findIndex(t => t.id === id);
+                    if (taskIndex > -1) {
+                        const item = Store.state.week[day][taskIndex];
+                        
+                        // 1. Envia para a lixeira (salvando o dia como contexto para saber onde restaurar)
+                        Trash.add(item, 'task', day);
+                        
+                        // 2. Remove da tela
+                        Store.state.week[day].splice(taskIndex, 1);
+                        Store.save();
+                        UI.renderCronograma();
+                        UI.toast("Tarefa movida para a lixeira.", "info");
+                    }
                 }
-            }
+            },
         };
 
         // Adicione essa linha no final do script para garantir compatibilidade se o HTML antigo chamar addTask()
@@ -2024,7 +2711,7 @@
                 
                 <p class="text-sm font-medium text-txt-main mb-3 leading-tight ${t.done ? 'line-through' : ''}">${t.text}</p>
                 
-                <div class="flex justify-between items-center mt-2 border-t border-slate-100 dark:border-slate-800 pt-2">
+                <div class="flex justify-between items-center mt-2 pt-2">
                     <button onclick="Actions.toggleTask('${day}', ${t.id})" class="text-xs font-bold ${t.done ? 'text-green-600' : 'text-txt-muted hover:text-brand-600'} flex items-center gap-1">
                         <i class="ph-bold ${t.done ? 'ph-check-circle' : 'ph-circle'} text-lg"></i> ${t.done ? 'Feito' : 'Concluir'}
                     </button>
@@ -2039,464 +2726,951 @@
         // MAPA MENTAL AVANÇADO (Pan & Mobile)
         // =================================================================
         window.MindMap = {
-            drag: { active: false, node: null, offset: {x:0, y:0} },
-            pan: { active: false, start: {x:0, y:0}, offset: {x:0, y:0} },
-            selected: null,
-            canvas: null,
-            currentMap: null,
-            isReadOnly: false,
+    drag: { active: false, node: null, offset: {x:0, y:0} },
+    pan: { active: false, start: {x:0, y:0}, offset: {x:0, y:0} },
+    scale: 1,
+    selected: null,
+    selectedLine: null,
+    canvas: null,
+    currentMap: null,
+    isReadOnly: false,
 
-            init() {
-                this.canvas = document.getElementById('mm-viewport');
-                const world = document.getElementById('mm-world');
+    getNode(id) { return this.currentMap.nodes.find(n => n.id === id); },
+    getLine(from, to) { return this.currentMap.lines.find(l => l.from === from && l.to === to); },
+    saveRender() { Store.save(); this.render(); },
+
+    // --- NOVA FUNÇÃO DE SELEÇÃO GLOBAL ---
+    selectNode(id) {
+        // Trava crítica: Se já está selecionado, não faz render() de novo!
+        // Isso evita que a caixa de texto perca o foco enquanto você digita.
+        if (this.selected === id) return;
+
+        this.selected = id;
+        this.selectedLine = null;
+        
+        const n = this.getNode(id);
+        if (n) {
+            // Sincroniza os botões da toolbar ao clicar
+            const cp = document.getElementById('mm-color-picker');
+            if(cp && n.color) cp.value = n.color;
+            
+            const bw = document.getElementById('mm-border-width');
+            if(bw) bw.value = n.borderWidth || 1;
+        }
+        
+        this.render();
+
+        // Devolve o cursor para a caixa de texto para que você possa clicar e digitar direto
+        setTimeout(() => {
+            const el = document.getElementById(`node-${id}`);
+            if (el) {
+                const txt = el.querySelector('textarea');
+                if (txt) { 
+                    txt.focus(); 
+                    txt.selectionStart = txt.selectionEnd = txt.value.length; 
+                }
+            }
+        }, 10);
+    },
+
+    toggleHeader() {
+        const container = document.getElementById('mm-header-content');
+        const btnIcon = document.querySelector('#btn-toggle-header i');
+        
+        if (container.classList.contains('max-w-0')) {
+            container.classList.remove('max-w-0', 'opacity-0', 'px-0', 'mx-0');
+            container.classList.add('max-w-[400px]', 'opacity-100');
+            btnIcon.classList.replace('ph-caret-right', 'ph-caret-left');
+            document.getElementById('btn-toggle-header').title = "Ocultar Menu";
+        } else {
+            container.classList.remove('max-w-[400px]', 'opacity-100');
+            container.classList.add('max-w-0', 'opacity-0', 'px-0', 'mx-0'); 
+            btnIcon.classList.replace('ph-caret-left', 'ph-caret-right');
+            document.getElementById('btn-toggle-header').title = "Mostrar Menu";
+        }
+    },
+
+    // --- FUNÇÕES DA TOOLBAR (COM ALERTAS) ---
+    setShape(shape) { if(this.selected) { this.getNode(this.selected).shape = shape; this.saveRender(); } else UI.toast("Selecione um nó primeiro!"); },
+    setBorderStyle(style) { if(this.selected) { this.getNode(this.selected).borderStyle = style; this.saveRender(); } else UI.toast("Selecione um nó primeiro!"); },
+    setBorderWidth(w) { if(this.selected) { this.getNode(this.selected).borderWidth = w; this.saveRender(); } else UI.toast("Selecione um nó primeiro!"); },
+    changeFontSize(delta) { if(this.selected) { let n = this.getNode(this.selected); n.fontSize = (n.fontSize || 14) + delta; this.saveRender(); } else UI.toast("Selecione um nó primeiro!"); },
+    async promptIcon() {
+        if(this.selected) {
+            let n = this.getNode(this.selected);
+            let ico = await UI.prompt("Ícone do Nó", "Cole 1 Emoji (ex: ⚡)", n.icon || "");
+            
+            if (ico !== null) {
+                ico = ico.trim();
                 
-                // --- Eventos de Mouse ---
-                this.canvas.addEventListener('mousedown', (e) => this.onStart(e));
-                window.addEventListener('mousemove', (e) => this.onMove(e));
-                window.addEventListener('mouseup', () => this.onEnd());
-                
-                // --- Eventos de Touch (Mobile) ---
-                this.canvas.addEventListener('touchstart', (e) => this.onStart(e), {passive: false});
-                window.addEventListener('touchmove', (e) => this.onMove(e), {passive: false});
-                window.addEventListener('touchend', () => this.onEnd());
-
-                this.canvas.addEventListener('dblclick', (e) => {
-                    if(e.target === this.canvas || e.target.id === 'mm-svg' || e.target.classList.contains('mindmap-bg')) {
-                        if(!this.isReadOnly) this.addNodeAt(e.offsetX - this.pan.offset.x, e.offsetY - this.pan.offset.y);
-                    }
-                });
-            },
-
-            // Unifica Mouse e Touch
-            getPoint(e) {
-                if(e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                return { x: e.clientX, y: e.clientY };
-            },
-
-            onStart(e) {
-                const pt = this.getPoint(e);
-                const target = e.target;
-                
-                // 1. Verificar se clicou em um NÓ
-                const nodeEl = target.closest('.mm-node');
-                
-                if (nodeEl && !this.isReadOnly) {
-                    // Lógica de Nó
-                    const rect = nodeEl.getBoundingClientRect();
-                    // Área de Resize (canto inferior direito)
-                    if (pt.x > rect.right - 20 && pt.y > rect.bottom - 20) {
-                        return; // Deixa o navegador fazer o resize nativo
-                    }
-
-                    e.stopPropagation();
-                    const id = parseInt(nodeEl.id.replace('node-', ''));
+                if (ico === "") {
+                    delete n.icon;
+                    this.saveRender(); 
+                } else {
+                    const emojis = ico.match(/[\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}\u{200D}\u{FE0F}]+/gu);
                     
-                    // CTRL + Click (Conectar)
-                    if(e.ctrlKey) {
-                        if(this.selected && this.selected !== id) {
-                            this.currentMap.lines.push({from: this.selected, to: id});
-                            this.selected = null;
-                            UI.toast("Conectado!");
-                        } else {
-                            this.selected = id;
-                            UI.toast("Selecione outro para conectar");
-                        }
+                    if (emojis) {
+                        n.icon = emojis[0];
+                        this.saveRender(); 
                     } else {
-                        // Iniciar Arrasto do Nó
-                        this.selected = id;
-                        const n = this.currentMap.nodes.find(node => node.id === id);
-                        if(n && n.color) document.getElementById('mm-color-picker').value = n.color;
-
-                        this.drag.active = true;
-                        this.drag.node = n;
-                        
-                        // Offset relativo ao mundo (considerando o pan atual)
-                        // Posição Real do Mouse no Mundo = (MouseClient - CanvasRect) - PanOffset
-                        const canvasRect = this.canvas.getBoundingClientRect();
-                        const worldMouseX = pt.x - canvasRect.left - this.pan.offset.x;
-                        const worldMouseY = pt.y - canvasRect.top - this.pan.offset.y;
-                        
-                        this.drag.offset = {
-                            x: worldMouseX - n.x,
-                            y: worldMouseY - n.y
-                        };
-                    }
-                    this.render();
-                } else {
-                    // 2. Clicou no Fundo -> Pan (Mover câmera)
-                    this.selected = null;
-                    this.pan.active = true;
-                    this.pan.start = { x: pt.x - this.pan.offset.x, y: pt.y - this.pan.offset.y };
-                    this.render();
-                }
-            },
-
-            onMove(e) {
-                const pt = this.getPoint(e);
-                
-                if (this.drag.active && this.drag.node) {
-                    e.preventDefault(); // Evita scroll no mobile
-                    const canvasRect = this.canvas.getBoundingClientRect();
-                    const worldMouseX = pt.x - canvasRect.left - this.pan.offset.x;
-                    const worldMouseY = pt.y - canvasRect.top - this.pan.offset.y;
-
-                    this.drag.node.x = worldMouseX - this.drag.offset.x;
-                    this.drag.node.y = worldMouseY - this.drag.offset.y;
-                    this.render();
-                } 
-                else if (this.pan.active) {
-                    e.preventDefault();
-                    this.pan.offset.x = pt.x - this.pan.start.x;
-                    this.pan.offset.y = pt.y - this.pan.start.y;
-                    this.updateWorldTransform();
-                }
-            },
-
-            onEnd() {
-                if (this.drag.active) {
-                    this.drag.active = false;
-                    this.drag.node = null;
-                    Store.save();
-                }
-                if (this.pan.active) {
-                    this.pan.active = false;
-                }
-
-                if(this.selected && this.currentMap) {
-                    const el = document.getElementById(`node-${this.selected}`);
-                    if (!el) return;
-
-                    const n = this.currentMap.nodes.find(node => node.id === this.selected);
-                    if(n && (el.offsetWidth !== n.width || el.offsetHeight !== n.height)) {
-                        n.width = el.offsetWidth;
-                        n.height = el.offsetHeight;
-                        Store.save();
-                        this.render();
+                        UI.toast("Por favor, cole apenas Emojis (ex: 🚀, 📚).", "error");
                     }
                 }
-            },
-
-            updateWorldTransform() {
-                const world = document.getElementById('mm-world');
-                if(world) world.style.transform = `translate(${this.pan.offset.x}px, ${this.pan.offset.y}px)`;
-            },
-
-            render() {
-                if(!this.currentMap) return;
-                const l = document.getElementById('mm-nodes-layer');
-                const svg = document.getElementById('mm-svg');
-                const nodes = this.currentMap.nodes || [];
-                const lines = this.currentMap.lines || [];
-
-                if(svg) {
-                    svg.innerHTML = lines.map(line => {
-                        const n1 = nodes.find(n => n.id === line.from);
-                        const n2 = nodes.find(n => n.id === line.to);
-                        if(n1 && n2) {
-                            // Calcula o centro baseado no tamanho salvo ou padrão
-                            const w1 = parseInt(n1.width) || 140; const h1 = parseInt(n1.height) || 60;
-                            const w2 = parseInt(n2.width) || 140; const h2 = parseInt(n2.height) || 60;
-                            return `<line x1="${n1.x + w1/2 + 5000}" y1="${n1.y + h1/2 + 5000}" x2="${n2.x + w2/2 + 5000}" y2="${n2.y + h2/2 + 5000}" stroke="#94a3b8" stroke-width="2" />`;
-                        }
-                        return '';
-                    }).join('');
-                }
-
-                if(l) {
-                    l.innerHTML = nodes.map(n => {
-                        const isSelected = this.selected === n.id;
-                        // Força a borda transparente se não selecionado para ficar bonito com cor cheia
-                        const borderStyle = isSelected ? `border-color: var(--text-main);` : `border-color: transparent;`;
-                        const bgStyle = `background-color: ${n.color || 'var(--brand-500)'};`;
-                        // APLICA O TAMANHO SALVO AQUI
-                        const sizeStyle = n.width ? `width:${n.width}px; height:${n.height}px;` : '';
-                        
-                        return `
-                        <div id="node-${n.id}" class="mm-node ${isSelected ? 'selected' : ''}" 
-                             style="transform: translate(${n.x}px, ${n.y}px); ${bgStyle} ${borderStyle} ${sizeStyle}"
-                             onmousedown="MindMap.onNodeDown(event, ${n.id})"
-                             onmouseup="MindMap.onNodeUp(event, ${n.id})">
-                            <textarea oninput="MindMap.updateText(${n.id}, this.value)" onmousedown="event.stopPropagation()">${n.text}</textarea>
-                        </div>`;
-                    }).join('');
-                }
-            },
-
-            // 2. Impede que o arraste comece se você clicar na pontinha de redimensionar
-            onNodeDown(e, id) {
-                const el = e.currentTarget;
-                const rect = el.getBoundingClientRect();
-                // Se clicar nos ultimos 20px (canto inferior direito), é resize, não drag
-                if (e.clientX > rect.right - 20 && e.clientY > rect.bottom - 20) {
-                    e.stopPropagation();
-                    return; 
-                }
-
-                e.stopPropagation();
-                // Lógica de Conexão com CTRL
-                if(e.ctrlKey) {
-                    if(this.selected && this.selected !== id) {
-                        this.currentMap.lines.push({from: this.selected, to: id});
-                        this.selected = null;
-                        UI.toast("Conectado!");
-                    } else {
-                        this.selected = id;
-                        UI.toast("Selecione outro para conectar");
-                    }
-                    this.render();
-                    return;
-                }
-
-                // Inicia Drag
-                this.selected = id;
-                const n = this.currentMap.nodes.find(node => node.id === id);
-                if(n && n.color) document.getElementById('mm-color-picker').value = n.color;
-
-                this.drag.active = true;
-                this.drag.node = n;
-                
-                const canvasRect = this.canvas.getBoundingClientRect();
-                const worldMouseX = (e.touches ? e.touches[0].clientX : e.clientX) - canvasRect.left - this.pan.offset.x;
-                const worldMouseY = (e.touches ? e.touches[0].clientY : e.clientY) - canvasRect.top - this.pan.offset.y;
-                
-                this.drag.offset = { x: worldMouseX - n.x, y: worldMouseY - n.y };
-                this.render();
-            },
-
-            // 3. SALVA O NOVO TAMANHO QUANDO VOCÊ SOLTA O MOUSE
-            onNodeUp(e, id) {
-                const el = document.getElementById(`node-${id}`);
-                const n = this.currentMap.nodes.find(node => node.id === id);
-                
-                if(el && n) {
-                    if(el.offsetWidth !== n.width || el.offsetHeight !== n.height) {
-                        n.width = el.offsetWidth;
-                        n.height = el.offsetHeight;
-                        Store.save();
-                        this.render();
-                    }
-                }
-            },
-
-            toggleViewMode() {
-                this.isReadOnly = !this.isReadOnly;
-                const ws = document.getElementById('mm-workspace');
-                const btn = document.getElementById('btn-mm-view');
-                const indicator = document.getElementById('indicator-readonly');
-                
-                if(this.isReadOnly) {
-                    ws.classList.add('readonly');
-                    btn.classList.add('bg-brand-100', 'text-brand-700');
-                    indicator.classList.remove('hidden');
-                    UI.toast("Modo Visualização Ativado");
-                } else {
-                    ws.classList.remove('readonly');
-                    btn.classList.remove('bg-brand-100', 'text-brand-700');
-                    indicator.classList.add('hidden');
-                    UI.toast("Modo Edição");
-                }
-            },
-
-            renderExplorer() {
-                const list = document.getElementById('mm-list');
-                const maps = Store.state.mindmaps || [];
-                const grouped = maps.reduce((acc, map) => {
-                    const subj = map.subject || 'Geral';
-                    if(!acc[subj]) acc[subj] = [];
-                    acc[subj].push(map); return acc;
-                }, {});
-
-                if(maps.length === 0) { list.innerHTML = `<div class="col-span-full text-center py-12 opacity-50">Nenhum mapa criado.</div>`; return; }
-
-                let html = '';
-                for(const [subj, items] of Object.entries(grouped)) {
-                    html += `<div class="col-span-full font-bold text-xs text-txt-muted uppercase mt-4 mb-2 tracking-wider">${subj}</div>`;
-                    items.forEach(map => {
-                        html += `
-                        <div class="bg-card p-6 rounded-2xl border border-slate-200/10 hover:border-brand-300 hover:shadow-lg transition-all group flex flex-col h-48 relative">
-                             <div onclick="MindMap.open('${map.id}', false)" class="flex-1 flex items-center justify-center opacity-20 group-hover:opacity-40 transition-opacity cursor-pointer">
-                                <i class="ph-fill ph-tree-structure text-5xl text-brand-500"></i>
-                             </div>
-                             <div class="mt-4 mb-3">
-                                <h3 class="font-bold text-txt-main truncate">${map.name}</h3>
-                                <p class="text-xs text-txt-muted">${new Date(map.createdAt).toLocaleDateString()}</p>
-                             </div>
-                             <div class="flex gap-2 mt-auto">
-                                <button id="btn-mm-view" onclick="MindMap.open('${map.id}', true)" class="flex-1 bg-bg-main hover:bg-brand-50 text-brand-600 py-2 rounded-lg text-xs font-bold transition-colors border border-slate-100">
-                                    <i class="ph-bold ph-eye"></i> Ver
-                                </button>
-                                <button onclick="MindMap.open('${map.id}', false)" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white py-2 rounded-lg text-xs font-bold transition-colors">
-                                    <i class="ph-bold ph-pencil-simple"></i> Editar
-                                </button>
-                             </div>
-                        </div>`;
-                    });
-                }
-                list.innerHTML = html;
-            },
-            
-            create() {
-                const name = document.getElementById('map-name').value;
-                const subject = document.getElementById('map-subject').value;
-                if(!name) return;
-                const newMap = { id: 'map-' + Date.now(), name, subject: subject || 'Geral', createdAt: Date.now(), nodes: [{id: 1, x: 300, y: 200, text: name, color: '#2563eb'}], lines: [] };
-                Store.state.mindmaps.push(newMap); Store.save();
-                document.getElementById('map-name').value = ''; document.getElementById('map-subject').value = '';
-                document.getElementById('modal-create-map').close();
-                this.renderExplorer(); this.open(newMap.id, false);
-            },
-            
-            zoom(delta) {
-                const newScale = this.scale + delta;
-                if (newScale >= 0.5 && newScale <= 3.0) {
-                    this.scale = newScale;
-                    this.updateWorldTransform();
-                    UI.toast(`Zoom: ${Math.round(this.scale * 100)}%`);
-                }
-            },
-
-            resetZoom() {
-                this.scale = 1;
-                this.pan.offset = {x:0, y:0};
-                this.updateWorldTransform();
-                UI.toast("Zoom resetado");
-            },
-
-            updateWorldTransform() {
-                const world = document.getElementById('mm-world');
-                if(world) {
-                    world.style.transform = `translate(${this.pan.offset.x}px, ${this.pan.offset.y}px) scale(${this.scale})`;
-                }
-            },
-
-            open(id, readOnly = false) {
-                this.currentMap = Store.state.mindmaps.find(m => m.id === id);
-                if(!this.currentMap) return;
-
-                document.getElementById('mm-explorer').classList.add('hidden');
-                document.getElementById('mm-workspace').classList.remove('hidden');
-                document.getElementById('mm-current-title').innerText = this.currentMap.name;
-                
-                this.isReadOnly = readOnly;
-                const ws = document.getElementById('mm-workspace');
-                const indicator = document.getElementById('indicator-readonly');
-                const keys = document.getElementById('keys-map');
-                
-                if(this.isReadOnly) {
-                    ws.classList.add('readonly');
-                    indicator.classList.remove('hidden');
-                    keys.classList.add('hidden');
-                } else {
-                    ws.classList.remove('readonly');
-                    indicator.classList.add('hidden');
-                    keys.classList.remove('hidden');
-                }
-
-                // Reseta câmera
-                this.scale = 1; 
-                this.pan.offset = {x:0, y:0}; 
-                this.updateWorldTransform();
-                
-                this.render();
-            },
-            
-            close() {
-                this.currentMap = null;
-                this.selected = null;
-                
-                document.getElementById('mm-workspace').classList.add('hidden');
-                document.getElementById('mm-explorer').classList.remove('hidden');
-                document.getElementById('keys-map').classList.remove('hidden');
-                this.renderExplorer();
-            },
-            
-            deleteMap() {
-                if(!this.currentMap) return;
-                if(confirm(`Excluir permanentemente "${this.currentMap.name}"?`)) {
-                    Store.state.mindmaps = Store.state.mindmaps.filter(m => m.id !== this.currentMap.id);
-                    Store.save(); this.close();
-                }
-            },
-
-            addNode() { this.addNodeAt(300 - this.pan.offset.x, 300 - this.pan.offset.y); },
-            addNodeAt(x, y) {
-                if(!this.currentMap) return;
-                const color = document.getElementById('mm-color-picker').value;
-                this.currentMap.nodes.push({ id: Date.now(), x: x - 70, y: y - 25, text: 'Nova Ideia', color: color, width: 140, height: 60 });
-                Store.save(); this.render();
-            },
-            
-            deleteSelectedNode() {
-                if (this.selected && this.currentMap) {
-                    this.currentMap.lines = this.currentMap.lines.filter(l => l.from !== this.selected && l.to !== this.selected);
-                    this.currentMap.nodes = this.currentMap.nodes.filter(n => n.id !== this.selected);
-                    
-                    this.selected = null;
-                    Store.save();
-                    this.render();
-                    UI.toast("Nó removido.");
-                } else {
-                    UI.toast("Selecione um nó para remover.");
-                }
-            },
-            updateText(id, txt) { const n = this.currentMap.nodes.find(n => n.id === id); if(n) n.text = txt; },
-            updateColor(color) { if(this.selected && this.currentMap) { const n = this.currentMap.nodes.find(n => n.id === this.selected); if(n) { n.color = color; this.render(); Store.save(); } } },
-            save() { Store.save(); UI.toast("Mapa salvo!"); }
+            }
+        } else {
+            UI.toast("Selecione um nó primeiro!");
+        }
+    },
+    // --- NOVAS FUNÇÕES AVANÇADAS ---
+    
+    addChildNode() {
+        if (!this.selected || !this.currentMap) { UI.toast("Selecione um nó pai primeiro!"); return; }
+        
+        const parent = this.getNode(this.selected);
+        const newId = Date.now();
+        
+        // Cria o filho um pouco abaixo e à direita do pai
+        const child = {
+            id: newId,
+            x: parent.x + (parent.width || 140) + 50,
+            y: parent.y + 50,
+            text: 'Novo Tópico',
+            color: parent.color, // Herda a cor do pai para manter o design
+            width: 140,
+            height: 60,
+            shape: parent.shape === 'circle' ? 'capsule' : parent.shape // Se pai for círculo, filho é cápsula
         };
-        setTimeout(() => MindMap.init(), 500);
+        
+        this.currentMap.nodes.push(child);
+        
+        // Já cria a conexão automaticamente
+        this.currentMap.lines.push({
+            from: parent.id,
+            to: newId,
+            style: 'bezier',
+            direction: 'uni',
+            color: 'var(--text-muted)',
+            width: 2
+        });
+        
+        // Seleciona o novo nó automaticamente
+        this.selected = newId;
+        this.saveRender();
+        UI.toast("Nó filho criado!");
+    },
 
-         // =================================================================
-        // Adicionar botão na toolbar do mapa (já no HTML, adicione este JS)
-        // =================================================================        
-        window.MindMap.exportImage = function() {
-            const el = document.getElementById('mm-viewport');
-            // Remove transform temporariamente para capturar tudo (opcional, html2canvas lida bem com transform)
-            // Mas para garantir qualidade, vamos focar no 'mm-world' centralizado
-            UI.toast("Gerando imagem...", "info");
+    cloneNode() {
+        if (!this.selected || !this.currentMap) { UI.toast("Selecione um nó para clonar!"); return; }
+        
+        const original = this.getNode(this.selected);
+        const newId = Date.now();
+        
+        // Copia todas as propriedades do nó original
+        const clone = { ...original, id: newId, x: original.x + 30, y: original.y + 30 };
+        
+        this.currentMap.nodes.push(clone);
+        this.selected = newId;
+        this.saveRender();
+        UI.toast("Nó duplicado!");
+    },
+
+    toggleTextStyle(styleType) {
+        if (!this.selected) { UI.toast("Selecione um nó primeiro!"); return; }
+        let n = this.getNode(this.selected);
+        
+        if (styleType === 'bold') {
+            n.isBold = !n.isBold;
+        } else if (styleType === 'italic') {
+            n.isItalic = !n.isItalic;
+        }
+        this.saveRender();
+    },
+
+    toggleDone() {
+        if (!this.selected) { UI.toast("Selecione um nó primeiro!"); return; }
+        let n = this.getNode(this.selected);
+        n.isDone = !n.isDone;
+        this.saveRender();
+    },
+    changeZIndex(dir) { if(this.selected) { let n = this.getNode(this.selected); n.zIndex = (n.zIndex || 10) + dir; this.saveRender(); } else UI.toast("Selecione um nó primeiro!"); },
+    updateTextAlign(align) { if(this.selected) { this.getNode(this.selected).textAlign = align; this.saveRender(); } else UI.toast("Selecione um nó para alinhar."); },
+    
+    // --- IMAGENS E LINKS ---
+    addImage(input) {
+        if (!this.selected || !this.currentMap) {
+            UI.toast("Selecione um nó primeiro!", "error");
+            input.value = "";
+            return;
+        }
+
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const n = this.getNode(this.selected);
+                if (n) {
+                    n.image = e.target.result;
+                    // Aumenta o nó automaticamente se tiver imagem
+                    if (!n.width || n.width < 200) n.width = 200;
+                    if (!n.height || n.height < 150) n.height = 150;
+                    this.saveRender();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+        input.value = ""; // Reseta o input
+    },
+    async deleteMapById(id) {
+        const map = Store.state.mindmaps.find(m => m.id === id);
+        if(!map) return;
+        
+        const confirmou = await UI.confirm(
+            "Excluir Mapa", 
+            `Tem certeza que deseja apagar permanentemente o mapa "${map.name}"?`, 
+            "Excluir", 
+            true
+        );
+
+        if(confirmou) {
+            Store.state.mindmaps = Store.state.mindmaps.filter(m => m.id !== id);
+            Store.save(); 
+            this.renderExplorer();
+            UI.toast("Mapa excluído.", "info");
+        }
+    },
+    async promptLink() {
+        if(this.selected) {
+            let n = this.getNode(this.selected);
+            let url = await UI.prompt("Link Externo", "Cole a URL (ex: youtube.com)", n.link?.url || "");
+            if(url !== null) { 
+                if (url !== "") n.link = { url: url }; 
+                else delete n.link; // Permite apagar o link se deixar em branco
+                this.saveRender(); 
+            }
+        } else UI.toast("Selecione um nó primeiro!");
+    },
+    handleLink(e, url) {
+        e.stopPropagation();
+        if(url) {
+            if(!url.startsWith('http')) url = 'https://' + url;
+            window.open(url, '_blank');
+        }
+    },
+
+    // --- LINHAS E CONEXÕES ---
+    onLineClick(from, to) { this.selectedLine = {from, to}; this.selected = null; this.render(); },
+    async promptLineLabel(f, t) {
+        let from = f || (this.selectedLine ? this.selectedLine.from : null);
+        let to = t || (this.selectedLine ? this.selectedLine.to : null);
+        if(from && to) {
+            let line = this.getLine(from, to);
+            let txt = await UI.prompt("Texto da Conexão", "Ex: causa, resulta em", line.label || "");
+            if(txt !== null) { line.label = txt; this.saveRender(); }
+        } else UI.toast("Selecione uma linha de conexão!");
+    },
+    setLineStyle(style) { if(this.selectedLine) { this.getLine(this.selectedLine.from, this.selectedLine.to).style = style; this.saveRender(); } else UI.toast("Selecione uma linha!"); },
+    setLineDirection(dir) { 
+        if(this.selectedLine) { 
+            let line = this.getLine(this.selectedLine.from, this.selectedLine.to);
             
-            html2canvas(el, { backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-card') }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `mapa-${Date.now()}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-                UI.toast("Download iniciado!", "success");
+            if (dir === 'uni') {
+                if (line.direction === 'uni') {
+                    line.direction = 'uni-reverse';
+                } else if (line.direction === 'uni-reverse') {
+                    line.direction = 'none';
+                } else {
+                    line.direction = 'uni';
+                }
+            } else if (dir === 'bi') {
+                if (line.direction === 'bi') {
+                    line.direction = 'none';
+                } else {
+                    line.direction = 'bi';
+                }
+            }
+            
+            this.saveRender(); 
+        } else {
+            UI.toast("Selecione uma linha de conexão primeiro!", "warning"); 
+        }
+    },
+    updateTextColor(color) {
+        if (!this.selected || !this.currentMap) { 
+            UI.toast("Selecione um nó primeiro!"); 
+            return; 
+        }
+        
+        let n = this.getNode(this.selected);
+        n.textColor = color;
+        this.saveRender();
+    },
+    updateColor(color) { 
+        if(this.selected && this.currentMap) { 
+            const n = this.getNode(this.selected); 
+            if(n) { n.color = color; this.saveRender(); } 
+        } else if (this.selectedLine && this.currentMap) {
+            const l = this.getLine(this.selectedLine.from, this.selectedLine.to);
+            if(l) { l.color = color; this.saveRender(); }
+        }
+    },
+    deleteSelectedElement() {
+        if (this.selected && this.currentMap) {
+            this.currentMap.lines = this.currentMap.lines.filter(l => l.from !== this.selected && l.to !== this.selected);
+            this.currentMap.nodes = this.currentMap.nodes.filter(n => n.id !== this.selected);
+            this.selected = null; 
+            this.saveRender(); 
+            UI.toast("Nó removido.");
+        } else if (this.selectedLine && this.currentMap) {
+            this.currentMap.lines = this.currentMap.lines.filter(l => !(l.from === this.selectedLine.from && l.to === this.selectedLine.to));
+            this.selectedLine = null; 
+            this.saveRender(); 
+            UI.toast("Conexão removida.");
+        } else {
+            UI.toast("Selecione um nó ou linha para remover.");
+        }
+    },
+
+    // --- EVENTOS DO MOUSE/TOUCH ---
+    getPoint(e) {
+        if(e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        return { x: e.clientX, y: e.clientY };
+    },
+    
+    onStart(e) {
+        const pt = this.getPoint(e);
+        const target = e.target;
+        const nodeEl = target.closest('.mm-node');
+        
+        if (nodeEl && !this.isReadOnly) {
+            // A lógica de clique no nó já é tratada pelo onmousedown do HTML (onNodeDown)
+            return;
+        } else {
+            // Clicou no fundo do mapa
+            const hadSel = this.selected || this.selectedLine;
+            this.selected = null;
+            this.selectedLine = null;
+            this.pan.active = true;
+            this.pan.start = { x: pt.x - this.pan.offset.x, y: pt.y - this.pan.offset.y };
+            if (hadSel) this.render();
+        }
+    },
+
+    onNodeDown(e, id) {
+        const el = e.currentTarget;
+        const rect = el.getBoundingClientRect();
+        
+        // Ignora se estiver na ponta de redimensionamento (canto inferior direito) para que o CSS resize funcione
+        if (e.clientX > rect.right - 20 && e.clientY > rect.bottom - 20) { 
+            e.stopPropagation(); 
+            return; 
+        }
+
+        e.stopPropagation(); // Impede o clique de vazar para o fundo do canvas
+
+        // CTRL + CLIQUE para conectar
+        if(e.ctrlKey) {
+            if(this.selected && this.selected !== id) {
+                this.currentMap.lines.push({from: this.selected, to: id});
+                this.selected = null; 
+                UI.toast("Conectado!");
+            } else {
+                this.selected = id; 
+                UI.toast("Selecione o destino para conectar");
+            }
+            this.render(); 
+            return;
+        }
+
+        // Chama a nossa nova função unificada para selecionar com segurança
+        this.selectNode(id);
+
+        // Só inicia arrasto se o usuário NÃO clicou na caixa de texto (textarea)
+        if (e.target.tagName !== 'TEXTAREA') {
+            this.drag.active = true;
+            this.drag.node = this.getNode(id);
+            const canvasRect = this.canvas.getBoundingClientRect();
+            const pt = this.getPoint(e);
+            const worldMouseX = pt.x - canvasRect.left - this.pan.offset.x;
+            const worldMouseY = pt.y - canvasRect.top - this.pan.offset.y;
+            this.drag.offset = { x: worldMouseX - this.drag.node.x, y: worldMouseY - this.drag.node.y };
+        }
+    },
+
+    onMove(e) {
+        const pt = this.getPoint(e);
+        
+        if (this.drag.active && this.drag.node) {
+            e.preventDefault(); // Evita scroll no mobile
+            const canvasRect = this.canvas.getBoundingClientRect();
+            const worldMouseX = pt.x - canvasRect.left - this.pan.offset.x;
+            const worldMouseY = pt.y - canvasRect.top - this.pan.offset.y;
+
+            this.drag.node.x = worldMouseX - this.drag.offset.x;
+            this.drag.node.y = worldMouseY - this.drag.offset.y;
+            this.render();
+        } 
+        else if (this.pan.active) {
+            e.preventDefault();
+            this.pan.offset.x = pt.x - this.pan.start.x;
+            this.pan.offset.y = pt.y - this.pan.start.y;
+            this.updateWorldTransform();
+        }
+    },
+
+    onNodeUp(e, id) {
+        if(this.selected && this.currentMap) {
+            const el = document.getElementById(`node-${id}`);
+            const n = this.getNode(id);
+            
+            // Verifica se houve redimensionamento nativo pelo CSS 'resize'
+            if(el && n) {
+                if(el.offsetWidth !== n.width || el.offsetHeight !== n.height) {
+                    n.width = el.offsetWidth;
+                    n.height = el.offsetHeight;
+                    Store.save();
+                    this.render();
+                }
+            }
+        }
+    },
+
+    onEnd() {
+        if (this.drag.active) {
+            this.drag.active = false;
+            this.drag.node = null;
+            Store.save();
+        }
+        if (this.pan.active) {
+            this.pan.active = false;
+        }
+    },
+
+    // --- ATUALIZA TEXTO SEM RENDERIZAR O HTML DE NOVO ---
+    updateText(id, txt) { 
+        const n = this.getNode(id); 
+        if(n) n.text = txt; 
+        // Importante: NÃO tem this.render() aqui para não destruir o textarea e perder o cursor enquanto digita.
+    },
+    
+    save() { Store.save(); UI.toast("Mapa salvo!"); },
+
+    // --- RENDERIZAÇÃO GERAL E EXPLORADOR ---
+    init() {
+        this.canvas = document.getElementById('mm-viewport');
+        const world = document.getElementById('mm-world');
+        
+        // Eventos
+        this.canvas.addEventListener('mousedown', (e) => this.onStart(e));
+        window.addEventListener('mousemove', (e) => this.onMove(e));
+        window.addEventListener('mouseup', () => this.onEnd());
+        this.canvas.addEventListener('touchstart', (e) => this.onStart(e), {passive: false});
+        window.addEventListener('touchmove', (e) => this.onMove(e), {passive: false});
+        window.addEventListener('touchend', () => this.onEnd());
+
+        this.canvas.addEventListener('dblclick', (e) => {
+            if(e.target === this.canvas || e.target.id === 'mm-svg' || e.target.classList.contains('mindmap-bg')) {
+                if(!this.isReadOnly) {
+                    const color = document.getElementById('mm-color-picker')?.value || '#3b82f6';
+                    this.currentMap.nodes.push({ id: Date.now(), x: e.offsetX - this.pan.offset.x - 70, y: e.offsetY - this.pan.offset.y - 25, text: 'Nova Ideia', color: color, width: 140, height: 60 });
+                    this.saveRender();
+                }
+            }
+        });
+    },
+
+    addNode() { 
+        if(!this.currentMap) return;
+        const color = document.getElementById('mm-color-picker')?.value || '#3b82f6';
+        this.currentMap.nodes.push({ id: Date.now(), x: 300 - this.pan.offset.x, y: 300 - this.pan.offset.y, text: 'Nova Ideia', color: color, width: 140, height: 60 });
+        this.saveRender();
+    },
+
+    zoom(delta) {
+        const newScale = this.scale + delta;
+        if (newScale >= 0.5 && newScale <= 3.0) {
+            this.scale = newScale;
+            this.updateWorldTransform();
+            UI.toast(`Zoom: ${Math.round(this.scale * 100)}%`);
+        }
+    },
+
+    resetZoom() {
+        this.scale = 1;
+        this.pan.offset = {x:0, y:0};
+        this.updateWorldTransform();
+        UI.toast("Zoom resetado");
+    },
+
+    updateWorldTransform() {
+        const world = document.getElementById('mm-world');
+        if(world) world.style.transform = `translate(${this.pan.offset.x}px, ${this.pan.offset.y}px) scale(${this.scale})`;
+    },
+
+    open(id, readOnly = false) {
+        this.currentMap = Store.state.mindmaps.find(m => m.id === id);
+        if(!this.currentMap) return;
+
+        document.getElementById('mm-explorer').classList.add('hidden');
+        document.getElementById('mm-workspace').classList.remove('hidden');
+        document.getElementById('mm-current-title').innerText = this.currentMap.name;
+        
+        this.isReadOnly = readOnly;
+        const ws = document.getElementById('mm-workspace');
+        const indicator = document.getElementById('indicator-readonly');
+        const keys = document.getElementById('keys-map');
+        
+        if(this.isReadOnly) {
+            ws.classList.add('readonly');
+            indicator.classList.remove('hidden');
+            keys.classList.add('hidden');
+        } else {
+            ws.classList.remove('readonly');
+            indicator.classList.add('hidden');
+            keys.classList.remove('hidden');
+        }
+
+        this.resetZoom();
+        this.render();
+    },
+    
+    close() {
+        this.currentMap = null;
+        this.selected = null;
+        
+        document.getElementById('mm-workspace').classList.add('hidden');
+        document.getElementById('mm-explorer').classList.remove('hidden');
+        document.getElementById('keys-map').classList.remove('hidden');
+        this.renderExplorer();
+    },
+    
+    async deleteMap() {
+        if(!this.currentMap) return;
+        
+        const confirmou = await UI.confirm(
+            "Excluir Mapa", 
+            `Tem certeza que deseja apagar permanentemente o mapa "${this.currentMap.name}"?`, 
+            "Excluir", 
+            true
+        );
+
+        if(confirmou) {
+            Store.state.mindmaps = Store.state.mindmaps.filter(m => m.id !== this.currentMap.id);
+            Store.save(); 
+            this.close();
+            UI.toast("Mapa excluído com sucesso.", "success");
+        }
+    },
+
+    create() {
+        const name = document.getElementById('map-name').value;
+        const subject = document.getElementById('map-subject').value;
+        if(!name) return;
+        const newMap = { id: 'map-' + Date.now(), name, subject: subject || 'Geral', createdAt: Date.now(), nodes: [{id: 1, x: 300, y: 200, text: name, color: '#2563eb'}], lines: [] };
+        Store.state.mindmaps.push(newMap); Store.save();
+        document.getElementById('map-name').value = ''; document.getElementById('map-subject').value = '';
+        document.getElementById('modal-create-map').close();
+        this.renderExplorer(); this.open(newMap.id, false);
+    },
+
+    toggleViewMode() {
+        this.isReadOnly = !this.isReadOnly;
+        const ws = document.getElementById('mm-workspace');
+        const btn = document.getElementById('btn-mm-view');
+        const indicator = document.getElementById('indicator-readonly');
+        
+        if(this.isReadOnly) {
+            ws.classList.add('readonly');
+            btn?.classList.add('bg-brand-100', 'text-brand-700');
+            indicator.classList.remove('hidden');
+            UI.toast("Modo Visualização Ativado");
+        } else {
+            ws.classList.remove('readonly');
+            btn?.classList.remove('bg-brand-100', 'text-brand-700');
+            indicator.classList.add('hidden');
+            UI.toast("Modo Edição");
+        }
+    },
+
+    renderExplorer(searchQuery = '') {
+        const list = document.getElementById('mm-list');
+        let maps = Store.state.mindmaps || [];
+
+        // 1. LÓGICA DE FILTRO INTELIGENTE
+        // Se houver texto na barra, filtra pelo Nome do mapa ou pela Matéria (Pasta)
+        if (searchQuery.trim() !== '') {
+            const query = searchQuery.toLowerCase().trim();
+            maps = maps.filter(m => 
+                (m.name && m.name.toLowerCase().includes(query)) || 
+                (m.subject && m.subject.toLowerCase().includes(query))
+            );
+        }
+
+        // 2. AGRUPAMENTO POR MATÉRIA
+        const grouped = maps.reduce((acc, map) => {
+            const subj = map.subject || 'Geral';
+            if(!acc[subj]) acc[subj] = [];
+            acc[subj].push(map); 
+            return acc;
+        }, {});
+
+        // 3. SE NÃO ACHAR NADA
+        if(maps.length === 0) { 
+            list.innerHTML = `<div class="col-span-full text-center py-12 text-txt-muted font-medium bg-bg-panel rounded-3xl border border-dashed border-txt-muted/20">Nenhum mapa encontrado com "${searchQuery}".</div>`; 
+            return; 
+        }
+
+        // 4. RENDERIZA OS CARTÕES
+        let html = '';
+        for(const [subj, items] of Object.entries(grouped)) {
+            html += `<div class="col-span-full font-bold text-xs text-txt-muted uppercase mt-4 mb-2 tracking-wider flex items-center gap-2"><i class="ph-fill ph-folder text-brand-500 text-sm"></i> ${subj}</div>`;
+            items.forEach(map => {
+                html += `
+                <div class="bg-card p-6 rounded-2xl border border-slate-200/10 hover:border-brand-300 hover:shadow-lg transition-all group flex flex-col h-48 relative overflow-hidden">
+                     
+                     <button onclick="MindMap.deleteMapById('${map.id}')" class="absolute top-4 right-4 text-txt-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-bg-surface w-8 h-8 rounded-full shadow-sm flex items-center justify-center" title="Excluir Mapa">
+                         <i class="ph-bold ph-trash text-lg"></i>
+                     </button>
+
+                     <div onclick="MindMap.open('${map.id}', false)" class="absolute inset-0 z-0 flex items-center justify-center opacity-5 group-hover:opacity-10 transition-opacity cursor-pointer">
+                        <i class="ph-fill ph-tree-structure text-[100px] text-brand-500 transform rotate-12 scale-150"></i>
+                     </div>
+
+                     <div class="mt-2 mb-3 pr-6 relative z-10 pointer-events-none">
+                        <h3 class="font-bold text-txt-main text-lg leading-tight line-clamp-2">${map.name}</h3>
+                        <p class="text-xs text-txt-muted mt-2 font-medium flex items-center gap-1"><i class="ph-bold ph-calendar-blank"></i> ${new Date(map.createdAt).toLocaleDateString()}</p>
+                     </div>
+
+                     <div class="flex gap-2 mt-auto relative z-10">
+                        <button onclick="MindMap.open('${map.id}', true)" class="flex-1 bg-bg-main hover:bg-brand-50 text-brand-600 py-2.5 rounded-xl text-xs font-bold transition-colors border border-slate-100 dark:border-white/5">
+                            <i class="ph-bold ph-eye text-sm"></i> Ler
+                        </button>
+                        <button onclick="MindMap.open('${map.id}', false)" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md shadow-brand-500/20 transition-all active:scale-95">
+                            <i class="ph-bold ph-pencil-simple text-sm"></i> Editar
+                        </button>
+                     </div>
+                </div>`;
             });
-        };
+        }
+        list.innerHTML = html;
+    },
+
+    async generateAI() {
+        const prompt = document.getElementById('map-ai-prompt').value;
+        // Pega o valor da nova caixa de texto
+        const subjectInput = document.getElementById('map-ai-subject').value.trim(); 
+
+        if (!prompt) return UI.toast("Digite um assunto!", "error");
+        
+        const key = Store.state.settings.geminiKey;
+        if (!key) {
+            alert("Configure sua API Key nas Configurações (Aba Dados & Conexões)!");
+            document.getElementById('modal-ai-map').close();
+            return;
+        }
+
+        const btn = document.getElementById('btn-generate-ai');
+        btn.disabled = true;
+        btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Criando Mapa...`;
+
+        const aiPrompt = `Atue como um especialista acadêmico e designer de mapas mentais. Crie um mapa mental PROFUNDO, DETALHADO e EXTENSO sobre: "${prompt}".
+        
+        NÃO resuma demais! Explique os conceitos com textos mais longos e completos nos nós em vez de usar apenas palavras-chave curtas. Crie múltiplos níveis de hierarquia (Tema central -> Tópicos Principais -> Subtópicos detalhados -> Exemplos/Conceitos/Fatos).
+        
+        DIRETRIZES DE DESIGN E CONTEÚDO:
+        1. Conteúdo Denso: Escreva explicações reais e completas no "text" de cada nó. O mapa deve servir para um estudo aprofundado.
+        2. Tamanhos Dinâmicos: Como o texto será longo, use "width" entre 220 e 350, e "height" entre 120 e 200 para os nós secundários e de explicação.
+        3. Mídia e Imagens (MUITO IMPORTANTE): 
+           - Sempre que incluir a propriedade "image" (use URLs públicas da Wikimedia Commons ou imagens didáticas reais), faça a caixa do nó BEM MAIOR para caber a imagem e o texto (ex: "width": 300, "height": 320).
+           - No nó central e em tópicos difíceis, adicione a propriedade "link" com a URL de um VÍDEO DO YOUTUBE sobre o tema (ex: {"url": "https://www.youtube.com/results?search_query=assunto"}).
+        4. Layout e Formas:
+           - Nó central: shape "circle", tamanho 250x250, fontSize 18, borderWidth 3, e um "icon" (emoji).
+           - Tópicos Principais: shape "capsule", cores vibrantes, fontSize 14.
+           - Detalhes/Explicações: shape "rounded", bordas mais finas.
+        5. Conexões Ricas: Use "label" nas linhas para explicar exatamente a ligação (ex: "é causado por", "composto de", "ocorre durante"), style "bezier", direction "uni".
+
+        FORMATO OBRIGATÓRIO DE RETORNO (JSON Estrito, sem markdown ao redor):
+        {
+          "name": "Título do Mapa",
+          "subject": "Matéria Geral",
+          "nodes": [
+             {"id": 1, "x": 500, "y": 400, "text": "Tema central com explicação profunda...", "color": "#3b82f6", "width": 300, "height": 300, "shape": "circle", "icon": "🧠", "fontSize": 18, "borderStyle": "solid", "borderWidth": 4, "image": "https://url-valida.com/img.jpg", "link": {"url": "https://www.youtube.com/results?search_query=tema"}}
+          ],
+          "lines": [
+             {"from": 1, "to": 2, "label": "detalhamento", "style": "bezier", "direction": "uni", "color": "#94a3b8", "width": 2}
+          ]
+        }`;
+
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    contents: [{ parts: [{ text: aiPrompt }] }],
+                    generationConfig: { responseMimeType: "application/json" }
+                })
+            });
+            
+            const data = await res.json();
+            if (data.error) throw new Error(data.error.message);
+
+            let jsonText = data.candidates[0].content.parts[0].text;
+            const match = jsonText.match(/\{[\s\S]*\}/);
+            if (!match) throw new Error("A IA não retornou um formato válido.");
+            
+            const mapData = JSON.parse(match[0]);
+            
+            const newMap = {
+                id: 'map-ai-' + Date.now(),
+                name: mapData.name || 'Mapa Gerado por IA',
+                // A MÁGICA ACONTECE AQUI: Prioriza o que você digitou. Se vazio, usa o da IA.
+                subject: subjectInput || mapData.subject || 'Geral', 
+                createdAt: Date.now(),
+                nodes: mapData.nodes || [],
+                lines: mapData.lines || []
+            };
+
+            Store.state.mindmaps.push(newMap);
+            Store.save();
+
+            document.getElementById('modal-ai-map').close();
+            document.getElementById('map-ai-prompt').value = '';
+            document.getElementById('map-ai-subject').value = ''; // Limpa o campo para a próxima
+            
+            this.renderExplorer();
+            this.open(newMap.id, false);
+            UI.toast("Mapa detalhado criado com sucesso!", "success");
+
+        } catch (e) {
+            console.error("Erro na geração do mapa:", e);
+            UI.toast("Falha ao gerar o mapa. Tente de novo.", "error");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="ph-bold ph-sparkle"></i> Gerar Mapa`;
+        }
+    },
+
+    render() {
+        if(!this.currentMap) return;
+        const l = document.getElementById('mm-nodes-layer');
+        const svg = document.getElementById('mm-svg');
+        const nodes = this.currentMap.nodes || [];
+        const lines = this.currentMap.lines || [];
+
+        const customColorBtn = document.getElementById('custom-text-color');
+        if (customColorBtn) {
+            if (this.selected) customColorBtn.classList.remove('hidden');
+            else customColorBtn.classList.add('hidden');
+        }
+
+        let svgDefs = `
+        <defs>
+            <marker id="arrow-uni" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" />
+            </marker>
+            <marker id="arrow-sel" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
+            </marker>
+        </defs>`;
+        let svgHTML = svgDefs;
+        let labelsHTML = '';
+
+        lines.forEach(line => {
+            const n1 = nodes.find(n => n.id === line.from);
+            const n2 = nodes.find(n => n.id === line.to);
+            if(n1 && n2) {
+                const isSelected = this.selectedLine && this.selectedLine.from === line.from && this.selectedLine.to === line.to;
+                const strokeColor = isSelected ? 'var(--brand-500)' : (line.color || 'var(--text-muted)');
+                const strokeWidth = isSelected ? 4 : (line.width || 2);
+
+                const cX1 = n1.x + (n1.width||140)/2 + 5000;
+                const cY1 = n1.y + (n1.height||60)/2 + 5000;
+                const cX2 = n2.x + (n2.width||140)/2 + 5000;
+                const cY2 = n2.y + (n2.height||60)/2 + 5000;
+                
+                const dx = cX2 - cX1;
+                const dy = cY2 - cY1;
+                const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                
+                const offset1 = ((n1.width||140)/2 + 16) / dist; 
+                const offset2 = ((n2.width||140)/2 + 16) / dist; 
+                
+                const x1 = cX1 + dx * offset1;
+                const y1 = cY1 + dy * offset1;
+                const x2 = cX2 - dx * offset2;
+                const y2 = cY2 - dy * offset2;
+
+                const midX = (cX1+cX2)/2 - 5000; 
+                const midY = (cY1+cY2)/2 - 5000;
+                const arrowId = isSelected ? 'arrow-sel' : 'arrow-uni';
+                let markerEnd = '';
+                let markerStart = '';
+
+                if (line.direction === 'uni') {
+                    markerEnd = `marker-end="url(#${arrowId})"`;
+                } else if (line.direction === 'uni-reverse') {
+                    markerStart = `marker-start="url(#${arrowId})"`;
+                } else if (line.direction === 'bi') {
+                    markerStart = `marker-start="url(#${arrowId})"`;
+                    markerEnd = `marker-end="url(#${arrowId})"`;
+                }
+
+                let pathD = `M ${x1} ${y1} L ${x2} ${y2}`;
+                if(line.style === 'bezier') {
+                    const offset = Math.abs(x1-x2) / 2;
+                    pathD = `M ${x1} ${y1} C ${x1+offset} ${y1}, ${x2-offset} ${y2}, ${x2} ${y2}`;
+                } else if(line.style === 'orthogonal') {
+                    const mX = (x1 + x2) / 2;
+                    pathD = `M ${x1} ${y1} L ${mX} ${y1} L ${mX} ${y2} L ${x2} ${y2}`;
+                }
+
+                if (isSelected) {
+                    svgHTML += `<path d="${pathD}" fill="none" stroke="var(--brand-500)" stroke-width="${strokeWidth + 8}" opacity="0.25" stroke-linecap="round" style="pointer-events: none; transition: all 0.2s;" />`;
+                }
+
+                svgHTML += `<path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" ${markerStart} ${markerEnd} class="mm-line" style="pointer-events: auto; cursor: pointer; transition: stroke 0.2s;" onclick="MindMap.onLineClick(${line.from}, ${line.to})" />`;
+
+                if(line.label) {
+                    const selLabelStyle = isSelected ? "border: 2px solid var(--brand-500); color: var(--brand-500); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); font-weight: bold; transform: translate(-50%, -50%) scale(1.05); z-index: 60;" : "transform: translate(-50%, -50%);";
+                    
+                    labelsHTML += `<div class="line-label" style="left: ${midX}px; top: ${midY}px; transition: all 0.2s; position: absolute; ${selLabelStyle}" ondblclick="MindMap.promptLineLabel(${line.from}, ${line.to})" onclick="MindMap.onLineClick(${line.from}, ${line.to})">${line.label}</div>`;
+                }
+            }
+        });
+        if(svg) svg.innerHTML = svgHTML;
+
+        if(l) {
+            let nodesHTML = nodes.map(n => {
+                const isSelected = this.selected === n.id;
+                const bStyle = isSelected ? `solid` : (n.borderStyle || 'solid');
+                const bColor = isSelected ? 'var(--text-main)' : (n.borderStyle && n.borderStyle !== 'solid' ? 'var(--text-muted)' : 'transparent');
+                const bWidth = isSelected ? 3 : (n.borderWidth || 1);
+                
+                // LÓGICA DE TEXTO E STATUS (Concluído)
+                const fontWeight = n.isBold ? '800' : '500';
+                const fontStyle = n.isItalic ? 'italic' : 'normal';
+                const opacity = n.isDone ? '0.5' : '1';
+                const filter = n.isDone ? 'grayscale(0.8)' : 'none';
+                
+                const style = `
+                    transform: translate(${n.x}px, ${n.y}px);
+                    background-color: ${n.color || 'var(--brand-500)'};
+                    border: ${bWidth}px ${bStyle} ${bColor};
+                    width: ${n.width || 140}px;
+                    height: ${n.height || 60}px;
+                    z-index: ${isSelected ? 50 : (n.zIndex || 10)};
+                    opacity: ${opacity};
+                    filter: ${filter};
+                `;
+                
+                let iconHTML = n.icon ? `<div class="text-2xl mb-1 drop-shadow-sm pointer-events-none">${n.icon}</div>` : '';
+                
+                // Formata o botão do Youtube / Link externo
+                let linkHTML = n.link && n.link.url ? `<button style="pointer-events: auto !important;" class="mt-3 bg-red-600/90 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer flex items-center gap-1.5 shadow-md transition-colors" onmousedown="event.stopPropagation()" onclick="MindMap.handleLink(event, '${n.link.url}')"><i class="ph-bold ph-youtube-logo text-sm"></i> Assistir Vídeo</button>` : '';
+                // Removida a variável contentClass e a rotação de 45 graus. O texto ficará reto.
+                return `
+                <div id="node-${n.id}" class="mm-node shape-${n.shape || 'rounded'} ${isSelected ? 'selected' : ''}" 
+                     style="${style}; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px;"
+                     onmousedown="MindMap.onNodeDown(event, ${n.id})"
+                     onmouseup="MindMap.onNodeUp(event, ${n.id})">
+                    
+                    <div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        ${iconHTML}
+                        ${n.image ? `<img src="${n.image}" style="max-width: 100%; max-height: 45%; object-fit: contain; border-radius: 8px; margin-bottom: 6px; pointer-events: none; box-shadow: var(--shadow-subtle);" />` : ''}
+                        
+                        <textarea style="text-align: ${n.textAlign || 'center'}; font-size: ${n.fontSize || 14}px; font-weight: ${fontWeight}; font-style: ${fontStyle}; width: 100%; height: 100%; resize: none; background: transparent; border: none; outline: none; color: ${n.textColor || 'var(--text-main)'}; font-family: inherit; line-height: 1.4;"                                  oninput="MindMap.updateText(${n.id}, this.value)" 
+                                  onmousedown="event.stopPropagation(); MindMap.selectNode(${n.id})"
+                                  onfocus="MindMap.selectNode(${n.id})">${n.text}</textarea>
+                                  
+                        ${linkHTML}
+                    </div>
+                </div>`;
+            }).join('');
+            
+            l.innerHTML = nodesHTML + labelsHTML;
+        }
+    }
+};
+
+setTimeout(() => MindMap.init(), 500);
 
         // =================================================================
         // LIXEIRA & SETTINGS
         // =================================================================
         window.Trash = {
             add(item, type, context) {
+                // Previne erro caso a lixeira não exista no banco de dados ainda
+                if (!Store.state.trash) Store.state.trash = [];
                 Store.state.trash.push({ item, type, context, dateDeleted: Date.now() });
                 Store.save();
             },
+            
             restore(index) {
                 const trashItem = Store.state.trash[index];
-                if(trashItem.type === 'task') {
+                
+                if (trashItem.type === 'task') {
                     if(!Store.state.week[trashItem.context]) Store.state.week[trashItem.context] = [];
                     Store.state.week[trashItem.context].push(trashItem.item);
-                    UI.toast("Tarefa restaurada!");
+                    UI.toast("Tarefa restaurada com sucesso!", "success");
+                } 
+                else if (trashItem.type === 'anchor') { // 'anchor' é o nome interno do Hábito
+                    if(!Store.state.anchors) Store.state.anchors = [];
+                    Store.state.anchors.push(trashItem.item);
+                    UI.toast("Hábito restaurado com sucesso!", "success");
                 }
+
+                // Remove da lixeira após restaurar
                 Store.state.trash.splice(index, 1);
                 Store.save();
-                this.open(); // Re-render modal
-                UI.renderAll();
+                this.open(); // Atualiza a tela da lixeira
+                UI.renderAll(); // Atualiza a Dashboard e Cronograma no fundo
             },
+            
+            // Nova função para apagar apenas 1 item da lixeira
+            deletePermanent(index) {
+                Store.state.trash.splice(index, 1);
+                Store.save();
+                this.open();
+                UI.toast("Excluído permanentemente.", "info");
+            },
+
             open() {
                 const c = document.getElementById('trash-container');
-                if(Store.state.trash.length === 0) c.innerHTML = '<p class="text-center text-xs text-txt-muted py-4">Lixeira Vazia.</p>';
-                else c.innerHTML = Store.state.trash.map((t, i) => `
-                    <div class="flex justify-between items-center p-2 border-b border-slate-100 text-xs" style="color: var(--text-main);">
-                        <div><span class="font-bold ">${t.type}:</span> ${t.item.title || 'Item'}</div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-txt-muted">${new Date(t.dateDeleted).toLocaleTimeString()}</span>
-                            <button onclick="Trash.restore(${i})" class="text-brand-600 hover:bg-brand-50 p-1 rounded" title="Restaurar"><i class="ph-bold ph-arrow-u-up-left"></i></button>
-                        </div>
-                    </div>`).join('');
+                if(!Store.state.trash || Store.state.trash.length === 0) {
+                    c.innerHTML = '<div class="text-center text-sm text-txt-muted py-8 flex flex-col items-center gap-2"><i class="ph-bold ph-trash text-3xl opacity-50"></i> Lixeira Vazia.</div>';
+                } else {
+                    // Renderiza os itens de forma mais bonita
+                    c.innerHTML = Store.state.trash.map((t, i) => {
+                        const tipoNome = t.type === 'task' ? 'Tarefa' : (t.type === 'anchor' ? 'Hábito' : t.type);
+                        const titulo = t.item.title || t.item.text || 'Item sem nome';
+                        
+                        return `
+                        <div class="flex justify-between items-center p-3 border-b border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-txt-main">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-sm">${tipoNome}: ${titulo}</span>
+                                <span class="text-[10px] text-txt-muted uppercase mt-0.5">${t.context || ''} • ${new Date(t.dateDeleted).toLocaleDateString()} às ${new Date(t.dateDeleted).toLocaleTimeString()}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="Trash.restore(${i})" class="w-8 h-8 flex items-center justify-center text-brand-500 hover:bg-brand-50 rounded-lg transition-colors" title="Restaurar para a tela">
+                                    <i class="ph-bold ph-arrow-u-up-left text-lg"></i>
+                                </button>
+                                <button onclick="Trash.deletePermanent(${i})" class="w-8 h-8 flex items-center justify-center text-txt-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Excluir Permanentemente">
+                                    <i class="ph-bold ph-trash text-lg"></i>
+                                </button>
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
                 document.getElementById('modal-trash').showModal();
             },
-            empty() { Store.state.trash = []; Store.save(); this.open(); }
+            
+            async empty() { 
+                if (Store.state.trash.length > 0 && await UI.confirm("Esvaziar Lixeira", "Tem certeza? Isso apagará todos os itens permanentemente.", "Esvaziar", true)) {
+                    Store.state.trash = []; 
+                    Store.save(); 
+                    this.open(); 
+                    UI.toast("Lixeira esvaziada.", "info");
+                }
+            }
         };
 
         window.Settings = {
@@ -2518,12 +3692,9 @@
             },
 
         async confirmHardReset() {
-            if(!confirm("⚠️ PERIGO: Apagar tudo para sempre?")) return;
+                if(!(await UI.confirm("ATENÇÃO MÁXIMA", "Isso apagará TODOS os seus dados do banco de dados permanentemente. Continuar?", "Sim, Apagar Tudo", true))) return;
+                window.isResetting = true;
 
-                window.isResetting = true; 
-                if(window.saveInterval) clearInterval(window.saveInterval);
-
-                // 1. Zera a Memória RAM
                 const zeroState = {
                     user: { name: 'Visitante', xp: 0, level: 1, streak: 0, inventory: [] },
                     tasks: [], habits: [], history: {}, mindmaps: [], quiz: [],
@@ -2574,6 +3745,21 @@
             }
         };
 
+        window.Settings.toggleKeyVisibility = function() {
+            const input = document.getElementById('sett-gemini-key');
+            const icon = document.getElementById('icon-gemini-eye');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('ph-eye');
+                icon.classList.add('ph-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('ph-eye-slash');
+                icon.classList.add('ph-eye');
+            }
+        },
+
         // =================================================================
         // QUIZ IMPORT JSON
         // =================================================================
@@ -2609,8 +3795,8 @@
                     </div>`).join('');
             },
             
-            delete(id) {
-                if(confirm("Tem certeza que deseja excluir esta questão?")) {
+            async delete(id) {
+                if(await UI.confirm("Apagar Questão", "Deseja remover esta questão do banco?", "Apagar", true)) {
                     // Correção de Estatísticas (Acertos/Erros)
                     if(Store.state.quizHistory) {
                         const related = Store.state.quizHistory.filter(h => h.qId == id);
@@ -2823,14 +4009,43 @@
             if(sb.classList.contains('zen-hidden')) { sb.classList.remove('zen-hidden'); hdr.classList.remove('zen-hidden'); menu.classList.remove('hidden'); UI.toast("Modo Zen Desativado"); } 
             else { sb.classList.add('zen-hidden'); UI.toast("Modo Zen Ativado (Z para sair)"); menu.classList.add('hidden');}
         };
-        window.distributePomodoro = () => {
-            const min = prompt("Minutos totais para hoje:", "120"); if(!min) return;
+        window.distributePomodoro = async () => {
+            const min = await UI.prompt("Distribuir Tempo", "Tempo total em minutos", "120"); 
+            if(min === null) return; // Cancelou
+            
             const day = ['domingo','segunda','terca','quarta','quinta','sexta','sabado'][new Date().getDay()];
-            const tasks = Store.state.week[day]; if(!tasks || !tasks.length) return alert("Sem tarefas hoje.");
+            const tasks = Store.state.week[day]; 
+            
+            if(!tasks || !tasks.length) return UI.toast("Sem tarefas hoje.", "warning");
+            
             const perTask = Math.floor(parseInt(min) / tasks.length);
-            tasks.forEach(t => t.pomodoros = perTask); Store.save(); UI.renderAll(); UI.toast(`Distribuído: ${perTask}m por tarefa`);
+            if(isNaN(perTask)) return UI.toast("Valor inválido", "error");
+            
+            tasks.forEach(t => t.pomodoros = perTask); 
+            Store.save(); 
+            UI.renderAll(); 
+            UI.toast(`Distribuído: ${perTask}m por tarefa`, "success");
         };
-        window.openAnchorModal = () => { const title = prompt("Nome do novo hábito:"); if(title) { Store.state.anchors.push({title, icon: 'star', completed: false}); Store.save(); UI.renderDashboard(); } };
+        window.selectedHabitIcon = 'star';
+        
+        window.openAnchorModal = () => {
+            document.getElementById('habit-text').value = '';
+            window.selectHabitIcon('star'); // Renderiza e seleciona a estrela por padrão
+            document.getElementById('modal-habit').showModal();
+        };
+
+        window.selectHabitIcon = (iconName) => {
+            window.selectedHabitIcon = iconName;
+            // Lista de ícones disponíveis (Phosphor Icons)
+            const icons = ['star', 'book-open', 'barbell', 'drop', 'brain', 'sneaker', 'coffee', 'moon-stars', 'calculator', 'pen-nib'];
+            const grid = document.getElementById('habit-icons-grid');
+            
+            grid.innerHTML = icons.map(icon => `
+                <button onclick="selectHabitIcon('${icon}')" class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl transition-all ${window.selectedHabitIcon === icon ? 'bg-brand-500 text-white shadow-lg scale-110' : 'bg-bg-main text-txt-muted hover:bg-brand-50 hover:text-brand-600'}">
+                    <i class="ph-fill ph-${icon}"></i>
+                </button>
+            `).join('');
+        };
         window.Shop = {
             render() {
                 const items = [ { id: 'badge_focus', name: 'Mestre do Foco', price: 500, icon: 'brain', color: 'text-pink-500' }, { id: 'badge_fire', name: 'Imparável', price: 1000, icon: 'fire', color: 'text-orange-500' }, { id: 'badge_king', name: 'Rei dos Estudos', price: 5000, icon: 'crown', color: 'text-yellow-500' } ];
@@ -2903,8 +4118,8 @@
                 this.renderDecks();
             },
 
-            deleteDeck: function(id) {
-                if(confirm("Apagar baralho permanentemente?")) {
+            async deleteDeck(id) {
+                if(await UI.confirm("Apagar Baralho", "Você perderá todas as cartas deste baralho. Tem certeza?", "Apagar", true)) {
                     Store.state.decks = Store.state.decks.filter(d => d.id !== id);
                     Store.save();
                     this.renderDecks();
