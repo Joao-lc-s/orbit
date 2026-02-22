@@ -233,6 +233,14 @@
             border: 1px solid rgba(255,255,255,0.05);
         }
 
+        #textInput {
+            position: absolute;
+            display: none;
+            background: transparent;
+            border: 1px dashed #007bff;
+            z-index: 20;
+        }
+
         /* 3D Flashcards */
         .perspective-1000 { perspective: 1000px; }
         .transform-style-3d { transform-style: preserve-3d; }
@@ -1345,7 +1353,10 @@
 
                 <div class="flex gap-1 shrink-0 bg-black/40 p-1.5 rounded-xl">
                     <button id="btn-wb-mirror" onclick="Whiteboard.toggleMirror()" title="Modo Espelho (Simetria)" class="text-slate-400 hover:text-brand-400 transition-colors p-2.5 rounded-lg"><i class="ph-bold ph-butterfly text-lg"></i></button>
-                    <button id="btn-wb-palm" onclick="Whiteboard.togglePalmRejection()" title="Bloquear Dedo (Apenas Caneta)" class="text-slate-400 hover:text-brand-400 transition-colors p-2.5 rounded-lg"><i class="ph-bold ph-hand-swipe-left text-lg"></i></button>
+                    <button onclick="Whiteboard.createSticky()" title="Novo Post-it" class="p-2.5 rounded-lg text-yellow-400 hover:text-yellow-300 hover:bg-slate-800 transition-all"><i class="ph-bold ph-note-blank text-lg"></i></button>
+                    <button id="btn-snap" onclick="Whiteboard.toggleSnap()" title="Imã (Alinhar à grade)" class="text-slate-400 hover:text-brand-400 transition-colors p-2"><i class="ph-bold ph-magnet text-xl"></i></button>
+                    <button onclick="Whiteboard.initMultiplayer()" title="Criar/Entrar em Sala" class="text-slate-400 hover:text-green-400 transition-colors p-2"><i class="ph-bold ph-users text-xl"></i></button>
+                    <textarea id="textInput" class="fixed z-50 bg-transparent border-2 border-dashed border-blue-500 text-white p-1 outline-none resize-none overflow-hidden"></textarea>
                 </div>
 
                 <div class="w-px h-8 bg-white/10 shrink-0"></div>
@@ -1366,6 +1377,14 @@
             </div>
             
             <canvas id="whiteboard-canvas" class="w-full h-full block touch-none cursor-crosshair"></canvas>
+            <div id="custom-cursor" class="fixed rounded-full border border-black dark:border-white mix-blend-difference pointer-events-none z-50 hidden" style="transform: translate(-50%, -50%);"></div>
+            <div id="stickies-container" class="absolute inset-0 pointer-events-none z-40 overflow-hidden"></div>
+
+            <div id="multiplayer-ui" class="absolute top-8 left-1/2 -translate-x-1/2 bg-slate-900/95 p-3 rounded-2xl border border-white/10 z-50 flex gap-2 items-center text-sm shadow-xl hidden">
+                <span class="text-slate-300">Sala: <strong id="room-code-display" class="text-brand-400 select-all">---</strong></span>
+                <button onclick="Whiteboard.copyRoomCode()" class="bg-white/10 hover:bg-white/20 p-1.5 rounded-lg text-white transition-colors"><i class="ph-bold ph-copy"></i></button>
+                <button onclick="Whiteboard.leaveRoom()" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 p-1.5 rounded-lg transition-colors"><i class="ph-bold ph-sign-out"></i> Sair</button>
+            </div>
         </div>
     </dialog>
 
@@ -1582,381 +1601,590 @@
         // LOUSA VIRTUAL AVANÇADA
         // =================================================================
         window.Whiteboard = {
-            canvas: null,
-            ctx: null,
-            isDrawing: false,
+    canvas: null,
+    ctx: null,
+    isDrawing: false,
+    roomId: null,
+    userId: Math.random().toString(36).substring(2, 10),
+    dbRef: null,
+    
+    // Estado Atual
+    currentTool: 'pen', // 'pen', 'eraser', 'highlighter', 'line', 'rect', 'circle'
+    color: '#3b82f6',
+    size: 3,
+    
+    // Variáveis de Desenho
+    startX: 0, startY: 0,
+    points: [], 
+    snapshot: null, 
+    holdTimer: null,
+    
+    // Ferramentas de UX e Produtividade
+    isMirror: false, // Simetria
+    isSnapping: false, // Grid Snapping
+    gridSize: 40, // Tamanho da grade para o alinhamento
+    
+    // Histórico (Undo/Redo)
+    history: [],
+    historyStep: -1,
+
+    // Grades Temáticas
+    grids: ['none', 'dots', 'lines', 'squares', 'music', 'sports'],
+    currentGridIndex: 0,
+
+    // Multiplayer
+    roomId: null,
+
+    open() {
+        const modal = document.getElementById('modal-whiteboard');
+        modal.showModal();
+        if (!this.canvas) {
+            this.init();
+            this.resize(); 
+            this.saveState(); 
+        }
+    },
+
+    init() {
+        this.canvas = document.getElementById('whiteboard-canvas');
+        this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
+
+        // Eventos de Desenho Simplificados (sem pan/zoom)
+        this.canvas.addEventListener('pointerdown', (e) => this.start(e));
+        this.canvas.addEventListener('pointermove', (e) => this.draw(e));
+        this.canvas.addEventListener('pointerup', () => this.stop());
+        this.canvas.addEventListener('pointerout', () => { 
+            if(this.isDrawing) this.stop(); 
+            const cursor = document.getElementById('custom-cursor');
+            if(cursor) cursor.style.display = 'none';
+        });
+        this.canvas.addEventListener('pointerenter', () => {
+            const cursor = document.getElementById('custom-cursor');
+            if(cursor) cursor.style.display = 'block';
+        });
+
+        // Eventos para Importar Imagens (Drag & Drop e Ctrl+V)
+        window.addEventListener('paste', (e) => this.handleImageImport(e.clipboardData.files));
+        this.canvas.addEventListener('dragover', e => e.preventDefault());
+        this.canvas.addEventListener('drop', e => {
+            e.preventDefault();
+            this.handleImageImport(e.dataTransfer.files);
+        });
+
+        // ATALHOS DE TECLADO
+        window.addEventListener('keydown', (e) => {
+            if (!document.getElementById('modal-whiteboard').open) return;
+            // Ignora se estiver digitando em um input/textarea
+            if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
             
-            // Estado Atual
-            currentTool: 'pen', // 'pen', 'eraser', 'highlighter', 'line', 'rect', 'circle'
-            color: '#3b82f6',
-            size: 3,
+            if (e.ctrlKey && e.key.toLowerCase() === 'z') this.undo();
+            if (e.ctrlKey && e.key.toLowerCase() === 'y') this.redo();
+            if (!e.ctrlKey) {
+                if (e.key.toLowerCase() === 'b') this.setTool('pen');
+                if (e.key.toLowerCase() === 'e') this.setTool('eraser');
+            }
+        });
+
+        window.addEventListener('resize', () => this.resize());
+        this.applyGrid();
+        
+        // Esconde o cursor nativo para usar a bolinha customizada
+        this.canvas.style.cursor = 'none';
+        this.updateCursorSize();
+    },
+
+    resize() {
+        let imgData = null;
+        if(this.canvas.width > 0 && this.canvas.height > 0) {
+             imgData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        }
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        if(imgData) this.ctx.putImageData(imgData, 0, 0);
+        this.updateContext();
+    },
+
+    // Pega a posição simples do mouse (sem cálculos de zoom)
+    getMousePos(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+    },
+
+    // --- IMPORTAÇÃO DE IMAGENS ---
+    handleImageImport(files) {
+        if (!files || files.length === 0) return;
+        const file = files[0];
+        if (!file.type.startsWith('image/')) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                // Cola a imagem no centro da tela
+                const x = (this.canvas.width / 2) - (img.width / 2);
+                const y = (this.canvas.height / 2) - (img.height / 2);
+                this.ctx.drawImage(img, x, y);
+                this.saveState();
+                if(this.roomId) this.broadcastState();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    },
+
+    // --- GRID SNAPPING (ALINHAMENTO) ---
+    toggleSnap() {
+        this.isSnapping = !this.isSnapping;
+        const btn = document.getElementById('btn-snap');
+        if (btn) {
+            btn.classList.toggle('text-brand-400', this.isSnapping);
+            btn.classList.toggle('bg-white/10', this.isSnapping);
+        }
+        if (typeof UI !== 'undefined') UI.toast(this.isSnapping ? "Ímã (Grid Snap) Ativado" : "Ímã Desativado", "info");
+    },
+
+    snap(value) {
+        return this.isSnapping ? Math.round(value / this.gridSize) * this.gridSize : value;
+    },
+
+    // --- CURSOR CUSTOMIZADO ---
+    updateCursorSize() {
+        const cursor = document.getElementById('custom-cursor');
+        if (!cursor) return;
+        // Marca-texto tem 3x o tamanho visual
+        const displaySize = this.currentTool === 'highlighter' ? this.size * 3 : this.size;
+        cursor.style.width = `${Math.max(displaySize, 4)}px`;
+        cursor.style.height = `${Math.max(displaySize, 4)}px`;
+    },
+
+    // --- ESTADOS E HISTÓRICO ---
+    saveState() {
+        if (this.historyStep < this.history.length - 1) {
+            this.history.length = this.historyStep + 1;
+        }
+        this.history.push(this.canvas.toDataURL());
+        this.historyStep++;
+    },
+
+    undo() {
+        if (this.historyStep > 0) {
+            this.historyStep--;
+            this.restoreState();
+        }
+    },
+
+    redo() {
+        if (this.historyStep < this.history.length - 1) {
+            this.historyStep++;
+            this.restoreState();
+        }
+    },
+
+    restoreState() {
+        const img = new Image();
+        img.src = this.history[this.historyStep];
+        img.onload = () => {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.drawImage(img, 0, 0);
+            this.updateContext(); 
+        };
+    },
+
+    // --- FERRAMENTAS E ESTILOS ---
+    setTool(tool) {
+        this.currentTool = tool;
+        
+        const tools = ['pen', 'eraser', 'highlighter', 'line', 'rect', 'circle'];
+        tools.forEach(t => {
+            const btn = document.getElementById(`btn-tool-${t}`);
+            if(btn) btn.className = "p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all";
+        });
+
+        const btn = document.getElementById(`btn-tool-${tool}`);
+        if (btn) {
+            if (tool === 'eraser') {
+                btn.className = "p-2.5 rounded-lg bg-white text-slate-900 transition-all shadow-lg scale-110";
+            } else {
+                btn.className = "p-2.5 rounded-lg bg-blue-600 text-white transition-all shadow-lg scale-110";
+            }
+        }
+        this.updateContext();
+        this.updateCursorSize();
+    },
+
+    setColor(hex) {
+        this.color = hex;
+        if(this.currentTool === 'eraser') this.setTool('pen');
+        this.updateContext();
+    },
+
+    setSize(val) {
+        this.size = parseInt(val);
+        const sizeLabel = document.getElementById('wb-size-val');
+        if (sizeLabel) sizeLabel.innerText = val + 'px';
+        this.updateContext();
+        this.updateCursorSize();
+    },
+
+    updateContext() {
+        if(!this.ctx) return;
+        this.ctx.lineCap = 'round';
+        this.ctx.lineJoin = 'round';
+        this.ctx.globalAlpha = 1.0;
+
+        if (this.currentTool === 'eraser') {
+            this.ctx.globalCompositeOperation = 'destination-out';
+            this.ctx.lineWidth = this.size;
+        } else {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.ctx.strokeStyle = this.color;
+            this.ctx.fillStyle = this.color; // Importante para o texto
             
-            // Variáveis de Desenho
-            lastX: 0, lastY: 0,
-            startX: 0, startY: 0,
-            points: [], 
-            snapshot: null, 
+            if (this.currentTool === 'highlighter') {
+                this.ctx.globalAlpha = 0.3; 
+                this.ctx.lineWidth = this.size * 3; 
+            } else {
+                this.ctx.lineWidth = this.size;
+            }
+        }
+    },
+
+    toggleMirror() {
+        this.isMirror = !this.isMirror;
+        const btn = document.getElementById('btn-wb-mirror');
+        if (btn) {
+            if (this.isMirror) {
+                btn.classList.remove('text-slate-400', 'hover:text-brand-400');
+                btn.classList.add('text-purple-500', 'bg-purple-500/20');
+            } else {
+                btn.classList.remove('text-purple-500', 'bg-purple-500/20');
+                btn.classList.add('text-slate-400', 'hover:text-brand-400');
+            }
+        }
+        if (typeof UI !== 'undefined') UI.toast(this.isMirror ? "Simetria Ativada" : "Simetria Desativada", "info");
+    },
+
+    // --- DESENHO E FORMAS GEOMÉTRICAS ---
+    start(e) {
+        const posRaw = this.getMousePos(e);
+        
+        // Aplica o Snap se for uma forma geométrica (evita snap em desenho livre para não ficar quadriculado)
+        const pos = (['line', 'rect', 'circle'].includes(this.currentTool)) 
+            ? { x: this.snap(posRaw.x), y: this.snap(posRaw.y) } 
+            : posRaw;
+
+        // Ferramenta de Texto
+        this.isDrawing = true;
+        this.startX = pos.x;
+        this.startY = pos.y;
+        
+        this.snapshot = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        
+        if (['pen', 'highlighter', 'eraser'].includes(this.currentTool)) {
+            this.points = [{x: pos.x, y: pos.y}];
+        }
+    },
+
+    draw(e) {
+        // Atualiza a bolinha do cursor customizado
+        const cursor = document.getElementById('custom-cursor');
+        if(cursor) {
+            cursor.style.left = `${e.clientX}px`;
+            cursor.style.top = `${e.clientY}px`;
+        }
+
+        if (!this.isDrawing) return;
+        
+        clearTimeout(this.holdTimer);
+
+        // Mágica da Forma Perfeita
+        this.holdTimer = setTimeout(() => {
+            if (this.currentTool === 'pen' && this.points.length > 10) {
+                const p1 = this.points[0];
+                const p2 = this.points[this.points.length - 1];
+                
+                this.ctx.putImageData(this.snapshot, 0, 0); 
+                
+                this.ctx.beginPath();
+                const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                
+                if (dist < 50) { // Se fechou o ciclo, vira círculo
+                    const maxX = Math.max(...this.points.map(p => p.x));
+                    const minX = Math.min(...this.points.map(p => p.x));
+                    const radius = (maxX - minX) / 2;
+                    this.ctx.arc(p1.x + radius, p1.y, radius, 0, 2 * Math.PI);
+                } else { // Se não, vira linha reta
+                    this.ctx.moveTo(p1.x, p1.y);
+                    this.ctx.lineTo(p2.x, p2.y);
+                }
+                
+                this.ctx.stroke();
+                this.points = [];
+                if (typeof UI !== 'undefined') UI.toast("Forma Perfeita ✨");
+            }
+        }, 800);
+
+        const posRaw = this.getMousePos(e);
+        const pos = (['line', 'rect', 'circle'].includes(this.currentTool)) 
+            ? { x: this.snap(posRaw.x), y: this.snap(posRaw.y) } 
+            : posRaw;
+
+        const isStraightLine = (this.currentTool === 'pen' && e.shiftKey);
+
+        // Reseta o canvas para a imagem inicial antes de desenhar o preview da forma
+        if (['highlighter', 'line', 'rect', 'circle'].includes(this.currentTool) || isStraightLine) {
+             this.ctx.putImageData(this.snapshot, 0, 0);
+        }
+
+        const drawAction = () => {
+            this.ctx.beginPath();
             
-            // Variáveis de Câmera (Pan e Zoom Infinito)
-            scale: 1,
-            offsetX: 0,
-            offsetY: 0,
-            isPanning: false,
-            panStartX: 0, 
-            panStartY: 0,
-            isSpaceDown: false,
+            if (this.currentTool === 'line' || this.currentTool === 'arrow' || isStraightLine) {
+                this.ctx.moveTo(this.startX, this.startY);
+                let finalX = isStraightLine ? this.snap(pos.x) : pos.x;
+                let finalY = isStraightLine ? this.snap(pos.y) : pos.y;
+                this.ctx.lineTo(finalX, finalY);
+                
+                if (this.currentTool === 'arrow') {
+                    const angle = Math.atan2(finalY - this.startY, finalX - this.startX);
+                    const headlen = 15 + this.size; 
+                    this.ctx.lineTo(finalX - headlen * Math.cos(angle - Math.PI / 6), finalY - headlen * Math.sin(angle - Math.PI / 6));
+                    this.ctx.moveTo(finalX, finalY);
+                    this.ctx.lineTo(finalX - headlen * Math.cos(angle + Math.PI / 6), finalY - headlen * Math.sin(angle + Math.PI / 6));
+                }
+            } 
+            else if (['pen', 'highlighter', 'eraser'].includes(this.currentTool) && !isStraightLine) {
+                this.points.push(pos);
+                this.ctx.moveTo(this.points[0].x, this.points[0].y);
+                for (let i = 1; i < this.points.length - 1; i++) {
+                    const xc = (this.points[i].x + this.points[i + 1].x) / 2;
+                    const yc = (this.points[i].y + this.points[i + 1].y) / 2;
+                    this.ctx.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
+                }
+            } 
+            else if (this.currentTool === 'rect') {
+                this.ctx.rect(this.startX, this.startY, pos.x - this.startX, pos.y - this.startY);
+            } 
+            else if (this.currentTool === 'circle') {
+                const radius = Math.hypot(pos.x - this.startX, pos.y - this.startY);
+                this.ctx.arc(this.startX, this.startY, radius, 0, 2 * Math.PI);
+            }
+            this.ctx.stroke();
+        };
 
-            // Ferramentas de UX e Produtividade
-            isMirror: false, // Simetria
-            palmRejection: false, // Rejeição de Palma
+        drawAction();
+
+        if (this.isMirror) {
+            this.ctx.save();
+            this.ctx.translate(this.canvas.width, 0);
+            this.ctx.scale(-1, 1);
+            drawAction();
+            this.ctx.restore();
+        }
+    },
+
+    stop() {
+        if (this.isDrawing) {
+            this.isDrawing = false;
+            this.saveState(); 
+            this.points = []; 
+            if(this.roomId) this.broadcastState(); // Sync multiplayer no fim do traço
+        }
+        clearTimeout(this.holdTimer);
+    },
+
+    // --- STICKY NOTES ---
+    createSticky() {
+        const container = document.getElementById('stickies-container');
+        if (!container) return;
+
+        const sticky = document.createElement('div');
+        const colors = ['bg-yellow-200 text-yellow-900', 'bg-pink-200 text-pink-900', 'bg-blue-200 text-blue-900', 'bg-green-200 text-green-900'];
+        const colorClass = colors[Math.floor(Math.random() * colors.length)];
+
+        sticky.className = `absolute pointer-events-auto p-4 w-48 min-h-[120px] shadow-2xl rounded-sm ${colorClass} cursor-move flex flex-col`;
+        sticky.style.left = (window.innerWidth / 2 - 100) + 'px';
+        sticky.style.top = (window.innerHeight / 2 - 60) + 'px';
+
+        sticky.innerHTML = `
+            <div class="flex justify-between items-center mb-2">
+                <i class="ph-bold ph-dots-six-pattern text-black/20 text-lg"></i>
+                <button class="hover:text-black/50" onclick="this.parentElement.parentElement.remove()"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <textarea class="w-full h-full bg-transparent resize-none outline-none font-medium placeholder-black/30 flex-1" placeholder="Digite aqui..."></textarea>
+        `;
+
+        // Lógica para arrastar o post-it
+        let isDragging = false, startX, startY, initialX, initialY;
+        
+        sticky.addEventListener('mousedown', (e) => {
+            if(e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') return;
+            isDragging = true;
+            startX = e.clientX; startY = e.clientY;
+            initialX = parseInt(sticky.style.left); initialY = parseInt(sticky.style.top);
+            sticky.style.zIndex = 50; 
+        });
+        
+        window.addEventListener('mousemove', (e) => {
+            if(!isDragging) return;
+            sticky.style.left = (initialX + e.clientX - startX) + 'px';
+            sticky.style.top = (initialY + e.clientY - startY) + 'px';
+        });
+        
+        window.addEventListener('mouseup', () => { 
+            isDragging = false; 
+            sticky.style.zIndex = ''; 
+        });
+
+        container.appendChild(sticky);
+    },
+
+    // --- LÓGICA MULTIPLAYER ---
+    async initMultiplayer() { // <-- Adicionado o async aqui
+        
+        // Chama o seu modal customizado e aguarda a resposta
+        const code = await UI.prompt(
+            "Conectar à Sala", 
+            "Código da sala (vazio = nova)", 
+            ""
+        );
+
+        // Se o usuário clicar no botão cancelar (ou fechar no ESC), o modal retorna null
+        if (code === null) return;
+
+        // Se ele deu OK, criamos a sala (ou entramos na digitada)
+        this.roomId = code.trim() || Math.random().toString(36).substring(2, 8).toUpperCase();
+        
+        const ui = document.getElementById('multiplayer-ui');
+        const display = document.getElementById('room-code-display');
+        
+        if(ui) ui.classList.remove('hidden');
+        if(display) display.innerText = this.roomId;
+
+        if (typeof UI !== 'undefined' && UI.toast) {
+            UI.toast(`Conectado à sala ${this.roomId}`);
+        }
+        
+        // 1. Limpa conexões antigas se o usuário trocar de sala
+        if (this.dbRef) this.dbRef.off();
+
+        // 2. Cria a referência para a sala específica no Realtime Database
+        this.dbRef = firebase.database().ref('whiteboards/' + this.roomId);
+
+        // 3. Fica "escutando" as mudanças na sala
+        this.dbRef.on('value', (snapshot) => {
+            const data = snapshot.val();
             
-            // Histórico (Undo/Redo)
-            history: [],
-            historyStep: -1,
-
-            // Grades Temáticas
-            grids: ['none', 'dots', 'lines', 'squares', 'music', 'sports'],
-            currentGridIndex: 0,
-
-            open() {
-                const modal = document.getElementById('modal-whiteboard');
-                modal.showModal();
-                if (!this.canvas) {
-                    this.init();
-                    this.resize(); 
-                    this.saveState(); 
-                }
-            },
-
-            init() {
-                this.canvas = document.getElementById('whiteboard-canvas');
-                this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
-
-                // MÁGICA: Eventos de 'Pointer' conseguem ler Mouse, Touch e Caneta (Stylus) ao mesmo tempo!
-                this.canvas.addEventListener('pointerdown', (e) => this.start(e));
-                this.canvas.addEventListener('pointermove', (e) => this.draw(e));
-                this.canvas.addEventListener('pointerup', (e) => this.stop());
-                this.canvas.addEventListener('pointerout', (e) => { if(this.isDrawing || this.isPanning) this.stop(); });
-
-                // PAN E ZOOM (Rodinha do Mouse)
-                this.canvas.addEventListener('wheel', (e) => {
-                    e.preventDefault();
-                    const zoomIntensity = 0.1;
-                    const wheel = e.deltaY < 0 ? 1 : -1;
-                    this.scale *= Math.exp(wheel * zoomIntensity);
-                    this.applyTransform();
-                }, { passive: false });
-
-                // ATALHOS DE TECLADO (Shortcuts)
-                window.addEventListener('keydown', (e) => {
-                    if (!document.getElementById('modal-whiteboard').open) return;
-                    
-                    if (e.code === 'Space') {
-                        this.isSpaceDown = true;
-                        this.canvas.style.cursor = 'grab'; // Prepara para arrastar a tela
-                    }
-                    if (e.ctrlKey && e.key.toLowerCase() === 'z') this.undo();
-                    if (e.ctrlKey && e.key.toLowerCase() === 'y') this.redo();
-                    if (!e.ctrlKey) {
-                        if (e.key.toLowerCase() === 'b') this.setTool('pen');
-                        if (e.key.toLowerCase() === 'e') this.setTool('eraser');
-                    }
-                });
-
-                window.addEventListener('keyup', (e) => {
-                    if (e.code === 'Space') {
-                        this.isSpaceDown = false;
-                        this.canvas.style.cursor = this.currentTool === 'eraser' ? 'cell' : 'crosshair';
-                    }
-                });
-
-                window.addEventListener('resize', () => this.resize());
-                this.applyGrid();
-            },
-
-            resize() {
-                let imgData = null;
-                if(this.canvas.width > 0 && this.canvas.height > 0) {
-                     imgData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-                }
-                this.canvas.width = window.innerWidth;
-                this.canvas.height = window.innerHeight;
-                if(imgData) this.ctx.putImageData(imgData, 0, 0);
-                this.updateContext();
-            },
-
-            // Aplica o Zoom e Pan visualmente via CSS
-            applyTransform() {
-                this.canvas.style.transform = `translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.scale})`;
-            },
-
-            // Corrige a posição do mouse quando a tela está com Zoom ou movida
-            getMousePos(e) {
-                const rect = this.canvas.getBoundingClientRect();
-                return {
-                    x: (e.clientX - rect.left) / this.scale,
-                    y: (e.clientY - rect.top) / this.scale
-                };
-            },
-
-            // --- ESTADOS E HISTÓRICO (UNDO/REDO) ---
-            saveState() {
-                if (this.historyStep < this.history.length - 1) {
-                    this.history.length = this.historyStep + 1;
-                }
-                this.history.push(this.canvas.toDataURL());
-                this.historyStep++;
-            },
-
-            undo() {
-                if (this.historyStep > 0) {
-                    this.historyStep--;
-                    this.restoreState();
-                }
-            },
-
-            redo() {
-                if (this.historyStep < this.history.length - 1) {
-                    this.historyStep++;
-                    this.restoreState();
-                }
-            },
-
-            restoreState() {
+            if (data && data.image && data.senderId !== this.userId) {
                 const img = new Image();
-                img.src = this.history[this.historyStep];
+                img.src = data.image;
                 img.onload = () => {
                     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                     this.ctx.drawImage(img, 0, 0);
-                    this.updateContext(); 
-                };
-            },
-
-            // --- FERRAMENTAS E ESTILOS ---
-            setTool(tool) {
-                this.currentTool = tool;
-                
-                const tools = ['pen', 'eraser', 'highlighter', 'line', 'rect', 'circle'];
-                tools.forEach(t => {
-                    const btn = document.getElementById(`btn-tool-${t}`);
-                    if(btn) btn.className = "p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all";
-                });
-
-                const btn = document.getElementById(`btn-tool-${tool}`);
-                if (btn) {
-                    if (tool === 'eraser') {
-                        btn.className = "p-2.5 rounded-lg bg-white text-slate-900 transition-all shadow-lg scale-110";
-                        this.canvas.style.cursor = "cell";
-                    } else {
-                        btn.className = "p-2.5 rounded-lg bg-blue-600 text-white transition-all shadow-lg scale-110";
-                        this.canvas.style.cursor = "crosshair";
-                    }
-                }
-                this.updateContext();
-            },
-
-            setColor(hex) {
-                this.color = hex;
-                if(this.currentTool === 'eraser') this.setTool('pen');
-                this.updateContext();
-            },
-
-            setSize(val) {
-                this.size = parseInt(val);
-                document.getElementById('wb-size-val').innerText = val + 'px';
-                this.updateContext();
-            },
-
-            updateContext() {
-                if(!this.ctx) return;
-                this.ctx.lineCap = 'round';
-                this.ctx.lineJoin = 'round';
-                this.ctx.globalAlpha = 1.0;
-
-                if (this.currentTool === 'eraser') {
-                    this.ctx.globalCompositeOperation = 'destination-out';
-                    this.ctx.lineWidth = this.size;
-                } else {
-                    this.ctx.globalCompositeOperation = 'source-over';
-                    this.ctx.strokeStyle = this.color;
-                    
-                    if (this.currentTool === 'highlighter') {
-                        this.ctx.globalAlpha = 0.3; 
-                        this.ctx.lineWidth = this.size * 3; 
-                    } else {
-                        this.ctx.lineWidth = this.size;
-                    }
-                }
-            },
-
-            // --- FUNÇÕES MÁGICAS NOVAS ---
-            toggleMirror() {
-                this.isMirror = !this.isMirror;
-                UI.toast(this.isMirror ? "Modo Simetria (Espelho) Ativado" : "Modo Simetria Desativado", "info");
-            },
-
-            togglePalmRejection() {
-                this.palmRejection = !this.palmRejection;
-                UI.toast(this.palmRejection ? "Bloqueio de Dedo Ativado (Use a caneta)" : "Desenho Livre", "info");
-            },
-
-            // --- DESENHO E FORMAS GEOMÉTRICAS ---
-            start(e) {
-                // 1. Lógica do Pan (Arrastar quadro) -> Se segurar Espaço, botão do meio ou Dedo (se palmRejection ligado)
-                if (this.isSpaceDown || e.button === 1 || (e.pointerType === 'touch' && this.palmRejection)) {
-                    this.isPanning = true;
-                    this.panStartX = e.clientX - this.offsetX;
-                    this.panStartY = e.clientY - this.offsetY;
-                    this.canvas.style.cursor = 'grabbing';
-                    return;
-                }
-
-                // 2. Rejeição de Palma: Bloqueia toques que não sejam de caneta
-                if (this.palmRejection && e.pointerType !== 'pen') return;
-
-                this.isDrawing = true;
-                const pos = this.getMousePos(e);
-                this.startX = pos.x;
-                this.startY = pos.y;
-                
-                this.snapshot = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-                
-                if (this.currentTool === 'pen' || this.currentTool === 'highlighter' || this.currentTool === 'eraser') {
-                    this.points = [{x: this.startX, y: this.startY}];
-                }
-            },
-
-            draw(e) {
-                // 1. Move o quadro (Pan)
-                if (this.isPanning) {
-                    this.offsetX = e.clientX - this.panStartX;
-                    this.offsetY = e.clientY - this.panStartY;
-                    this.applyTransform();
-                    return;
-                }
-
-                if (!this.isDrawing) return;
-                
-                const pos = this.getMousePos(e);
-
-                // ATALHO SHIFT: Se segurar shift com a caneta, força ser uma linha reta
-                const isStraightLine = (this.currentTool === 'pen' && e.shiftKey);
-
-                // Limpa o frame se for forma, marca-texto ou linha reta forçada
-                if (this.currentTool === 'highlighter' || this.currentTool === 'line' || this.currentTool === 'rect' || this.currentTool === 'circle' || isStraightLine) {
-                     this.ctx.putImageData(this.snapshot, 0, 0);
-                }
-
-                // Função interna para desenhar (permite repetir no modo espelho facilmente)
-                const drawAction = () => {
-                    this.ctx.beginPath();
-                    
-                    if (isStraightLine || this.currentTool === 'line') {
-                        this.ctx.moveTo(this.startX, this.startY);
-                        this.ctx.lineTo(pos.x, pos.y);
-                    } 
-                    else if (this.currentTool === 'pen' || this.currentTool === 'highlighter' || this.currentTool === 'eraser') {
-                        this.points.push(pos);
-                        this.ctx.moveTo(this.points[0].x, this.points[0].y);
-                        
-                        if(this.points.length < 3) {
-                            this.ctx.lineTo(pos.x, pos.y);
-                        } else {
-                            for (let i = 1; i < this.points.length - 1; i++) {
-                                const xc = (this.points[i].x + this.points[i + 1].x) / 2;
-                                const yc = (this.points[i].y + this.points[i + 1].y) / 2;
-                                this.ctx.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
-                            }
-                        }
-                    } 
-                    else if (this.currentTool === 'rect') {
-                        this.ctx.rect(this.startX, this.startY, pos.x - this.startX, pos.y - this.startY);
-                    } 
-                    else if (this.currentTool === 'circle') {
-                        const radius = Math.hypot(pos.x - this.startX, pos.y - this.startY);
-                        this.ctx.arc(this.startX, this.startY, radius, 0, 2 * Math.PI);
-                    }
-                    this.ctx.stroke();
-                };
-
-                // 1. Desenha o traço normal
-                drawAction();
-
-                // 2. MÁGICA DA SIMETRIA: Inverte a matriz do canvas e desenha de novo!
-                if (this.isMirror) {
-                    this.ctx.save();
-                    this.ctx.translate(this.canvas.width, 0);
-                    this.ctx.scale(-1, 1);
-                    drawAction();
-                    this.ctx.restore();
-                }
-            },
-
-            stop() {
-                if (this.isPanning) {
-                    this.isPanning = false;
-                    this.canvas.style.cursor = this.currentTool === 'eraser' ? 'cell' : 'crosshair';
-                }
-                if (this.isDrawing) {
-                    this.isDrawing = false;
                     this.saveState(); 
-                    this.points = []; 
-                }
-            },
-
-            // --- AÇÕES ESPECIAIS ---
-            async clear() {
-                if(await UI.confirm("Limpar Quadro", "Tem certeza que deseja apagar todo o desenho?", "Limpar", true)) {
-                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                    this.saveState();
-                    UI.toast("Quadro limpo", "info");
-                }
-            },
-
-            download() {
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = this.canvas.width;
-                tempCanvas.height = this.canvas.height;
-                const tempCtx = tempCanvas.getContext('2d');
-                
-                tempCtx.fillStyle = '#020617'; 
-                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                tempCtx.drawImage(this.canvas, 0, 0);
-
-                const link = document.createElement('a');
-                link.download = `rascunho-${Date.now()}.png`;
-                link.href = tempCanvas.toDataURL('image/png');
-                link.click();
-                UI.toast("Imagem salva!", "success");
-            },
-
-            toggleGrid() {
-                this.currentGridIndex = (this.currentGridIndex + 1) % this.grids.length;
-                this.applyGrid();
-            },
-
-            applyGrid() {
-                const type = this.grids[this.currentGridIndex];
-                const c = this.canvas;
-                c.style.backgroundImage = 'none';
-
-                if (type === 'dots') {
-                    c.style.backgroundImage = 'radial-gradient(#334155 1.5px, transparent 1.5px)';
-                    c.style.backgroundSize = '30px 30px';
-                } else if (type === 'lines') {
-                    c.style.backgroundImage = 'linear-gradient(transparent 95%, #334155 95%)';
-                    c.style.backgroundSize = '100% 40px';
-                } else if (type === 'squares') {
-                    c.style.backgroundImage = 'linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px)';
-                    c.style.backgroundSize = '40px 40px';
-                } else if (type === 'music') { // Pauta Musical
-                    c.style.backgroundImage = 'repeating-linear-gradient(transparent, transparent 10px, #334155 10px, #334155 11px), repeating-linear-gradient(transparent, transparent 60px, transparent 60px)';
-                    c.style.backgroundSize = '100% 80px';
-                } else if (type === 'sports') { // Campo verde
-                     c.style.backgroundImage = 'linear-gradient(#166534, #166534)'; 
-                }
+                };
             }
-        };
+        });
+    },
+
+    broadcastState() {
+        if (!this.roomId || !this.dbRef) return;
+        
+        // Transforma o quadro atual em uma imagem Base64 leve (WebP é mais leve que PNG)
+        const currentImg = this.canvas.toDataURL('image/webp', 0.8); 
+        
+        // Envia para o Firebase
+        this.dbRef.set({
+            image: currentImg,
+            senderId: this.userId,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        }).catch(err => console.error("Erro ao sincronizar desenho:", err));
+    },
+
+    leaveRoom() {
+        // Desconecta do Firebase para parar de gastar leitura
+        if (this.dbRef) {
+            this.dbRef.off(); 
+            this.dbRef = null;
+        }
+        
+        this.roomId = null;
+        
+        const ui = document.getElementById('multiplayer-ui');
+        if(ui) ui.classList.add('hidden');
+        if (typeof UI !== 'undefined') UI.toast("Você saiu da sala.");
+    },
+
+    copyRoomCode() {
+        if (!this.roomId) return;
+        navigator.clipboard.writeText(this.roomId);
+        if (typeof UI !== 'undefined') UI.toast("Código da sala copiado!");
+    },
+
+    // --- AÇÕES BÁSICAS ---
+    async clear() {
+        let confirmed = true;
+        if (typeof UI !== 'undefined' && UI.confirm) {
+            confirmed = await UI.confirm("Limpar Quadro", "Tem certeza que deseja apagar todo o desenho?", "Limpar", true);
+        } else {
+            confirmed = confirm("Tem certeza que deseja apagar tudo?");
+        }
+        
+        if(confirmed) {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.saveState();
+            if(this.roomId) this.broadcastState();
+            if (typeof UI !== 'undefined') UI.toast("Quadro limpo", "info");
+        }
+    },
+
+    download() {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = this.canvas.width;
+        tempCanvas.height = this.canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        tempCtx.fillStyle = '#020617'; 
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(this.canvas, 0, 0);
+
+        const link = document.createElement('a');
+        link.download = `rascunho-${Date.now()}.png`;
+        link.href = tempCanvas.toDataURL('image/png');
+        link.click();
+        if (typeof UI !== 'undefined') UI.toast("Imagem salva!", "success");
+    },
+
+    toggleGrid() {
+        this.currentGridIndex = (this.currentGridIndex + 1) % this.grids.length;
+        this.applyGrid();
+    },
+
+    applyGrid() {
+        const type = this.grids[this.currentGridIndex];
+        const c = this.canvas;
+        c.style.backgroundImage = 'none';
+
+        if (type === 'dots') {
+            c.style.backgroundImage = 'radial-gradient(#334155 1.5px, transparent 1.5px)';
+            c.style.backgroundSize = '40px 40px'; // Ajustado para bater com o gridSize do Snap
+        } else if (type === 'lines') {
+            c.style.backgroundImage = 'linear-gradient(transparent 95%, #334155 95%)';
+            c.style.backgroundSize = '100% 40px';
+        } else if (type === 'squares') {
+            c.style.backgroundImage = 'linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px)';
+            c.style.backgroundSize = '40px 40px';
+        } else if (type === 'music') { 
+            c.style.backgroundImage = 'repeating-linear-gradient(transparent, transparent 10px, #334155 10px, #334155 11px), repeating-linear-gradient(transparent, transparent 60px, transparent 60px)';
+            c.style.backgroundSize = '100% 80px';
+        } else if (type === 'sports') { 
+             c.style.backgroundImage = 'linear-gradient(#166534, #166534)'; 
+        }
+    }
+};
 
         // =================================================================
         // SIMULADO (Item 8)
@@ -2493,7 +2721,7 @@
                     modal.showModal();
                 });
             },
-            // NOVA FUNÇÃO: Substituta do prompt() nativo
+
             prompt(title, placeholder = "", defaultValue = "") {
                 return new Promise((resolve) => {
                     const modal = document.getElementById('modal-prompt');
