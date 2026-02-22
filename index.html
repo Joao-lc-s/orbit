@@ -1395,6 +1395,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, deleteDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getDatabase, ref, onValue, set, off, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
         
         // 2. CONFIGURAÇÃO (Com o nome antigo 'embeddedFirebaseConfig' para não quebrar o Store.init)
         const embeddedFirebaseConfig = {
