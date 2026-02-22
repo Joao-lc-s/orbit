@@ -1377,7 +1377,7 @@
             </div>
             
             <canvas id="whiteboard-canvas" class="w-full h-full block touch-none cursor-crosshair"></canvas>
-            <div id="custom-cursor" class="fixed rounded-full border border-black dark:border-white mix-blend-difference pointer-events-none z-50 hidden" style="transform: translate(-50%, -50%);"></div>
+            <div id="custom-cursor" class="fixed rounded-full border border-black mix-blend-difference pointer-events-none z-50 hidden" style="transform: translate(-50%, -50%);"></div>
             <div id="stickies-container" class="absolute inset-0 pointer-events-none z-40 overflow-hidden"></div>
 
             <div id="multiplayer-ui" class="absolute top-8 left-1/2 -translate-x-1/2 bg-slate-900/95 p-3 rounded-2xl border border-white/10 z-50 flex gap-2 items-center text-sm shadow-xl hidden">
@@ -1392,10 +1392,10 @@
 
     <script type="module">
         // 1. IMPORTS
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, deleteDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getDatabase, ref, onValue, set, off, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getDatabase, ref, onValue, set, off, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";        
         
         // 2. CONFIGURAÇÃO (Com o nome antigo 'embeddedFirebaseConfig' para não quebrar o Store.init)
         const embeddedFirebaseConfig = {
@@ -1409,16 +1409,17 @@
         };
 
         // 3. INICIALIZAÇÃO
-        const app = initializeApp(embeddedFirebaseConfig); // Usa a config correta
+        const app = initializeApp(embeddedFirebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const realtimeDb = getDatabase(app);
 
-        // 4. EXPORTAR PARA O GLOBAL (Essenciais para o Reset funcionar)
         window.orbitDb = db;
         window.orbitAuth = auth;
         window.orbitDoc = doc;
         window.orbitSetDoc = setDoc;
         window.orbitSignOut = signOut;
+        
         
         window.embeddedFirebaseConfig = embeddedFirebaseConfig;
 
@@ -1690,7 +1691,7 @@
         this.applyGrid();
         
         // Esconde o cursor nativo para usar a bolinha customizada
-        this.canvas.style.cursor = 'none';
+        this.canvas.style.cursor = 'crosshair';
         this.updateCursorSize();
     },
 
@@ -1808,8 +1809,10 @@
         if (btn) {
             if (tool === 'eraser') {
                 btn.className = "p-2.5 rounded-lg bg-white text-slate-900 transition-all shadow-lg scale-110";
+                this.canvas.style.cursor = "cell";
             } else {
                 btn.className = "p-2.5 rounded-lg bg-blue-600 text-white transition-all shadow-lg scale-110";
+                this.canvas.style.cursor = "crosshair";
             }
         }
         this.updateContext();
@@ -2043,7 +2046,7 @@
         container.appendChild(sticky);
     },
 
-    // --- LÓGICA MULTIPLAYER ---
+    // --- LÓGICA MULTIPLAYER (FIREBASE MODULAR LIMPO) ---
     async initMultiplayer() {
         const code = await UI.prompt(
             "Conectar à Sala", 
@@ -2065,13 +2068,13 @@
             UI.toast(`Conectado à sala ${this.roomId}`);
         }
         
-        // 1. Limpa conexões antigas se trocar de sala usando a função modular 'off()'
+        // 1. Limpa conexões antigas
         if (this.dbRef) off(this.dbRef);
 
-        // 2. Cria a referência usando a função modular 'ref()'
-        this.dbRef = ref(database, 'whiteboards/' + this.roomId);
+        // 2. AQUI ESTÁ A CORREÇÃO: Passando o 'db' (que criamos lá em cima) e a string do caminho
+        this.dbRef = ref(realtimeDb, 'whiteboards/' + this.roomId);
 
-        // 3. Fica escutando as mudanças com 'onValue()'
+        // 3. Escuta as mudanças
         onValue(this.dbRef, (snapshot) => {
             const data = snapshot.val();
             
@@ -2092,7 +2095,7 @@
         
         const currentImg = this.canvas.toDataURL('image/webp', 0.8); 
         
-        // Envia para o Firebase usando a função modular 'set()' e 'serverTimestamp()'
+        // Envia para o Firebase de forma limpa
         set(this.dbRef, {
             image: currentImg,
             senderId: this.userId,
@@ -2102,7 +2105,7 @@
 
     leaveRoom() {
         if (this.dbRef) {
-            off(this.dbRef); // Desconecta o ouvinte
+            off(this.dbRef); 
             this.dbRef = null;
         }
         
@@ -2427,9 +2430,8 @@
 
             async connectFirebase(config) {
                 try {
-                    const app = initializeApp(config);
-                    this.firebase.auth = getAuth(app);
-                    this.firebase.db = getFirestore(app);
+                    this.firebase.auth = auth;
+                    this.firebase.db = db;
                     const appId = typeof __app_id !== 'undefined' ? __app_id : 'orbit-v7';
                     
                     // Auth Logic Mandated by System Rules
