@@ -2043,19 +2043,15 @@
     },
 
     // --- LÓGICA MULTIPLAYER ---
-    async initMultiplayer() { // <-- Adicionado o async aqui
-        
-        // Chama o seu modal customizado e aguarda a resposta
+    async initMultiplayer() {
         const code = await UI.prompt(
             "Conectar à Sala", 
             "Código da sala (vazio = nova)", 
             ""
         );
 
-        // Se o usuário clicar no botão cancelar (ou fechar no ESC), o modal retorna null
         if (code === null) return;
 
-        // Se ele deu OK, criamos a sala (ou entramos na digitada)
         this.roomId = code.trim() || Math.random().toString(36).substring(2, 8).toUpperCase();
         
         const ui = document.getElementById('multiplayer-ui');
@@ -2068,14 +2064,14 @@
             UI.toast(`Conectado à sala ${this.roomId}`);
         }
         
-        // 1. Limpa conexões antigas se o usuário trocar de sala
-        if (this.dbRef) this.dbRef.off();
+        // 1. Limpa conexões antigas se trocar de sala usando a função modular 'off()'
+        if (this.dbRef) off(this.dbRef);
 
-        // 2. Cria a referência para a sala específica no Realtime Database
-        this.dbRef = firebase.database().ref('whiteboards/' + this.roomId);
+        // 2. Cria a referência usando a função modular 'ref()'
+        this.dbRef = ref(database, 'whiteboards/' + this.roomId);
 
-        // 3. Fica "escutando" as mudanças na sala
-        this.dbRef.on('value', (snapshot) => {
+        // 3. Fica escutando as mudanças com 'onValue()'
+        onValue(this.dbRef, (snapshot) => {
             const data = snapshot.val();
             
             if (data && data.image && data.senderId !== this.userId) {
@@ -2093,21 +2089,19 @@
     broadcastState() {
         if (!this.roomId || !this.dbRef) return;
         
-        // Transforma o quadro atual em uma imagem Base64 leve (WebP é mais leve que PNG)
         const currentImg = this.canvas.toDataURL('image/webp', 0.8); 
         
-        // Envia para o Firebase
-        this.dbRef.set({
+        // Envia para o Firebase usando a função modular 'set()' e 'serverTimestamp()'
+        set(this.dbRef, {
             image: currentImg,
             senderId: this.userId,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
+            timestamp: serverTimestamp()
         }).catch(err => console.error("Erro ao sincronizar desenho:", err));
     },
 
     leaveRoom() {
-        // Desconecta do Firebase para parar de gastar leitura
         if (this.dbRef) {
-            this.dbRef.off(); 
+            off(this.dbRef); // Desconecta o ouvinte
             this.dbRef = null;
         }
         
@@ -2115,7 +2109,7 @@
         
         const ui = document.getElementById('multiplayer-ui');
         if(ui) ui.classList.add('hidden');
-        if (typeof UI !== 'undefined') UI.toast("Você saiu da sala.");
+        if (typeof UI !== 'undefined' && UI.toast) UI.toast("Você saiu da sala.");
     },
 
     copyRoomCode() {
