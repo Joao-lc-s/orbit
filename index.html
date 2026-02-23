@@ -77,7 +77,7 @@
             --brand-50: #eff6ff; --brand-100: #dbeafe; --brand-200: #bfdbfe;
             --brand-300: #93c5fd; --brand-400: #60a5fa; --brand-500: #3b82f6;
             --brand-600: #2563eb; --brand-700: #1d4ed8; --brand-800: #1e40af;
-            --brand-900: #1e3a8a;
+            --brand-900: #1e3a8a; --red: #ff0000;
         }
 
         .theme-dark {
@@ -1353,8 +1353,8 @@
 
                 <div class="flex gap-1 shrink-0 bg-black/40 p-1.5 rounded-xl">
                     <button id="btn-wb-mirror" onclick="Whiteboard.toggleMirror()" title="Modo Espelho (Simetria)" class="text-slate-400 hover:text-brand-400 transition-colors p-2.5 rounded-lg"><i class="ph-bold ph-butterfly text-lg"></i></button>
-                    <button onclick="Whiteboard.createSticky()" title="Novo Post-it" class="p-2.5 rounded-lg text-yellow-400 hover:text-yellow-300 hover:bg-slate-800 transition-all"><i class="ph-bold ph-note-blank text-lg"></i></button>
-                    <button id="btn-snap" onclick="Whiteboard.toggleSnap()" title="Imã (Alinhar à grade)" class="text-slate-400 hover:text-brand-400 transition-colors p-2"><i class="ph-bold ph-magnet text-xl"></i></button>
+                    <button onclick="Whiteboard.createSticky()" title="Novo Post-it" class="p-2.5 rounded-lg text-slate-400 hover:text-yellow-300 transition-all"><i class="ph-bold ph-note-blank text-lg"></i></button>
+                    <button id="btn-snap" onclick="Whiteboard.toggleSnap()" title="Imã (Alinhar à grade)" class="text-slate-400 hover:text-red-400 transition-colors p-2.5 rounded-lg"><i class="ph-bold ph-magnet text-xl"></i></button>
                     <button onclick="Whiteboard.initMultiplayer()" title="Criar/Entrar em Sala" class="text-slate-400 hover:text-green-400 transition-colors p-2"><i class="ph-bold ph-users text-xl"></i></button>
                     <textarea id="textInput" class="fixed z-50 bg-transparent border-2 border-dashed border-blue-500 text-white p-1 outline-none resize-none overflow-hidden"></textarea>
                 </div>
@@ -1741,10 +1741,13 @@
     toggleSnap() {
         this.isSnapping = !this.isSnapping;
         const btn = document.getElementById('btn-snap');
-        if (btn) {
-            btn.classList.toggle('text-brand-400', this.isSnapping);
-            btn.classList.toggle('bg-white/10', this.isSnapping);
-        }
+        if (this.isSnapping) {
+                btn.classList.remove('text-slate-400', 'hover:text-red-400');
+                btn.classList.add('text-red-500', 'bg-red-500/20');
+            } else {
+                btn.classList.remove('text-red-500', 'bg-red-500/20');
+                btn.classList.add('text-slate-400', 'hover:text-red-400');
+            }
         if (typeof UI !== 'undefined') UI.toast(this.isSnapping ? "Ímã (Grid Snap) Ativado" : "Ímã Desativado", "info");
     },
 
@@ -1789,9 +1792,22 @@
         const img = new Image();
         img.src = this.history[this.historyStep];
         img.onload = () => {
+            // 1. Salva a ferramenta atual (ex: borracha)
+            this.ctx.save();
+            
+            // 2. Força o modo imagem normal (ignora borracha/marca-texto)
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.ctx.globalAlpha = 1.0;
+            
+            // 3. Cola o desenho
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             this.ctx.drawImage(img, 0, 0);
+            
+            // 4. Devolve a ferramenta que o usuário estava usando
+            this.ctx.restore();
             this.updateContext(); 
+            
+            if (this.roomId) this.broadcastState();
         };
     },
 
@@ -2050,7 +2066,7 @@
     async initMultiplayer() {
         const code = await UI.prompt(
             "Conectar à Sala", 
-            "Código da sala (vazio = nova)", 
+            "Código da sala (vazio para uma nova)", 
             ""
         );
 
@@ -2075,6 +2091,7 @@
         this.dbRef = ref(realtimeDb, 'whiteboards/' + this.roomId);
 
         // 3. Escuta as mudanças
+        // 3. Escuta as mudanças
         onValue(this.dbRef, (snapshot) => {
             const data = snapshot.val();
             
@@ -2082,8 +2099,17 @@
                 const img = new Image();
                 img.src = data.image;
                 img.onload = () => {
+                    // Faz a mesma proteção contra a Borracha aqui!
+                    this.ctx.save();
+                    this.ctx.globalCompositeOperation = 'source-over';
+                    this.ctx.globalAlpha = 1.0;
+                    
                     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                     this.ctx.drawImage(img, 0, 0);
+                    
+                    this.ctx.restore();
+                    this.updateContext();
+                    
                     this.saveState(); 
                 };
             }
