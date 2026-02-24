@@ -1427,6 +1427,7 @@
         const embeddedFirebaseConfig = {
             apiKey: "AIzaSyB8HXoAZkq9uPVbN3SjISFcrl6EgsFcxRc",
             authDomain: "orbit-study.firebaseapp.com",
+            databaseURL: "https://orbit-study-default-rtdb.firebaseio.com",
             projectId: "orbit-study",
             storageBucket: "orbit-study.firebasestorage.app",
             messagingSenderId: "1084558202713",
@@ -2469,8 +2470,12 @@
         });
     },
 
-    // --- LÓGICA MULTIPLAYER (FIREBASE MODULAR LIMPO) ---
+    // --- LÓGICA MULTIPLAYER (COM TRAVA DE LOGIN E PRESENÇA) ---
     async initMultiplayer() {
+        
+        // =======================================================
+        // 1. TRAVA DE SEGURANÇA: VERIFICA LOGIN
+        // =======================================================
         const user = window.orbitAuth ? window.orbitAuth.currentUser : null;
         if (!user || user.isAnonymous) {
             // Usa o seu modal nativo para perguntar amigavelmente
@@ -2478,16 +2483,19 @@
                 "Login Necessário", 
                 "Para criar ou entrar em salas Multiplayer, você precisa estar logado na sua conta Google. Deseja fazer login agora?", 
                 "Fazer Login", 
-                false
+                false 
             );
             
             if (querLogar) {
+                // Fecha a lousa e chama a sua função de login
                 document.getElementById('modal-whiteboard').close();
                 window.Auth.login();
             }
-            return;
+            return; // Bloqueia a execução do multiplayer se não estiver logado
         }
-        
+        // =======================================================
+
+        // 2. Se passou da trava, segue normalmente:
         const code = await UI.prompt(
             "Conectar à Sala", 
             "Código da sala (vazio para uma nova)", 
@@ -2511,73 +2519,71 @@
         // Limpa conexões antigas
         if (this.dbRef) off(this.dbRef);
 
-        const realtimeDb = window.getDatabase ? window.getDatabase() : (window.orbitDb.app ? window.getDatabase(window.orbitDb.app) : null);
-        // Garantia extra de pegar o banco correto usando o app já inicializado
-        import("https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js").then(({ getDatabase, ref, onValue, set, off, onDisconnect }) => {
-            const rtdb = getDatabase();
+        // Usa a variável realtimeDb que você já declarou perfeitamente no topo do arquivo!
+        this.dbRef = ref(realtimeDb, 'whiteboards/' + this.roomId);
+
+        // --- SISTEMA DE PRESENÇA (Bolinha Verde) ---
+        this.presenceRef = ref(realtimeDb, `whiteboards/${this.roomId}/presence/${this.userId}`);
+        const connectedRef = ref(realtimeDb, '.info/connected');
+        
+        onValue(connectedRef, (snap) => {
+            if (snap.val() === true) {
+                onDisconnect(this.presenceRef).remove().then(() => {
+                    set(this.presenceRef, true);
+                });
+            }
+        });
+
+        // Fica ouvindo quantas pessoas estão na sala
+        const roomPresenceRef = ref(realtimeDb, `whiteboards/${this.roomId}/presence`);
+        onValue(roomPresenceRef, (snap) => {
+            const users = snap.val() || {};
+            const count = Object.keys(users).length;
             
-            this.dbRef = ref(rtdb, 'whiteboards/' + this.roomId);
-
-            this.presenceRef = ref(rtdb, `whiteboards/${this.roomId}/presence/${this.userId}`);
-            const connectedRef = ref(rtdb, '.info/connected');
+            const countDisplay = document.getElementById('online-count');
+            const indicator = document.getElementById('online-indicator');
+            const ping = document.getElementById('online-ping');
             
-            onValue(connectedRef, (snap) => {
-                if (snap.val() === true) {
-                    onDisconnect(this.presenceRef).remove().then(() => {
-                        set(this.presenceRef, true);
-                    });
-                }
-            });
+            if(countDisplay) countDisplay.innerText = count + (count === 1 ? ' pessoa' : ' pessoas');
+            if(indicator) {
+                indicator.classList.toggle('bg-green-500', count > 1);
+                indicator.classList.toggle('bg-slate-500', count <= 1);
+                if(ping) ping.classList.toggle('bg-green-400', count > 1);
+                if(ping) ping.classList.toggle('bg-slate-400', count <= 1);
+            }
+        });
 
-            // Fica ouvindo quantas pessoas estão na sala
-            const roomPresenceRef = ref(rtdb, `whiteboards/${this.roomId}/presence`);
-            onValue(roomPresenceRef, (snap) => {
-                const users = snap.val() || {};
-                const count = Object.keys(users).length;
+        // --- ESCUTA DESENHOS DOS AMIGOS ---
+        onValue(this.dbRef, (snapshot) => {
+            const data = snapshot.val();
+            
+            if (data && data.senderId !== this.userId) {
                 
-                const countDisplay = document.getElementById('online-count');
-                const indicator = document.getElementById('online-indicator');
-                const ping = document.getElementById('online-ping');
-                
-                if(countDisplay) countDisplay.innerText = count + (count === 1 ? ' pessoa' : ' pessoas');
-                if(indicator) {
-                    indicator.classList.toggle('bg-green-500', count > 1);
-                    indicator.classList.toggle('bg-slate-500', count <= 1);
-                    if(ping) ping.classList.toggle('bg-green-400', count > 1);
-                    if(ping) ping.classList.toggle('bg-slate-400', count <= 1);
+                // 1. Renderiza Post-its
+                if (data.stickies) {
+                    this.renderStickies(data.stickies);
+                } else {
+                    document.getElementById('stickies-container').innerHTML = '';
                 }
-            });
 
-            // Escuta as mudanças de desenho e post-its
-            onValue(this.dbRef, (snapshot) => {
-                const data = snapshot.val();
-                
-                if (data && data.senderId !== this.userId) {
-                    
-                    if (data.stickies) {
-                        this.renderStickies(data.stickies);
-                    } else {
-                        document.getElementById('stickies-container').innerHTML = '';
-                    }
-
-                    if (data.image) {
-                        const img = new Image();
-                        img.src = data.image;
-                        img.onload = () => {
-                            this.ctx.save();
-                            this.ctx.globalCompositeOperation = 'source-over';
-                            this.ctx.globalAlpha = 1.0;
-                            
-                            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                            this.ctx.drawImage(img, 0, 0);
-                            
-                            this.ctx.restore();
-                            this.updateContext();
-                            this.saveState(); 
-                        };
-                    }
+                // 2. Renderiza Imagens/Traços
+                if (data.image) {
+                    const img = new Image();
+                    img.src = data.image;
+                    img.onload = () => {
+                        this.ctx.save();
+                        this.ctx.globalCompositeOperation = 'source-over';
+                        this.ctx.globalAlpha = 1.0;
+                        
+                        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                        this.ctx.drawImage(img, 0, 0);
+                        
+                        this.ctx.restore();
+                        this.updateContext();
+                        this.saveState(); 
+                    };
                 }
-            });
+            }
         });
     },
 
