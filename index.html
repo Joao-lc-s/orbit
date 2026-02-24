@@ -241,6 +241,10 @@
             z-index: 20;
         }
 
+        #btn-manage-perms {
+            display:none;
+        }
+
         /* 3D Flashcards */
         .perspective-1000 { perspective: 1000px; }
         .transform-style-3d { transform-style: preserve-3d; }
@@ -1415,8 +1419,9 @@
                 <span class="text-slate-300 text-xs uppercase tracking-wider font-bold hidden md:block">Sala <strong id="room-code-display" class="text-brand-400 select-all text-sm ml-1">---</strong></span>
                 
                 <div class="flex gap-1.5 ml-1">
-                    <button id="btn-manage-perms" onclick="Whiteboard.showPermissionsMenu()" class="hidden bg-brand-500/20 hover:bg-brand-500/40 text-brand-400 p-1.5 rounded-lg transition-colors shadow-sm" title="Gerenciar Alunos"><i class="ph-bold ph-users-gear text-lg"></i></button>
-                    
+                    <button id="btn-manage-perms" onclick="window.Whiteboard.showPermissionsMenu()" class="bg-white/10 hover:bg-brand-500/40 text-brand-400 px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-2 font-bold text-xs" title="Gerenciar Alunos">
+                        <i class="ph-bold ph-user-gear text-lg"></i>
+                    </button>                    
                     <button onclick="Whiteboard.copyRoomCode()" class="bg-white/10 hover:bg-white/20 p-1.5 rounded-lg text-white transition-colors w-10 h-10" title="Copiar Código"><i class="ph-bold ph-copy text-lg"></i></button>
                     <button onclick="Whiteboard.leaveRoom()" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 p-1.5 rounded-lg transition-colors font-bold text-xs uppercase w-10 h-10" title="Sair"><i class="ph-bold ph-sign-out text-lg"></i></button>
                 </div>
@@ -2519,51 +2524,78 @@
     async initMultiplayer() {
         const user = window.orbitAuth ? window.orbitAuth.currentUser : null;
         if (!user || user.isAnonymous) {
-            const querLogar = await UI.confirm("Login Necessário", "Para criar ou entrar em salas Multiplayer, você precisa estar logado na sua conta Google. Deseja fazer login agora?", "Fazer Login", false);
+            const querLogar = await UI.confirm("Login Necessário", "Para criar ou entrar em salas Multiplayer, você precisa estar logado na sua conta Google.", "Fazer Login", false);
             if (querLogar) { document.getElementById('modal-whiteboard').close(); window.Auth.login(); }
             return; 
         }
-        this.userId = user.uid;
+
+        this.userId = user.uid; // ID real e seguro do Google
+
         const code = await UI.prompt("Conectar à Sala", "Código da sala (vazio para nova)", "");
         if (code === null) return;
+        
+        // Garante que o código seja sempre Maiúsculo e previne o bug da sala duplicada
         this.roomId = (code.trim() || Math.random().toString(36).substring(2, 8)).toUpperCase();
         
+        // --- 1. RECONSTRUÇÃO FORÇADA DA UI ---
+        // O JS constrói a barra na marra para o HTML não esconder o botão
         const ui = document.getElementById('multiplayer-ui');
-        const display = document.getElementById('room-code-display');
-        if(ui) ui.classList.remove('hidden');
-        if(display) display.innerText = this.roomId;
+        if(ui) {
+            ui.classList.remove('hidden');
+            ui.style.zIndex = "99998"; // Fica acima de TUDO
+            ui.innerHTML = `
+                <div id="wb-perm-status" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors border">
+                    <i class="ph-bold ph-spinner animate-spin"></i> Carregando...
+                </div>
+                <div class="flex items-center gap-2 px-1 text-slate-300">
+                    <span class="relative flex h-3 w-3">
+                      <span id="online-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
+                      <span id="online-indicator" class="relative inline-flex rounded-full h-3 w-3 bg-slate-500"></span>
+                    </span>
+                    <span id="online-count" class="font-bold text-xs flex items-center gap-1">...</span>
+                </div>
+                <div class="w-px h-6 bg-white/10"></div>
+                <span class="text-slate-300 text-xs uppercase tracking-wider font-bold hidden md:block">Sala <strong class="text-brand-400 select-all text-sm ml-1">${this.roomId}</strong></span>
+                <div class="flex gap-1.5 ml-1">
+                    <button id="btn-manage-perms" onclick="window.Whiteboard.showPermissionsMenu()" style="display:none;" class="bg-white/10 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors shadow-lg items-center gap-2 font-bold text-xs" title="Gerenciar Alunos">
+                        <i class="ph-bold ph-user-gear text-lg"></i>
+                    </button>
+                    
+                    <button onclick="window.Whiteboard.copyRoomCode()" class="bg-white/10 hover:bg-white/20 p-1.5 rounded-lg text-white transition-colors w-10 h-10" title="Copiar Código"><i class="ph-bold ph-copy text-lg"></i></button>
+                    <button onclick="window.Whiteboard.leaveRoom()" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 p-1.5 rounded-lg transition-colors font-bold text-xs uppercase w-10 h-10" title="Sair"><i class="ph-bold ph-sign-out text-lg"></i></button>
+                </div>
+            `;
+        }
+
         if (typeof UI !== 'undefined') UI.toast(`Conectado à sala ${this.roomId}`);
-        
         if (this.dbRef) off(this.dbRef);
 
-        import("https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js").then(({ getDatabase, ref, onValue, set, update, off, onDisconnect }) => {
+        // Importando a função 'get' também para ler com segurança
+        import("https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js").then(({ getDatabase, ref, get, set, update, off, onValue, onDisconnect }) => {
             const rtdb = getDatabase();
             this.dbRef = ref(rtdb, 'whiteboards/' + this.roomId);
-            
             const userName = user.displayName || "Aluno";
 
-            // 1. PRESENÇA COM NOME
+            // 2. PRESENÇA
             this.presenceRef = ref(rtdb, `whiteboards/${this.roomId}/presence/${this.userId}`);
             const connectedRef = ref(rtdb, '.info/connected');
             onValue(connectedRef, (snap) => {
                 if (snap.val() === true) {
                     onDisconnect(this.presenceRef).remove().then(() => {
-                        set(this.presenceRef, userName); // Salva o NOME em vez de true
+                        set(this.presenceRef, userName); 
                     });
                 }
             });
 
-            // 2. CONTA PESSOAS E COLOCA ÍCONE 👤
+            // 3. CONTAGEM E ÍCONE
             const roomPresenceRef = ref(rtdb, `whiteboards/${this.roomId}/presence`);
             onValue(roomPresenceRef, (snap) => {
                 this.roomUsers = snap.val() || {};
                 const count = Object.keys(this.roomUsers).length;
-                
                 const countDisplay = document.getElementById('online-count');
                 const indicator = document.getElementById('online-indicator');
                 const ping = document.getElementById('online-ping');
                 
-                // === AQUI COLOCAMOS O ÍCONE ===
                 if(countDisplay) countDisplay.innerHTML = `${count} <i class="ph-bold ph-user${count > 1 ? 's' : ''} text-base ml-0.5"></i>`;
                 
                 if(indicator) {
@@ -2572,22 +2604,30 @@
                     if(ping) ping.classList.toggle('bg-green-400', count > 1);
                     if(ping) ping.classList.toggle('bg-slate-400', count <= 1);
                 }
-                
                 if (document.getElementById('wb-perms-menu')) this.renderPermissionsMenu();
             });
 
-            // 3. DESCOBRE QUEM É O DONO DA SALA E SUAS PERMISSÕES
+            // 4. DESCOBRE SE VOCÊ É O DONO (LÓGICA CORRIGIDA)
             const hostRef = ref(rtdb, `whiteboards/${this.roomId}/host`);
-            onValue(hostRef, (snap) => {
+            get(hostRef).then((snap) => {
                 if (!snap.exists()) {
-                    set(hostRef, this.userId); // O 1º a entrar vira dono
+                    // Sala nova, eu sou o dono!
+                    set(hostRef, this.userId).catch(e => console.log(e));
                     this.isHost = true;
                 } else {
+                    // Já tem dono, checa se sou eu
                     this.isHost = (snap.val() === this.userId);
                 }
                 this.updatePermissionUI();
+                
+                // Fica ouvindo caso mude
+                onValue(hostRef, (snap2) => {
+                    this.isHost = (snap2.val() === this.userId);
+                    this.updatePermissionUI();
+                });
             });
 
+            // 5. ESCUTA AS PERMISSÕES DA SALA
             const permsRef = ref(rtdb, `whiteboards/${this.roomId}/permissions`);
             onValue(permsRef, (snap) => {
                 this.roomPerms = snap.val() || {};
@@ -2595,12 +2635,15 @@
                 if (document.getElementById('wb-perms-menu')) this.renderPermissionsMenu();
             });
 
-            // 4. ESCUTA DESENHOS
+            // 6. ESCUTA DESENHOS DOS AMIGOS
             onValue(this.dbRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.senderId !== this.userId) {
                     if (data.stickies) this.renderStickies(data.stickies);
-                    else document.getElementById('stickies-container').innerHTML = '';
+                    else {
+                        const container = document.getElementById('stickies-container');
+                        if(container) container.innerHTML = '';
+                    }
 
                     if (data.image) {
                         const img = new Image();
@@ -2623,37 +2666,34 @@
 
     // --- SISTEMA DE PERMISSÕES ---
     updatePermissionUI() {
-        // O Dono sempre pode editar. Os outros dependem do banco de dados (Padrão: Falso)
         this.canEdit = !this.roomId || this.isHost || this.roomPerms[this.userId] === true;
         
         const statusEl = document.getElementById('wb-perm-status');
         const btnManage = document.getElementById('btn-manage-perms');
         
-        if (!this.roomId) {
-            if(statusEl) statusEl.classList.add('hidden');
-            if(btnManage) btnManage.classList.add('hidden');
-            return;
-        }
+        if (!this.roomId) return;
 
         if(statusEl) {
-            // Remove o hidden e aplica as classes base
-            statusEl.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors border";
+            statusEl.classList.remove('hidden');
+            statusEl.style.display = 'flex'; 
             
-            // AQUI ESTÁ A MÁGICA: A tag do próprio usuário gerada para ele ver!
-            const myTag = `<span class="text-[9px] font-mono bg-black/20 px-1.5 py-0.5 rounded ml-1 lowercase text-white/70" title="Sua Tag de Identificação">#${this.userId.substring(0,4)}</span>`;
+            const safeUserId = this.userId ? this.userId.substring(0,4) : 'user';
+            const myTag = `<span class="text-[9px] font-mono bg-black/20 px-1.5 py-0.5 rounded ml-1 lowercase text-white/70">#${safeUserId}</span>`;
 
             if (this.isHost) {
-                statusEl.classList.add('bg-blue-500/20', 'text-blue-400', 'border-blue-500/30');
+                statusEl.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30";
                 statusEl.innerHTML = `<i class="ph-bold ph-crown text-sm"></i> Dono ${myTag}`;
-                if(btnManage) btnManage.classList.remove('hidden');
+                
+                // MÁGICA 1: TEM QUE SER FLEX PARA O BOTÃO NÃO IMPLODIR
+                if(btnManage) btnManage.style.display = 'flex'; 
             } else if (this.canEdit) {
-                statusEl.classList.add('bg-green-500/20', 'text-green-400', 'border-green-500/30');
+                statusEl.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-green-500/20 text-green-400 border border-green-500/30";
                 statusEl.innerHTML = `<i class="ph-bold ph-pencil-simple text-sm"></i> Editando ${myTag}`;
-                if(btnManage) btnManage.classList.add('hidden');
+                if(btnManage) btnManage.style.display = 'none';
             } else {
-                statusEl.classList.add('bg-orange-500/20', 'text-orange-400', 'border-orange-500/30');
+                statusEl.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-orange-500/20 text-orange-400 border border-orange-500/30";
                 statusEl.innerHTML = `<i class="ph-bold ph-eye text-sm"></i> Só Ver ${myTag}`;
-                if(btnManage) btnManage.classList.add('hidden');
+                if(btnManage) btnManage.style.display = 'none';
             }
         }
     },
@@ -2665,13 +2705,20 @@
         if (!menu) {
             menu = document.createElement('div');
             menu.id = 'wb-perms-menu';
-            menu.className = 'absolute top-16 md:top-20 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-[99999] w-80 max-h-[60vh] overflow-y-auto custom-scrollbar flex flex-col gap-3 pointer-events-auto';
-            document.getElementById('wb-toolbar-container').appendChild(menu);
+            // Cores baseadas no Tailwind padrão para evitar transparência
+            menu.className = 'absolute top-16 md:top-20 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-600 p-5 rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.9)] z-[99998] w-80 max-h-[60vh] overflow-y-auto custom-scrollbar flex flex-col gap-3 pointer-events-auto mt-10';
+            
+            // MÁGICA 2: Injetar DENTRO do modal, para ele não ficar escondido pelo fundo preto!
+            const modalLousa = document.getElementById('modal-whiteboard');
+            if (modalLousa) {
+                modalLousa.appendChild(menu); 
+            } else {
+                document.body.appendChild(menu);
+            }
         } else {
             menu.remove(); 
             return;
         }
-        
         this.renderPermissionsMenu();
     },
 
@@ -2682,7 +2729,7 @@
         let html = `
             <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-2">
                 <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="ph-bold ph-users-gear text-brand-400 text-lg"></i> Permissões da Sala</h3>
-                <button onclick="document.getElementById('wb-perms-menu').remove()" class="text-slate-400 hover:text-white bg-white/5 p-1.5 rounded-lg"><i class="ph-bold ph-x"></i></button>
+                <button onclick="document.getElementById('wb-perms-menu').remove()" class="text-slate-400 hover:text-white bg-white/5 p-1.5 rounded-lg transition-colors"><i class="ph-bold ph-x"></i></button>
             </div>
             <p class="text-[10px] text-slate-400 mb-2 leading-tight uppercase font-bold tracking-wide">Convidados</p>
             <div class="space-y-2">
@@ -2697,23 +2744,26 @@
             html += `
                 <div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
                     <span class="text-sm font-bold text-slate-200 truncate pr-2 flex items-center gap-2">
-                        <i class="ph-bold ph-user text-slate-500"></i> 
-                        ${name} 
-                        <span class="text-[9px] text-slate-500 font-mono bg-white/5 px-1 rounded">#${uid.substring(0,4)}</span>
+                        <i class="ph-bold ph-user text-slate-500"></i> ${name}
+                        <span class="text-[9px] text-slate-500 font-mono bg-white/5 px-1 rounded lowercase" title="ID do Aluno">#${uid.substring(0,4)}</span>
                     </span>
-                    <button onclick="Whiteboard.toggleUserPermission('${uid}', ${!canUserEdit})" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md ${canUserEdit ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30' : 'bg-slate-800 text-slate-400 border border-white/5 hover:bg-slate-700 hover:text-white'}">
+                    <button onclick="window.Whiteboard.toggleUserPermission('${uid}', ${!canUserEdit})" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md ${canUserEdit ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30' : 'bg-slate-800 text-slate-400 border border-white/5 hover:bg-slate-700 hover:text-white'}">
                         ${canUserEdit ? '<i class="ph-bold ph-pencil-simple"></i> Pode Editar' : '<i class="ph-bold ph-eye"></i> Só Ver'}
                     </button>
                 </div>
             `;
         }
         
-        if (guestsCount === 0) html += `<div class="text-center text-xs text-slate-500 py-6 font-medium italic border border-dashed border-white/10 rounded-xl bg-black/20">Nenhum aluno entrou na sala ainda. O código é ${this.roomId}.</div>`;
+        if (guestsCount === 0) {
+            html += `<div class="text-center text-xs text-slate-500 py-6 font-medium italic border border-dashed border-white/10 rounded-xl bg-black/20">Nenhum aluno entrou na sala ainda.<br>O código é <strong class="text-white">${this.roomId}</strong></div>`;
+        }
+        
         html += `</div>`;
         menu.innerHTML = html;
     },
 
     toggleUserPermission(uid, allowEdit) {
+        // Usa a importação nativa para enviar a permissão em tempo real pro Firebase
         import("https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js").then(({ getDatabase, ref, update }) => {
              update(ref(getDatabase(), `whiteboards/${this.roomId}/permissions`), {
                  [uid]: allowEdit
