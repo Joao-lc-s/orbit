@@ -2526,7 +2526,7 @@
         this.userId = user.uid;
         const code = await UI.prompt("Conectar à Sala", "Código da sala (vazio para nova)", "");
         if (code === null) return;
-        this.roomId = code.trim() || Math.random().toString(36).substring(2, 8).toUpperCase();
+        this.roomId = (code.trim() || Math.random().toString(36).substring(2, 8)).toUpperCase();
         
         const ui = document.getElementById('multiplayer-ui');
         const display = document.getElementById('room-code-display');
