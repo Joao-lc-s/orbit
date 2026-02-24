@@ -1323,67 +1323,93 @@
     <dialog id="modal-whiteboard" class="w-full h-full max-w-full max-h-full bg-[#020617] p-0 backdrop:bg-black/90">
         <div class="h-full flex flex-col relative">
             
-            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-3xl px-5 py-3 flex items-center gap-4 z-50 overflow-x-auto max-w-[95vw] custom-scrollbar">
+            <div id="wb-toolbar-container" class="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-50 pointer-events-none">
                 
-                <div class="flex items-center gap-3 shrink-0">
-                    <div class="relative w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/20 shadow-lg hover:ring-brand-500 transition-all cursor-pointer">
-                        <input type="color" id="wb-color-picker" value="#3b82f6" onchange="Whiteboard.setColor(this.value)" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] p-0 border-0 cursor-pointer appearance-none bg-transparent">
+                <div id="bg-toolbar" class="flex items-center bg-slate-900/90 rounded-full border border-white/10 border-b-0 shadow-lg backdrop-blur-md mb-2 pointer-events-auto">
+                    
+                    <div id="wb-drag-handle" class="px-3 py-1.5 cursor-grab text-slate-500 hover:text-white transition-colors border-r border-white/10" title="Arraste para mover a barra">
+                        <i class="ph-bold ph-dots-six text-lg"></i>
                     </div>
-                    <div class="flex flex-col gap-1 w-24">
-                        <label class="text-[10px] text-slate-400 font-bold uppercase flex justify-between">Tam. <span id="wb-size-val">3px</span></label>
-                        <input type="range" min="1" max="50" value="3" oninput="Whiteboard.setSize(this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    
+                    <button onclick="Whiteboard.toggleToolbar()" class="pr-5 pl-3 py-1.5 text-slate-400 hover:text-white flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors group">
+                        <i id="wb-min-icon" class="ph-bold ph-caret-down text-sm group-hover:scale-110 transition-transform"></i> 
+                        <span id="wb-min-text">Ocultar</span>
+                    </button>
+                </div>
+
+                <div id="wb-toolbar" class="bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-3xl px-5 py-3 flex items-center gap-4 overflow-x-auto max-w-[95vw] custom-scrollbar pointer-events-auto">
+                    
+                    <div class="flex items-center gap-3 shrink-0">
+                        <div class="relative w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/20 shadow-lg hover:ring-brand-500 transition-all cursor-pointer">
+                            <input type="color" id="wb-color-picker" value="#3b82f6" onchange="Whiteboard.setColor(this.value)" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] p-0 border-0 cursor-pointer appearance-none bg-transparent">
+                        </div>
+                        <div class="flex flex-col gap-1 w-24">
+                            <label class="text-[10px] text-slate-400 font-bold uppercase flex justify-between">Tam. <span id="wb-size-val">3px</span></label>
+                            <input type="range" min="1" max="50" value="3" oninput="Whiteboard.setSize(this.value)" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                        </div>
                     </div>
-                </div>
-                
-                <div class="w-px h-8 bg-white/10 shrink-0"></div>
-                
-                <div class="flex gap-1.5 bg-black/40 p-1.5 rounded-xl shrink-0">
-                    <button id="btn-tool-pen" onclick="Whiteboard.setTool('pen')" title="Pincel (B)" class="p-2.5 rounded-lg bg-blue-600 text-white transition-all shadow-lg scale-110"><i class="ph-bold ph-pencil-simple text-lg"></i></button>
-                    <button id="btn-tool-highlighter" onclick="Whiteboard.setTool('highlighter')" title="Marca-texto" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-highlighter text-lg"></i></button>
-                    <button id="btn-tool-eraser" onclick="Whiteboard.setTool('eraser')" title="Borracha (E)" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-eraser text-lg"></i></button>
-                </div>
+                    
+                    <div class="w-px h-8 bg-white/10 shrink-0"></div>
+                    
+                    <div class="flex gap-1.5 bg-black/40 p-1.5 rounded-xl shrink-0">
+                        <button id="btn-tool-pen" onclick="Whiteboard.setTool('pen')" title="Pincel (B)" class="p-2.5 rounded-lg bg-blue-600 text-white transition-all shadow-lg scale-110"><i class="ph-bold ph-pencil-simple text-lg"></i></button>
+                        <button id="btn-tool-highlighter" onclick="Whiteboard.setTool('highlighter')" title="Marca-texto" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-highlighter text-lg"></i></button>
+                        <button id="btn-tool-eraser" onclick="Whiteboard.setTool('eraser')" title="Borracha (E)" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-eraser text-lg"></i></button>
+                    </div>
 
-                <div class="flex gap-1.5 bg-black/40 p-1.5 rounded-xl shrink-0">
-                    <button id="btn-tool-line" onclick="Whiteboard.setTool('line')" title="Linha (Segure Shift para retas)" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-line-segment text-lg"></i></button>
-                    <button id="btn-tool-rect" onclick="Whiteboard.setTool('rect')" title="Retângulo" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-rectangle text-lg"></i></button>
-                    <button id="btn-tool-circle" onclick="Whiteboard.setTool('circle')" title="Círculo" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-circle text-lg"></i></button>
-                </div>
+                    <div class="flex gap-1.5 bg-black/40 p-1.5 rounded-xl shrink-0">
+                        <button id="btn-tool-line" onclick="Whiteboard.setTool('line')" title="Linha (Segure Shift para retas)" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-line-segment text-lg"></i></button>
+                        <button id="btn-tool-rect" onclick="Whiteboard.setTool('rect')" title="Retângulo" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-rectangle text-lg"></i></button>
+                        <button id="btn-tool-circle" onclick="Whiteboard.setTool('circle')" title="Círculo" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all"><i class="ph-bold ph-circle text-lg"></i></button>
+                    </div>
 
-                <div class="w-px h-8 bg-white/10 shrink-0"></div>
+                    <div class="w-px h-8 bg-white/10 shrink-0"></div>
 
-                <div class="flex gap-1 shrink-0 bg-black/40 p-1.5 rounded-xl">
-                    <button id="btn-wb-mirror" onclick="Whiteboard.toggleMirror()" title="Modo Espelho (Simetria)" class="text-slate-400 hover:text-brand-400 transition-colors p-2.5 rounded-lg"><i class="ph-bold ph-butterfly text-lg"></i></button>
-                    <button onclick="Whiteboard.createSticky()" title="Novo Post-it" class="p-2.5 rounded-lg text-slate-400 hover:text-yellow-300 transition-all"><i class="ph-bold ph-note-blank text-lg"></i></button>
-                    <button id="btn-snap" onclick="Whiteboard.toggleSnap()" title="Imã (Alinhar à grade)" class="text-slate-400 hover:text-red-400 transition-colors p-2.5 rounded-lg"><i class="ph-bold ph-magnet text-xl"></i></button>
-                    <button onclick="Whiteboard.initMultiplayer()" title="Criar/Entrar em Sala" class="text-slate-400 hover:text-green-400 transition-colors p-2"><i class="ph-bold ph-users text-xl"></i></button>
-                    <textarea id="textInput" class="fixed z-50 bg-transparent border-2 border-dashed border-blue-500 text-white p-1 outline-none resize-none overflow-hidden"></textarea>
-                </div>
+                    <div class="flex gap-1 shrink-0 bg-black/40 p-1.5 rounded-xl">
+                        <button id="btn-wb-mirror" onclick="Whiteboard.toggleMirror()" title="Modo Espelho (Simetria)" class="text-slate-400 hover:text-brand-400 transition-colors p-2.5 rounded-lg"><i class="ph-bold ph-butterfly text-lg"></i></button>
+                        <button onclick="Whiteboard.createSticky()" title="Novo Post-it" class="p-2.5 rounded-lg text-slate-400 hover:text-yellow-300 transition-all"><i class="ph-bold ph-note-blank text-lg"></i></button>
+                        <label title="Adicionar Imagem" class="p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer flex items-center justify-center">
+                            <i class="ph-bold ph-image text-lg"></i>
+                            <input type="file" accept="image/*" class="hidden" onchange="const f = this.files[0]; if(f) window.Whiteboard.handleImageImport([f]); this.value = '';">
+                        </label>
+                        <button onclick="Whiteboard.initMultiplayer()" title="Criar/Entrar em Sala" class="text-slate-400 hover:text-green-400 transition-colors p-2"><i class="ph-bold ph-users text-xl"></i></button>
+                        <textarea id="textInput" class="fixed z-50 bg-transparent border-2 border-dashed border-blue-500 text-white p-1 outline-none resize-none overflow-hidden"></textarea>
+                    </div>
 
-                <div class="w-px h-8 bg-white/10 shrink-0"></div>
+                    <div class="w-px h-8 bg-white/10 shrink-0"></div>
 
-                <div class="flex gap-1 shrink-0">
-                    <button onclick="Whiteboard.undo()" title="Desfazer (Ctrl+Z)" class="text-slate-400 hover:text-white transition-colors p-2.5"><i class="ph-bold ph-arrow-u-up-left text-xl"></i></button>
-                    <button onclick="Whiteboard.redo()" title="Refazer (Ctrl+Y)" class="text-slate-400 hover:text-white transition-colors p-2.5"><i class="ph-bold ph-arrow-u-up-right text-xl"></i></button>
-                </div>
+                    <div class="flex gap-1 shrink-0">
+                        <button onclick="Whiteboard.undo()" title="Desfazer (Ctrl+Z)" class="text-slate-400 hover:text-white transition-colors p-2.5"><i class="ph-bold ph-arrow-u-up-left text-xl"></i></button>
+                        <button onclick="Whiteboard.redo()" title="Refazer (Ctrl+Y)" class="text-slate-400 hover:text-white transition-colors p-2.5"><i class="ph-bold ph-arrow-u-up-right text-xl"></i></button>
+                    </div>
 
-                <div class="w-px h-8 bg-white/10 shrink-0"></div>
+                    <div class="w-px h-8 bg-white/10 shrink-0"></div>
 
-                <div class="flex gap-1 shrink-0 items-center">
-                    <button onclick="Whiteboard.toggleGrid()" title="Alterar Fundo/Gabarito" class="text-slate-400 hover:text-white transition-colors p-2"><i class="ph-bold ph-grid-four text-xl"></i></button>
-                    <button onclick="Whiteboard.download()" title="Salvar PNG" class="text-slate-400 hover:text-brand-400 transition-colors p-2"><i class="ph-bold ph-download-simple text-xl"></i></button>
-                    <button onclick="Whiteboard.clear()" title="Apagar Tudo" class="text-slate-400 hover:text-red-500 transition-colors p-2 ml-1"><i class="ph-bold ph-trash text-xl"></i></button>
-                    <button onclick="document.getElementById('modal-whiteboard').close()" title="Fechar" class="text-slate-400 hover:text-white bg-white/5 rounded-xl transition-colors p-2 ml-2"><i class="ph-bold ph-x text-xl"></i></button>
+                    <div class="flex gap-1 shrink-0 items-center">
+                        <button onclick="Whiteboard.toggleGrid()" title="Alterar Fundo/Gabarito" class="text-slate-400 hover:text-white transition-colors p-2"><i class="ph-bold ph-grid-four text-xl"></i></button>
+                        <button onclick="Whiteboard.download()" title="Salvar PNG" class="text-slate-400 hover:text-brand-400 transition-colors p-2"><i class="ph-bold ph-download-simple text-xl"></i></button>
+                        <button onclick="Whiteboard.clear()" title="Apagar Tudo" class="text-slate-400 hover:text-red-500 transition-colors p-2 ml-1"><i class="ph-bold ph-trash text-xl"></i></button>
+                        <button onclick="document.getElementById('modal-whiteboard').close()" title="Fechar" class="text-slate-400 hover:text-white bg-white/5 rounded-xl transition-colors p-2 ml-2"><i class="ph-bold ph-x text-xl"></i></button>
+                    </div>
                 </div>
             </div>
             
-            <canvas id="whiteboard-canvas" class="w-full h-full block touch-none cursor-crosshair"></canvas>
+            <canvas id="whiteboard-canvas" class="w-full h-full block touch-none cursor-crosshair mx-auto" style="object-fit: contain;"></canvas>
             <div id="custom-cursor" class="fixed rounded-full border border-black mix-blend-difference pointer-events-none z-50 hidden" style="transform: translate(-50%, -50%);"></div>
             <div id="stickies-container" class="absolute inset-0 pointer-events-none z-40 overflow-hidden"></div>
 
-            <div id="multiplayer-ui" class="absolute top-8 left-1/2 -translate-x-1/2 bg-slate-900/95 p-3 rounded-2xl border border-white/10 z-50 flex gap-2 items-center text-sm shadow-xl hidden">
-                <span class="text-slate-300">Sala: <strong id="room-code-display" class="text-brand-400 select-all">---</strong></span>
+            <div id="multiplayer-ui" class="absolute top-8 left-1/2 -translate-x-1/2 bg-slate-900/95 p-3 rounded-2xl border border-white/10 z-50 flex gap-4 items-center text-sm shadow-xl hidden backdrop-blur-xl">
+                <div class="flex items-center gap-2 px-1 text-slate-300">
+                    <span class="relative flex h-3 w-3">
+                      <span id="online-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
+                      <span id="online-indicator" class="relative inline-flex rounded-full h-3 w-3 bg-slate-500"></span>
+                    </span>
+                    <span id="online-count" class="font-bold text-xs">Conectando...</span>
+                </div>
+                <div class="w-px h-5 bg-white/10"></div>
+                <span class="text-slate-300 text-xs uppercase tracking-wider font-bold">Sala <strong id="room-code-display" class="text-brand-400 select-all text-sm ml-1">---</strong></span>
                 <button onclick="Whiteboard.copyRoomCode()" class="bg-white/10 hover:bg-white/20 p-1.5 rounded-lg text-white transition-colors"><i class="ph-bold ph-copy"></i></button>
-                <button onclick="Whiteboard.leaveRoom()" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 p-1.5 rounded-lg transition-colors"><i class="ph-bold ph-sign-out"></i> Sair</button>
+                <button onclick="Whiteboard.leaveRoom()" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 p-1.5 rounded-lg transition-colors font-bold text-xs uppercase"><i class="ph-bold ph-sign-out"></i></button>
             </div>
         </div>
     </dialog>
@@ -1395,7 +1421,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot, deleteDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getDatabase, ref, onValue, set, off, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";        
+        import { getDatabase, ref, onValue, set, off, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";        
         
         // 2. CONFIGURAÇÃO (Com o nome antigo 'embeddedFirebaseConfig' para não quebrar o Store.init)
         const embeddedFirebaseConfig = {
@@ -1609,6 +1635,9 @@
     roomId: null,
     userId: Math.random().toString(36).substring(2, 10),
     dbRef: null,
+    presenceRef: null,
+    isToolbarMinimized: false,
+    toolbarDrag: { active: false, startX: 0, startY: 0, initialLeft: 0, initialTop: 0 },
     
     // Estado Atual
     currentTool: 'pen', // 'pen', 'eraser', 'highlighter', 'line', 'rect', 'circle'
@@ -1650,6 +1679,8 @@
     init() {
         this.canvas = document.getElementById('whiteboard-canvas');
         this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
+        this.canvas.width = 2500;
+        this.canvas.height = 1500;
 
         // Eventos de Desenho Simplificados (sem pan/zoom)
         this.canvas.addEventListener('pointerdown', (e) => this.start(e));
@@ -1687,8 +1718,25 @@
             }
         });
 
+        const imageUploadBtn = document.getElementById('wb-image-upload');
+        if (imageUploadBtn) {
+            imageUploadBtn.addEventListener('change', (e) => {
+                // 1. Pegamos a foto REAL e guardamos na memória primeiro!
+                const arquivoReal = e.target.files[0]; 
+                
+                if (arquivoReal) {
+                    // 2. Enviamos o arquivo real (dentro de um array) para a função
+                    this.handleImageImport([arquivoReal]);
+                }
+                
+                // 3. AGORA SIM, com o arquivo seguro, podemos limpar o botão
+                e.target.value = ''; 
+            });
+        }
+
         window.addEventListener('resize', () => this.resize());
         this.applyGrid();
+        this.initToolbarDrag();
         
         // Esconde o cursor nativo para usar a bolinha customizada
         this.canvas.style.cursor = 'crosshair';
@@ -1709,46 +1757,311 @@
     // Pega a posição simples do mouse (sem cálculos de zoom)
     getMousePos(e) {
         const rect = this.canvas.getBoundingClientRect();
+        const scale = Math.min(rect.width / this.canvas.width, rect.height / this.canvas.height);
+        
+        const renderedWidth = this.canvas.width * scale;
+        const renderedHeight = this.canvas.height * scale;
+        
+        const xOffset = (rect.width - renderedWidth) / 2;
+        const yOffset = (rect.height - renderedHeight) / 2;
+        
         return {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
+            x: (e.clientX - rect.left - xOffset) / scale,
+            y: (e.clientY - rect.top - yOffset) / scale
         };
+    },
+
+    handleImageImport(files) {
+        console.log("➡️ Passo 2: Entrando na função handleImageImport...");
+        
+        if (!files || files.length === 0) {
+            console.warn("⚠️ Nenhum arquivo chegou na função.");
+            return;
+        }
+
+        const file = files[0];
+        console.log(`📄 Passo 3: Arquivo detectado: ${file.name} (${file.type})`);
+
+        if (!file.type.startsWith('image/')) {
+            alert("Aviso: O arquivo escolhido não é uma imagem!");
+            return;
+        }
+
+        console.log("⏳ Iniciando a leitura do arquivo da imagem...");
+        const reader = new FileReader();
+        
+        // Se a leitura funcionar:
+        reader.onload = (event) => {
+            console.log("✅ Passo 4: Imagem lida com sucesso! Preparando o HTML...");
+            
+            const container = document.getElementById('stickies-container');
+            if (!container) {
+                console.error("❌ ERRO FATAL: A div 'stickies-container' sumiu do seu HTML!");
+                alert("Erro: stickies-container sumiu da tela!");
+                return;
+            }
+
+            const id = 'img-stamp-' + Date.now();
+            const wrapper = document.createElement('div');
+            wrapper.id = id;
+            wrapper.className = `absolute pointer-events-auto shadow-[0_20px_50px_rgba(0,0,0,0.8)] bg-slate-800/95 backdrop-blur-xl p-3 rounded-2xl flex flex-col gap-2 border border-white/20`;
+            
+            wrapper.style.left = '50%';
+            wrapper.style.top = '50%';
+            wrapper.style.transform = 'translate(-50%, -50%)';
+            wrapper.style.touchAction = 'none';
+            wrapper.style.zIndex = '9999'; 
+
+            wrapper.innerHTML = `
+                <div class="flex justify-between items-center cursor-move border-b border-white/10 pb-2 mb-1" id="drag-handle-${id}">
+                    <div class="flex items-center gap-2 text-slate-300 px-2 pointer-events-none">
+                        <i class="ph-bold ph-arrows-out-cardinal text-xl text-brand-400"></i>
+                        <span class="text-xs font-bold uppercase tracking-widest text-white">Ajuste e Fixe</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="bg-emerald-500 text-white p-2 rounded-xl hover:bg-emerald-600 shadow-lg" title="Fixar" onclick="window.Whiteboard.stampImage('${id}')"><i class="ph-bold ph-check text-xl"></i></button>
+                        <button class="bg-red-500 text-white p-2 rounded-xl hover:bg-red-600 shadow-lg" title="Cancelar" onclick="document.getElementById('${id}').remove()"><i class="ph-bold ph-x text-xl"></i></button>
+                    </div>
+                </div>
+                <div class="relative flex-1 overflow-hidden rounded-xl bg-black/40" style="resize: both; min-width: 150px; min-height: 150px; width: 300px; height: 300px;">
+                    <img src="${event.target.result}" class="w-full h-full object-contain pointer-events-none" id="img-src-${id}">
+                </div>
+            `;
+
+            // Código de Arrastar da caixa (Padrão)
+            const handle = wrapper.querySelector(`#drag-handle-${id}`);
+            let isDragging = false, startX, startY, initialX, initialY;
+            handle.addEventListener('pointerdown', (e) => {
+                if(e.target.tagName === 'BUTTON' || (e.target.tagName === 'I' && e.target.closest('button'))) return;
+                isDragging = true;
+                startX = e.clientX; startY = e.clientY;
+                const rect = wrapper.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                wrapper.style.transform = 'none';
+                initialX = rect.left - containerRect.left;
+                initialY = rect.top - containerRect.top;
+                wrapper.style.left = initialX + 'px';
+                wrapper.style.top = initialY + 'px';
+                handle.setPointerCapture(e.pointerId);
+            });
+            handle.addEventListener('pointermove', (e) => {
+                if(!isDragging) return;
+                e.preventDefault(); 
+                wrapper.style.left = (initialX + e.clientX - startX) + 'px';
+                wrapper.style.top = (initialY + e.clientY - startY) + 'px';
+            });
+            handle.addEventListener('pointerup', (e) => { 
+                if(isDragging) { isDragging = false; handle.releasePointerCapture(e.pointerId); }
+            });
+
+            console.log("➡️ Passo 5: Injetando a caixa de imagem na tela...");
+            container.appendChild(wrapper);
+            
+            console.log("✅ Tudo finalizado! A caixa tem que estar visível.");
+            alert("Passo Final: A caixa de imagem foi jogada na tela!");
+        };
+
+        // Se der erro na leitura (ex: arquivo corrompido)
+        reader.onerror = (error) => {
+            console.error("❌ ERRO na hora de ler a imagem do seu PC:", error);
+            alert("Erro: O navegador não conseguiu ler a imagem!");
+        };
+
+        reader.readAsDataURL(file);
+    },
+
+    initToolbarDrag() {
+        const handle = document.getElementById('wb-drag-handle');
+        const container = document.getElementById('wb-toolbar-container');
+        
+        if (!handle || !container) return;
+
+        // ISSO RESOLVE O MOBILE: Bloqueia a rolagem da tela ao tocar no puxador
+        handle.style.touchAction = 'none'; 
+
+        handle.addEventListener('pointerdown', (e) => {
+            this.toolbarDrag.active = true;
+            this.toolbarDrag.startX = e.clientX;
+            this.toolbarDrag.startY = e.clientY;
+            
+            const rect = container.getBoundingClientRect();
+            container.classList.remove('bottom-4', 'md:bottom-8', 'left-1/2', '-translate-x-1/2');
+            container.style.left = rect.left + 'px';
+            container.style.top = rect.top + 'px';
+            container.style.bottom = 'auto'; 
+            container.style.transform = 'none'; 
+            
+            this.toolbarDrag.initialLeft = rect.left;
+            this.toolbarDrag.initialTop = rect.top;
+            handle.style.cursor = 'grabbing';
+            
+            // "Prende" o mouse/dedo no botão, mesmo se mover muito rápido
+            handle.setPointerCapture(e.pointerId); 
+        });
+
+        handle.addEventListener('pointermove', (e) => {
+            if (!this.toolbarDrag.active) return;
+            e.preventDefault(); 
+            
+            const dx = e.clientX - this.toolbarDrag.startX;
+            const dy = e.clientY - this.toolbarDrag.startY;
+            
+            container.style.left = `${this.toolbarDrag.initialLeft + dx}px`;
+            container.style.top = `${this.toolbarDrag.initialTop + dy}px`;
+        });
+
+        handle.addEventListener('pointerup', (e) => {
+            if(this.toolbarDrag.active) {
+                this.toolbarDrag.active = false;
+                handle.style.cursor = 'grab';
+                handle.releasePointerCapture(e.pointerId);
+            }
+        });
+    },
+
+    toggleToolbar() {
+        this.isToolbarMinimized = !this.isToolbarMinimized;
+        const tb = document.getElementById('wb-toolbar');
+        const icon = document.getElementById('wb-min-icon');
+        const text = document.getElementById('wb-min-text');
+        
+        if(this.isToolbarMinimized) {
+            // Usa 'hidden' para remover a barra fisicamente do caminho
+            if(tb) {
+                tb.classList.remove('flex');
+                tb.classList.add('hidden'); 
+            }
+            if(icon) icon.className = "ph-bold ph-caret-up text-sm group-hover:scale-110 transition-transform";
+            if(text) text.innerText = "Mostrar Ferramentas";
+        } else {
+            // Devolve a barra para a tela
+            if(tb) {
+                tb.classList.remove('hidden');
+                tb.classList.add('flex');
+            }
+            if(icon) icon.className = "ph-bold ph-caret-down text-sm group-hover:scale-110 transition-transform";
+            if(text) text.innerText = "Ocultar";
+        }
     },
 
     // --- IMPORTAÇÃO DE IMAGENS ---
     handleImageImport(files) {
         if (!files || files.length === 0) return;
+        
         const file = files[0];
-        if (!file.type.startsWith('image/')) return;
+        if (!file.type.startsWith('image/')) {
+            if (typeof UI !== 'undefined') UI.toast("Apenas imagens são permitidas.", "error");
+            return;
+        }
 
         const reader = new FileReader();
         reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-                // Cola a imagem no centro da tela
-                const x = (this.canvas.width / 2) - (img.width / 2);
-                const y = (this.canvas.height / 2) - (img.height / 2);
-                this.ctx.drawImage(img, x, y);
-                this.saveState();
-                if(this.roomId) this.broadcastState();
-            };
-            img.src = event.target.result;
+            const container = document.getElementById('stickies-container');
+            if (!container) return;
+
+            const id = 'img-stamp-' + Date.now();
+            const wrapper = document.createElement('div');
+            wrapper.id = id;
+            
+            // Design da caixa flutuante (Z-index no topo absoluto)
+            wrapper.className = `absolute pointer-events-auto shadow-[0_30px_60px_rgba(0,0,0,0.9)] bg-slate-800/95 backdrop-blur-xl p-3 rounded-2xl flex flex-col gap-2 border border-white/20`;
+            
+            // Posição centralizada
+            wrapper.style.left = '50%';
+            wrapper.style.top = '50%';
+            wrapper.style.transform = 'translate(-50%, -50%)';
+            wrapper.style.touchAction = 'none';
+            wrapper.style.zIndex = '9999'; 
+
+            wrapper.innerHTML = `
+                <div class="flex justify-between items-center cursor-move border-b border-white/10 pb-2 mb-1" id="drag-handle-${id}">
+                    <div class="flex items-center gap-2 text-slate-300 px-2 pointer-events-none">
+                        <i class="ph-bold ph-arrows-out-cardinal text-xl text-brand-400"></i>
+                        <span class="text-xs font-bold uppercase tracking-widest text-white">Ajuste e Fixe</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="bg-emerald-500 text-white p-2 rounded-xl hover:bg-emerald-600 transition-transform hover:scale-105 shadow-lg" title="Fixar no quadro" onclick="window.Whiteboard.stampImage('${id}')"><i class="ph-bold ph-check text-xl"></i></button>
+                        <button class="bg-red-500 text-white p-2 rounded-xl hover:bg-red-600 transition-transform hover:scale-105 shadow-lg" title="Cancelar" onclick="document.getElementById('${id}').remove()"><i class="ph-bold ph-x text-xl"></i></button>
+                    </div>
+                </div>
+                <div class="relative flex-1 overflow-hidden rounded-xl bg-black/40" style="resize: both; min-width: 150px; min-height: 150px; width: 300px; height: 300px;">
+                    <img src="${event.target.result}" class="w-full h-full object-contain pointer-events-none" id="img-src-${id}">
+                </div>
+            `;
+
+            // Lógica de Arrastar da Caixa
+            const handle = wrapper.querySelector(`#drag-handle-${id}`);
+            let isDragging = false, startX, startY, initialX, initialY;
+            
+            handle.addEventListener('pointerdown', (e) => {
+                if(e.target.tagName === 'BUTTON' || (e.target.tagName === 'I' && e.target.closest('button'))) return;
+                isDragging = true;
+                startX = e.clientX; 
+                startY = e.clientY;
+                
+                const rect = wrapper.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                
+                wrapper.style.transform = 'none';
+                initialX = rect.left - containerRect.left;
+                initialY = rect.top - containerRect.top;
+                
+                wrapper.style.left = initialX + 'px';
+                wrapper.style.top = initialY + 'px';
+                
+                handle.setPointerCapture(e.pointerId);
+            });
+            
+            handle.addEventListener('pointermove', (e) => {
+                if(!isDragging) return;
+                e.preventDefault(); 
+                wrapper.style.left = (initialX + e.clientX - startX) + 'px';
+                wrapper.style.top = (initialY + e.clientY - startY) + 'px';
+            });
+            
+            handle.addEventListener('pointerup', (e) => { 
+                if(isDragging) {
+                    isDragging = false; 
+                    handle.releasePointerCapture(e.pointerId);
+                }
+            });
+
+            container.appendChild(wrapper);
         };
         reader.readAsDataURL(file);
     },
 
-    // --- GRID SNAPPING (ALINHAMENTO) ---
-    toggleSnap() {
-        this.isSnapping = !this.isSnapping;
-        const btn = document.getElementById('btn-snap');
-        if (this.isSnapping) {
-                btn.classList.remove('text-slate-400', 'hover:text-red-400');
-                btn.classList.add('text-red-500', 'bg-red-500/20');
-            } else {
-                btn.classList.remove('text-red-500', 'bg-red-500/20');
-                btn.classList.add('text-slate-400', 'hover:text-red-400');
-            }
-        if (typeof UI !== 'undefined') UI.toast(this.isSnapping ? "Ímã (Grid Snap) Ativado" : "Ímã Desativado", "info");
+    // A Mágica de Fixar
+    stampImage(id) {
+        const wrapper = document.getElementById(id);
+        const imgEl = document.getElementById(`img-src-${id}`);
+        if (!wrapper || !imgEl) return;
+
+        const rect = imgEl.getBoundingClientRect();
+        const canvasRect = this.canvas.getBoundingClientRect();
+        
+        const scale = Math.min(canvasRect.width / this.canvas.width, canvasRect.height / this.canvas.height);
+        const renderedWidth = this.canvas.width * scale;
+        const renderedHeight = this.canvas.height * scale;
+        const xOffset = (canvasRect.width - renderedWidth) / 2;
+        const yOffset = (canvasRect.height - renderedHeight) / 2;
+
+        const x = (rect.left - canvasRect.left - xOffset) / scale;
+        const y = (rect.top - canvasRect.top - yOffset) / scale;
+        const width = rect.width / scale;
+        const height = rect.height / scale;
+
+        this.ctx.save();
+        this.ctx.globalCompositeOperation = 'source-over';
+        this.ctx.globalAlpha = 1.0;
+        this.ctx.drawImage(imgEl, x, y, width, height);
+        this.ctx.restore();
+
+        this.saveState();
+        if(this.roomId) this.broadcastState();
+
+        wrapper.remove();
+        if (typeof UI !== 'undefined') UI.toast("Imagem fixada no quadro!", "success");
     },
 
     snap(value) {
@@ -2021,49 +2334,160 @@
         const container = document.getElementById('stickies-container');
         if (!container) return;
 
-        const sticky = document.createElement('div');
+        const id = 'sticky-' + Date.now();
         const colors = ['bg-yellow-200 text-yellow-900', 'bg-pink-200 text-pink-900', 'bg-blue-200 text-blue-900', 'bg-green-200 text-green-900'];
         const colorClass = colors[Math.floor(Math.random() * colors.length)];
 
-        sticky.className = `absolute pointer-events-auto p-4 w-48 min-h-[120px] shadow-2xl rounded-sm ${colorClass} cursor-move flex flex-col`;
+        const sticky = this.buildStickyElement(id, colorClass);
+        
+        // Posição inicial no meio da tela
         sticky.style.left = (window.innerWidth / 2 - 100) + 'px';
         sticky.style.top = (window.innerHeight / 2 - 60) + 'px';
 
+        container.appendChild(sticky);
+        
+        // Avisa a sala que um novo post-it foi criado
+        if (this.roomId) this.broadcastState(); 
+    },
+
+    // 2. Apaga o post-it e avisa a sala
+    deleteSticky(id) {
+        const el = document.getElementById(id);
+        if(el) {
+            el.remove();
+            if(this.roomId) this.broadcastState();
+        }
+    },
+
+    // 3. O construtor do HTML e Lógica de Arrastar (Mouse/Touch)
+    buildStickyElement(id, colorClass) {
+        const sticky = document.createElement('div');
+        sticky.id = id;
+        sticky.dataset.color = colorClass;
+        sticky.className = `absolute pointer-events-auto p-4 w-48 min-h-[120px] shadow-2xl rounded-sm ${colorClass} cursor-move flex flex-col`;
+        
+        // ISSO RESOLVE O MOBILE: Bloqueia a tela de rolar enquanto arrasta
+        sticky.style.touchAction = 'none'; 
+
         sticky.innerHTML = `
             <div class="flex justify-between items-center mb-2">
-                <i class="ph-bold ph-dots-six-pattern text-black/20 text-lg"></i>
-                <button class="hover:text-black/50" onclick="this.parentElement.parentElement.remove()"><i class="ph-bold ph-x"></i></button>
+                <i class="ph-bold ph-dots-six-pattern text-black/20 text-lg pointer-events-none"></i>
+                <button class="hover:text-black/50 p-1" onclick="Whiteboard.deleteSticky('${id}')"><i class="ph-bold ph-x"></i></button>
             </div>
             <textarea class="w-full h-full bg-transparent resize-none outline-none font-medium placeholder-black/30 flex-1" placeholder="Digite aqui..."></textarea>
         `;
 
-        // Lógica para arrastar o post-it
         let isDragging = false, startX, startY, initialX, initialY;
         
-        sticky.addEventListener('mousedown', (e) => {
-            if(e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') return;
+        // Usando pointerdown em vez de mousedown
+        sticky.addEventListener('pointerdown', (e) => {
+            if(e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || e.target.tagName === 'I') return;
             isDragging = true;
-            startX = e.clientX; startY = e.clientY;
-            initialX = parseInt(sticky.style.left); initialY = parseInt(sticky.style.top);
+            startX = e.clientX; 
+            startY = e.clientY;
+            initialX = parseFloat(sticky.style.left) || 0; 
+            initialY = parseFloat(sticky.style.top) || 0;
             sticky.style.zIndex = 50; 
+            
+            // "Prende" o ponteiro no post-it
+            sticky.setPointerCapture(e.pointerId);
         });
         
-        window.addEventListener('mousemove', (e) => {
+        sticky.addEventListener('pointermove', (e) => {
             if(!isDragging) return;
+            e.preventDefault(); 
             sticky.style.left = (initialX + e.clientX - startX) + 'px';
             sticky.style.top = (initialY + e.clientY - startY) + 'px';
         });
         
-        window.addEventListener('mouseup', () => { 
-            isDragging = false; 
-            sticky.style.zIndex = ''; 
+        sticky.addEventListener('pointerup', (e) => { 
+            if(isDragging) {
+                isDragging = false; 
+                sticky.style.zIndex = ''; 
+                sticky.releasePointerCapture(e.pointerId);
+                
+                // Salva a nova posição pra sala depois de soltar
+                if (this.roomId) this.broadcastState(); 
+            }
         });
 
-        container.appendChild(sticky);
+        // Sincroniza o texto enquanto digita (com um pequeno delay pra não travar)
+        const ta = sticky.querySelector('textarea');
+        let timeout;
+        ta.addEventListener('keyup', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                if (this.roomId) this.broadcastState();
+            }, 500);
+        });
+
+        return sticky;
+    },
+
+    // 4. Coleta todos os Post-its para enviar pro Firebase
+    getStickiesData() {
+        const container = document.getElementById('stickies-container');
+        if (!container) return [];
+        return Array.from(container.children).map(st => {
+            const ta = st.querySelector('textarea');
+            return {
+                id: st.id,
+                left: st.style.left,
+                top: st.style.top,
+                colorClass: st.dataset.color,
+                text: ta ? ta.value : ''
+            };
+        });
+    },
+
+    // 5. Recebe os Post-its do Firebase e desenha na tela
+    renderStickies(stickiesData) {
+        const container = document.getElementById('stickies-container');
+        if (!container) return;
+        
+        // A. Apaga os post-its que alguém deletou
+        const currentIds = stickiesData.map(s => s.id);
+        Array.from(container.children).forEach(child => {
+            if (!currentIds.includes(child.id)) child.remove();
+        });
+
+        // B. Atualiza ou cria os post-its recebidos
+        stickiesData.forEach(sData => {
+            let el = document.getElementById(sData.id);
+            if (!el) {
+                el = this.buildStickyElement(sData.id, sData.colorClass);
+                container.appendChild(el);
+            }
+            el.style.left = sData.left;
+            el.style.top = sData.top;
+            
+            // Só atualiza o texto se você NÃO estiver com o cursor piscando dentro dele no momento
+            const ta = el.querySelector('textarea');
+            if (ta && document.activeElement !== ta) {
+                ta.value = sData.text || '';
+            }
+        });
     },
 
     // --- LÓGICA MULTIPLAYER (FIREBASE MODULAR LIMPO) ---
     async initMultiplayer() {
+        const user = window.orbitAuth ? window.orbitAuth.currentUser : null;
+        if (!user || user.isAnonymous) {
+            // Usa o seu modal nativo para perguntar amigavelmente
+            const querLogar = await UI.confirm(
+                "Login Necessário", 
+                "Para criar ou entrar em salas Multiplayer, você precisa estar logado na sua conta Google. Deseja fazer login agora?", 
+                "Fazer Login", 
+                false
+            );
+            
+            if (querLogar) {
+                document.getElementById('modal-whiteboard').close();
+                window.Auth.login();
+            }
+            return;
+        }
+        
         const code = await UI.prompt(
             "Conectar à Sala", 
             "Código da sala (vazio para uma nova)", 
@@ -2084,35 +2508,76 @@
             UI.toast(`Conectado à sala ${this.roomId}`);
         }
         
-        // 1. Limpa conexões antigas
+        // Limpa conexões antigas
         if (this.dbRef) off(this.dbRef);
 
-        // 2. AQUI ESTÁ A CORREÇÃO: Passando o 'db' (que criamos lá em cima) e a string do caminho
-        this.dbRef = ref(realtimeDb, 'whiteboards/' + this.roomId);
-
-        // 3. Escuta as mudanças
-        // 3. Escuta as mudanças
-        onValue(this.dbRef, (snapshot) => {
-            const data = snapshot.val();
+        const realtimeDb = window.getDatabase ? window.getDatabase() : (window.orbitDb.app ? window.getDatabase(window.orbitDb.app) : null);
+        // Garantia extra de pegar o banco correto usando o app já inicializado
+        import("https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js").then(({ getDatabase, ref, onValue, set, off, onDisconnect }) => {
+            const rtdb = getDatabase();
             
-            if (data && data.image && data.senderId !== this.userId) {
-                const img = new Image();
-                img.src = data.image;
-                img.onload = () => {
-                    // Faz a mesma proteção contra a Borracha aqui!
-                    this.ctx.save();
-                    this.ctx.globalCompositeOperation = 'source-over';
-                    this.ctx.globalAlpha = 1.0;
+            this.dbRef = ref(rtdb, 'whiteboards/' + this.roomId);
+
+            this.presenceRef = ref(rtdb, `whiteboards/${this.roomId}/presence/${this.userId}`);
+            const connectedRef = ref(rtdb, '.info/connected');
+            
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    onDisconnect(this.presenceRef).remove().then(() => {
+                        set(this.presenceRef, true);
+                    });
+                }
+            });
+
+            // Fica ouvindo quantas pessoas estão na sala
+            const roomPresenceRef = ref(rtdb, `whiteboards/${this.roomId}/presence`);
+            onValue(roomPresenceRef, (snap) => {
+                const users = snap.val() || {};
+                const count = Object.keys(users).length;
+                
+                const countDisplay = document.getElementById('online-count');
+                const indicator = document.getElementById('online-indicator');
+                const ping = document.getElementById('online-ping');
+                
+                if(countDisplay) countDisplay.innerText = count + (count === 1 ? ' pessoa' : ' pessoas');
+                if(indicator) {
+                    indicator.classList.toggle('bg-green-500', count > 1);
+                    indicator.classList.toggle('bg-slate-500', count <= 1);
+                    if(ping) ping.classList.toggle('bg-green-400', count > 1);
+                    if(ping) ping.classList.toggle('bg-slate-400', count <= 1);
+                }
+            });
+
+            // Escuta as mudanças de desenho e post-its
+            onValue(this.dbRef, (snapshot) => {
+                const data = snapshot.val();
+                
+                if (data && data.senderId !== this.userId) {
                     
-                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                    this.ctx.drawImage(img, 0, 0);
-                    
-                    this.ctx.restore();
-                    this.updateContext();
-                    
-                    this.saveState(); 
-                };
-            }
+                    if (data.stickies) {
+                        this.renderStickies(data.stickies);
+                    } else {
+                        document.getElementById('stickies-container').innerHTML = '';
+                    }
+
+                    if (data.image) {
+                        const img = new Image();
+                        img.src = data.image;
+                        img.onload = () => {
+                            this.ctx.save();
+                            this.ctx.globalCompositeOperation = 'source-over';
+                            this.ctx.globalAlpha = 1.0;
+                            
+                            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                            this.ctx.drawImage(img, 0, 0);
+                            
+                            this.ctx.restore();
+                            this.updateContext();
+                            this.saveState(); 
+                        };
+                    }
+                }
+            });
         });
     },
 
@@ -2120,16 +2585,18 @@
         if (!this.roomId || !this.dbRef) return;
         
         const currentImg = this.canvas.toDataURL('image/webp', 0.8); 
-        
+        const currentStickies = this.getStickiesData();
         // Envia para o Firebase de forma limpa
         set(this.dbRef, {
             image: currentImg,
             senderId: this.userId,
+            stickies: currentStickies,
             timestamp: serverTimestamp()
         }).catch(err => console.error("Erro ao sincronizar desenho:", err));
     },
 
     leaveRoom() {
+        if (this.presenceRef) set(this.presenceRef, null);
         if (this.dbRef) {
             off(this.dbRef); 
             this.dbRef = null;
@@ -3623,36 +4090,36 @@
         btn.disabled = true;
         btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Criando Mapa...`;
 
-        const aiPrompt = `Atue como um especialista acadêmico e designer de mapas mentais. Crie um mapa mental PROFUNDO, DETALHADO e EXTENSO sobre: "${prompt}".
+        const aiPrompt = `Atue como um especialista acadêmico e arquiteto de informação. Crie um mapa mental PROFUNDO, DETALHADO e BEM ESPAÇADO sobre: "${prompt}".
         
-        NÃO resuma demais! Explique os conceitos com textos mais longos e completos nos nós em vez de usar apenas palavras-chave curtas. Crie múltiplos níveis de hierarquia (Tema central -> Tópicos Principais -> Subtópicos detalhados -> Exemplos/Conceitos/Fatos).
+        NÃO resuma demais! Explique os conceitos de forma didática nos nós. 
+        
+        ⚠️ REGRA CRÍTICA DE LAYOUT (PROIBIDO SOBREPOSIÇÃO):
+        Você está gerando coordenadas (x, y) para posicionar caixas grandes (cerca de 300x200px). Para evitar que uma caixa cubra a outra, VOCÊ DEVE OBRIGATORIAMENTE usar esta matemática de espaçamento:
+        - Nó Central: Posicione exatamente em x: 500, y: 400.
+        - Tópicos Nível 1: Posicione a uma distância de PELO MENOS 500px a 600px do centro. (Exemplo prático: Topo x:500, y:-200 | Direita x:1200, y:400 | Fundo x:500, y:1000 | Esquerda x:-200, y:400).
+        - Subtópicos Nível 2 em diante: Afaste-os 400px de seus respectivos pais, espalhando como galhos de árvore em direção às bordas infinitas. NUNCA repita ou crie coordenadas que estejam a menos de 350px de distância de qualquer outro nó.
         
         DIRETRIZES DE DESIGN E CONTEÚDO:
-        1. Conteúdo Denso: Escreva explicações reais e completas no "text" de cada nó. O mapa deve servir para um estudo aprofundado.
-        2. Tamanhos Dinâmicos: Como o texto será longo, use "width" entre 220 e 350, e "height" entre 120 e 200 para os nós secundários e de explicação.
-        3. Mídia e Imagens (MUITO IMPORTANTE): 
-           - Sempre que incluir a propriedade "image" (use URLs públicas da Wikimedia Commons ou imagens didáticas reais), faça a caixa do nó BEM MAIOR para caber a imagem e o texto (ex: "width": 300, "height": 320).
-           - No nó central e em tópicos difíceis, adicione a propriedade "link" com a URL de um VÍDEO DO YOUTUBE sobre o tema (ex: {"url": "https://www.youtube.com/results?search_query=assunto"}).
-        4. Layout e Formas:
-           - Nó central: shape "circle", tamanho 250x250, fontSize 18, borderWidth 3, e um "icon" (emoji).
-           - Tópicos Principais: shape "capsule", cores vibrantes, fontSize 14.
-           - Detalhes/Explicações: shape "rounded", bordas mais finas.
-        5. Conexões Ricas: Use "label" nas linhas para explicar exatamente a ligação (ex: "é causado por", "composto de", "ocorre durante"), style "bezier", direction "uni".
+        1. Tamanhos Inteligentes: Para acomodar o texto didático, defina "width" entre 250 e 350, e "height" entre 120 e 200.
+        2. Textos nas Linhas (label): Isso causa muita poluição visual. O "label" das conexões DEVE TER MÁXIMO DE 1 OU 2 PALAVRAS (ex: "causa", "gera", "exemplo"). É altamente recomendável omitir a propriedade "label" se a relação já for óbvia.
+        3. Mídia: No nó central adicione a propriedade "link" com a URL de um vídeo do Youtube sobre o tema (ex: {"url": "https://www.youtube.com/results?search_query=assunto"}).
+        4. Visual: Use "style": "bezier" nas linhas. Nó central deve ser "shape": "circle" e os demais "rounded" ou "capsule".
 
-        FORMATO OBRIGATÓRIO DE RETORNO (JSON Estrito, sem markdown ao redor):
+        FORMATO OBRIGATÓRIO DE RETORNO (JSON Estrito, sem formatação markdown ou textos ao redor):
         {
-          "name": "Título do Mapa",
-          "subject": "Matéria Geral",
+          "name": "Título Curto",
+          "subject": "Matéria",
           "nodes": [
-             {"id": 1, "x": 500, "y": 400, "text": "Tema central com explicação profunda...", "color": "#3b82f6", "width": 300, "height": 300, "shape": "circle", "icon": "🧠", "fontSize": 18, "borderStyle": "solid", "borderWidth": 4, "image": "https://url-valida.com/img.jpg", "link": {"url": "https://www.youtube.com/results?search_query=tema"}}
+             {"id": 1, "x": 500, "y": 400, "text": "Tema Central...", "color": "#3b82f6", "width": 300, "height": 300, "shape": "circle", "icon": "🧠", "fontSize": 18, "borderStyle": "solid", "borderWidth": 4, "image": "url", "link": {"url": "..."}}
           ],
           "lines": [
-             {"from": 1, "to": 2, "label": "detalhamento", "style": "bezier", "direction": "uni", "color": "#94a3b8", "width": 2}
+             {"from": 1, "to": 2, "label": "tipos", "style": "bezier", "direction": "uni", "color": "#94a3b8", "width": 2}
           ]
         }`;
 
         try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
