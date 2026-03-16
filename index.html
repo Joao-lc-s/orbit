@@ -5510,9 +5510,17 @@
                                 
                                 if (xpGanho > 0) {
                                     Store.state.user.xp += xpGanho;
-                                    // SALVA OS MINUTOS NO ANALYTICS
+                                    
+                                    // SALVA OS MINUTOS GERAIS NO ANALYTICS
                                     if(!Store.state.stats) Store.state.stats = {};
                                     Store.state.stats.focusMinutes = (Store.state.stats.focusMinutes || 0) + Math.floor(minutosFocados);
+                                    
+                                    // MÁGICA AQUI: Salva exatamente que dia você fez esse pomodoro!
+                                    if(!Store.state.stats.dailyPomodoros) Store.state.stats.dailyPomodoros = {};
+                                    const hj = new Date();
+                                    const hojeStr = `${hj.getFullYear()}-${String(hj.getMonth() + 1).padStart(2, '0')}-${String(hj.getDate()).padStart(2, '0')}`;
+                                    Store.state.stats.dailyPomodoros[hojeStr] = (Store.state.stats.dailyPomodoros[hojeStr] || 0) + 1;
+
                                     UI.toast(`Foco Concluído! +${xpGanho} XP. Hora da pausa!`, "success");
                                 }
                                 
@@ -6067,13 +6075,23 @@
                 const numDays = days === 'all' ? 7 : parseInt(days); 
                 const labels = [];
                 const dataPoints = [];
+                
+                // Puxa o histórico de dias ou cria vazio se não tiver
+                const dailyData = Store.state.stats?.dailyPomodoros || {};
 
                 for (let i = numDays - 1; i >= 0; i--) {
                     const d = new Date();
                     d.setDate(d.getDate() - i);
-                    labels.push(`${d.getDate()}/${d.getMonth()+1}`);
-                    const mockValue = Math.floor(Math.random() * 4) + (Store.state.user.streak > i ? 2 : 0);
-                    dataPoints.push(mockValue);
+                    
+                    // Formata a data para achar no banco (Ex: 2026-03-16)
+                    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    
+                    // Cria a etiqueta bonita para aparecer em baixo do gráfico (Ex: 16/03)
+                    labels.push(`${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')}`);
+                    
+                    // A MÁGICA: Em vez de random, puxa o valor real do banco de dados para aquele dia exato!
+                    const realValue = dailyData[dateStr] || 0;
+                    dataPoints.push(realValue);
                 }
 
                 this.chartEvolution = new Chart(ctx, {
