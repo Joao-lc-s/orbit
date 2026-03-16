@@ -9,7 +9,6 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
     <link rel="apple-touch-icon" href="https://i.ibb.co/FL1VDQtv/Gemini-Generated-Image-uf01f5uf01f5uf01-1.png">
     <link rel="icon" type="image/png" href="https://i.ibb.co/FL1VDQtv/Gemini-Generated-Image-uf01f5uf01f5uf01-1.png">
     
@@ -20,6 +19,8 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -122,6 +123,12 @@
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Previne o zoom chato do PWA (Mobile) ao focar em inputs e duplo clique */
+        body { touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%;}
+        @media screen and (max-width: 768px) {
+            input, textarea, select { font-size: 16px !important; }
         }
 
         /* Glassmorphism Classes */
@@ -324,8 +331,7 @@
         }
             </style>
     </head>
-<body class="h-screen w-screen overflow-hidden text-sm md:text-base selection:bg-brand-500 selection:text-white">
-
+    
     <!-- Loading Screen -->
     <div id="loading-screen" class="fixed inset-0 z-[100] bg-bg-main flex flex-col items-center justify-center transition-opacity duration-700">
         <div class="relative w-24 h-24">
@@ -411,6 +417,9 @@
                 </button>
                 <button onclick="router('settings')" id="nav-settings" class="w-full flex items-center px-4 py-3 rounded-xl text-txt-muted hover:bg-brand-50 hover:text-brand-700 transition-all font-medium text-sm group">
                     <i class="ph ph-gear-six text-lg mr-3 group-hover:scale-110 transition-transform"></i> Configurações
+                </button>
+                <button onclick="window.Admin.openPanel()" id="nav-admin" class="w-full flex items-center px-4 py-3 rounded-xl text-brand-600 hover:bg-brand-50 transition-all font-medium text-sm group">
+                    <i class="ph-bold ph-shield-star text-lg mr-3 group-hover:scale-110 transition-transform"></i> Gestão de Acessos
                 </button>
             </nav>
 
@@ -670,29 +679,12 @@
                     
                     <div id="prof-mobile-overlay" onclick="ProfessorIA.toggleSidebar()" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden md:hidden transition-opacity"></div>
 
-                    <div class="flex justify-between items-center mb-4 shrink-0 px-2 relative z-10">
-                        <div>
-                            <h2 class="text-2xl font-bold text-txt-main flex items-center gap-2">
-                                <i class="ph-bold ph-chalkboard-teacher text-brand-500"></i> Professor IA
-                            </h2>
-                            <p class="text-sm text-txt-muted mt-1">Tire dúvidas focadas nos seus estudos.</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="ProfessorIA.toggleSidebar()" class="md:hidden bg-bg-surface border border-white/5 hover:bg-brand-50 hover:text-brand-600 text-txt-muted px-4 py-2 rounded-xl transition-colors font-bold text-sm shadow-sm flex items-center gap-2">
-                                <i class="ph-bold ph-list-dashes text-lg"></i> Chats
-                            </button>
-                            <button onclick="ProfessorIA.createNewChat()" class="hidden md:flex bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl transition-colors font-bold text-sm shadow-md shadow-brand-500/20 items-center gap-2">
-                                <i class="ph-bold ph-plus"></i> Novo Chat
-                            </button>
-                        </div>
-                    </div>
-
                     <div class="flex-1 flex gap-6 overflow-hidden min-h-0 relative">
                         
-                        <div id="prof-sidebar" class="absolute md:static inset-y-0 left-0 w-72 md:w-64 bg-bg-surface md:bg-transparent border border-white/10 md:border-transparent rounded-3xl p-5 md:p-0 shadow-2xl md:shadow-none flex flex-col md:flex gap-4 transform -translate-x-[120%] md:translate-x-0 transition-transform duration-300 z-40">
+                        <div id="prof-sidebar" class="absolute md:static inset-y-0 left-0 w-72 md:w-64 bg-bg-surface border border-white/10 rounded-3xl p-5 shadow-2xl md:shadow-none flex flex-col md:flex gap-4 transform -translate-x-[120%] md:translate-x-0 transition-transform duration-300 z-40">
                             <div class="flex justify-between items-center md:hidden mb-2">
                                 <h3 class="font-bold text-txt-main text-lg">Suas Conversas</h3>
-                                <button onclick="ProfessorIA.toggleSidebar()" class="w-8 h-8 flex items-center justify-center bg-bg-main hover:bg-red-50 hover:text-red-500 rounded-full text-txt-muted transition-colors"><i class="ph-bold ph-x"></i></button>
+                                <button title="Abrir/Fechar conversas" onclick="ProfessorIA.toggleSidebar()" class="w-8 h-8 flex items-center justify-center bg-bg-main hover:bg-red-50 hover:text-red-500 rounded-full text-txt-muted transition-colors"><i class="ph-bold ph-x"></i></button>
                             </div>
                             
                             <button onclick="ProfessorIA.createNewChat()" class="md:hidden w-full bg-brand-600 hover:bg-brand-700 text-white px-4 py-3 rounded-xl transition-colors font-bold text-sm shadow-sm flex justify-center items-center gap-2 shrink-0">
@@ -716,7 +708,7 @@
                                         <i class="ph-bold ph-list text-lg"></i>
                                     </button>
                                     
-                                    <h3 id="prof-current-chat-title" class="font-bold text-txt-main text-sm truncate">Lei dos cossenos para vetores</h3>
+                                    <h3 id="prof-current-chat-title" class="font-bold text-txt-main text-sm truncate">Título do chat</h3>
                                     
                                     <button onclick="ProfessorIA.renameChat()" class="w-7 h-7 rounded-lg bg-bg-surface border border-white/5 flex items-center justify-center text-txt-muted hover:text-brand-500 hover:border-brand-500/30 transition-all shrink-0" title="Renomear Conversa">
                                         <i class="ph-bold ph-pencil-simple"></i>
@@ -732,23 +724,56 @@
                                 </div>
                             </div>
 
-                            <div id="prof-chat-box" class="flex-1 p-6 overflow-y-auto custom-scrollbar flex flex-col gap-5">
-                                </div>
-
+                            <div id="prof-chat-box" class="flex-1 p-6 overflow-y-auto custom-scrollbar flex flex-col gap-5 relative" onscroll="ProfessorIA.handleScroll()">
+                            </div>
+                            <button title="Ir ao fim" id="btn-scroll-bottom" onclick="ProfessorIA.scrollToBottom()" class="absolute bottom-[90px] right-6 w-11 h-11 bg-bg-panel border border-white/10 text-txt-main hover:text-brand-500 hover:bg-bg-surface hover:scale-105 rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.5)] opacity-0 pointer-events-none transition-all duration-300 z-30 translate-y-4 backdrop-blur-md">
+                                <i class="ph-bold ph-arrow-down text-xl"></i>
+                            </button>
                             <div id="prof-image-preview-container" class="hidden px-6 mb-2 relative">
                                 <div class="relative inline-block border-2 border-brand-500 rounded-xl p-1 bg-bg-main shadow-lg">
-                                    <img id="prof-img-element" class="h-16 w-auto rounded-lg object-contain" src="" />
-                                    <button onclick="ProfessorIA.removeImage()" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md hover:scale-110 transition-transform"><i class="ph-bold ph-x"></i></button>
+                                    <img title="Imagem adicionada" id="prof-img-element" class="h-16 w-auto rounded-lg object-contain" src="" />
+                                    <button title="Remover imagem" onclick="ProfessorIA.removeImage()" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md hover:scale-110 transition-transform"><i class="ph-bold ph-x"></i></button>
                                 </div>
                             </div>
 
-                            <div class="rounded-[2rem] flex items-end gap-3 p-4 bg-bg-main shrink-0">
-                                <label title="Anexar Imagem" class="w-12 h-12 shrink-0 bg-bg-surface hover:bg-brand-50 text-txt-muted hover:text-brand-600 rounded-2xl flex items-center justify-center transition-all cursor-pointer border border-white/5 shadow-sm mb-0.5">
-                                    <i class="ph-bold ph-paperclip text-xl"></i>
-                                    <input type="file" id="prof-file-input" accept="image/*" class="hidden" onchange="ProfessorIA.handleImageSelect(this)">
-                                </label>
+                            <div id="prof-internal-attachments" class="hidden px-6 mb-2 flex-wrap gap-2 relative z-10">
+                                </div>
 
-                                <textarea id="prof-chat-input" rows="1" placeholder="Dúvida ou foto de questão..." class="flex-1 bg-bg-surface border border-white/5 focus:border-brand-500 rounded-2xl py-3.5 px-4 text-sm font-medium text-txt-main outline-none transition-all resize-none custom-scrollbar min-h-[52px] max-h-[150px]" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+                            <div id="prof-image-preview-container" class="hidden px-6 mb-2 relative z-10">
+                                <div class="relative inline-block border-2 border-brand-500 rounded-xl p-1 bg-bg-main shadow-lg">
+                                    <img title="Imagem adicionada" id="prof-img-element" class="h-16 w-auto rounded-lg object-contain" src="" />
+                                    <button title="Remover imagem" onclick="ProfessorIA.removeImage()" class="absolute -top-3 -right-3 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md hover:scale-110 transition-transform"><i class="ph-bold ph-x"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="rounded-[2rem] flex items-end gap-3 p-4 bg-bg-main shrink-0 relative">
+                                
+                                <div id="prof-attach-menu" class="hidden absolute bottom-[100px] left-4 bg-bg-panel border border-white/10 p-2 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-1 w-56 z-50 backdrop-blur-md transition-all">
+                                    
+                                    <button onclick="ProfessorIA.toggleAttachMenu(); ProfessorIA.promptGenerateImage()" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-brand-50 hover:text-brand-600 text-sm font-bold text-txt-main transition-colors text-left group">
+                                        <div class="w-8 h-8 rounded-lg bg-brand-500/10 text-brand-500 flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-colors shrink-0"><i class="ph-bold ph-magic-wand text-lg"></i></div>
+                                        <span>Gerar Imagem</span>
+                                    </button>
+                                    
+                                    <div class="h-px bg-white/5 my-0.5"></div>
+                                    
+                                    <label class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-brand-50 hover:text-brand-600 text-sm font-bold text-txt-main cursor-pointer transition-colors group">
+                                        <div class="w-8 h-8 rounded-lg bg-white/5 text-txt-muted flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-colors shrink-0"><i class="ph-bold ph-image text-lg"></i></div>
+                                        <span>Imagem do PC</span>
+                                        <input type="file" id="prof-file-input" accept="image/*" class="hidden" onchange="ProfessorIA.handleImageSelect(this); ProfessorIA.toggleAttachMenu()">
+                                    </label>
+                                    
+                                    <button onclick="ProfessorIA.toggleAttachMenu(); ProfessorIA.openAttachModal()" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-brand-50 hover:text-brand-600 text-sm font-bold text-txt-main transition-colors text-left group">
+                                        <div class="w-8 h-8 rounded-lg bg-white/5 text-txt-muted flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-colors shrink-0"><i class="ph-bold ph-planet text-lg"></i></div>
+                                        <span>Arquivos do Orbit</span>
+                                    </button>
+                                </div>
+
+                                <button title="Anexos" onclick="ProfessorIA.toggleAttachMenu()" id="btn-toggle-attach" class="w-12 h-12 shrink-0 bg-bg-surface hover:bg-brand-50 text-txt-muted hover:text-brand-600 rounded-2xl flex items-center justify-center transition-all border border-white/5 shadow-sm mb-0.5">
+                                    <i class="ph-bold ph-plus text-xl transition-transform" id="icon-toggle-attach"></i>
+                                </button>
+
+                                <textarea id="prof-chat-input" rows="1" placeholder="Dúvida ou anexo..." class="flex-1 bg-bg-surface border border-white/5 focus:border-brand-500 rounded-2xl py-3.5 px-4 text-sm font-medium text-txt-main outline-none transition-all resize-none custom-scrollbar min-h-[52px] max-h-[150px]" oninput="this.style.height = ''; this.style.height = Math.min(this.scrollHeight, 150) + 'px'"></textarea>
                                 
                                 <button id="btn-prof-send" onclick="ProfessorIA.sendMessage()" title="Enviar" class="w-12 h-12 shrink-0 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl flex items-center justify-center transition-all shadow-md shadow-brand-500/20 active:scale-95 mb-0.5">
                                     <i class="ph-bold ph-paper-plane-right text-xl"></i>
@@ -1402,6 +1427,55 @@
         </div>
     </dialog>
 
+    <div id="lock-screen" class="fixed inset-0 z-[9999] bg-bg-main flex flex-col items-center justify-center transition-opacity duration-500">
+        <div id="lock-loading" class="flex flex-col items-center">
+            <i class="ph-bold ph-spinner animate-spin text-5xl text-brand-600 mb-4"></i>
+            <p class="text-txt-muted font-bold tracking-widest uppercase text-xs">Verificando Credenciais...</p>
+        </div>
+
+        <div id="lock-content" class="hidden flex-col items-center text-center px-4">
+            <i class="ph-duotone ph-lock-key text-7xl text-brand-600 mb-6"></i>
+            <h2 class="text-3xl font-extrabold text-txt-main mb-2">Acesso Restrito</h2>
+            <p class="text-txt-muted mb-8 max-w-sm">Este é um ambiente fechado. Apenas convidados autorizados podem entrar.</p>
+            
+            <button onclick="window.Auth.login()" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-brand-500/30 flex items-center gap-3 transition-all hover:scale-105 active:scale-95">
+                <i class="ph-bold ph-google-logo text-xl"></i> Entrar com Google
+            </button>
+            
+            <div id="lock-error-area" class="hidden mt-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-500 max-w-sm">
+                <p class="font-bold text-sm mb-1"><i class="ph-bold ph-x-circle"></i> Acesso Negado</p>
+                <p id="lock-error-msg" class="text-xs">O e-mail informado não possui permissão.</p>
+            </div>
+        </div>
+    </div>
+
+    <dialog id="modal-admin-panel" class="bg-transparent p-0 backdrop:bg-black/80 backdrop-blur-sm w-full max-w-md rounded-[32px] shadow-2xl">
+        <div class="bg-bg-surface p-8 rounded-[32px] flex flex-col gap-4 relative overflow-hidden h-[85vh] max-h-[600px]">
+            
+            <div class="flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-xl text-txt-main flex items-center gap-2"><i class="ph-bold ph-shield-check text-brand-500"></i> Painel do Dono</h3>
+                <button onclick="document.getElementById('modal-admin-panel').close()" class="w-8 h-8 rounded-full bg-bg-main text-txt-muted hover:text-red-500 flex items-center justify-center transition-colors"><i class="ph-bold ph-x"></i></button>
+            </div>
+
+            <div class="bg-bg-main p-4 rounded-2xl border border-white/5 shrink-0">
+                <label class="block text-[10px] font-bold text-txt-muted uppercase mb-2 tracking-wide">Liberar Acesso</label>
+                <div class="flex gap-2">
+                    <input type="email" id="admin-new-email" placeholder="exemplo@gmail.com" class="flex-1 bg-bg-surface border border-white/5 rounded-xl p-3 text-xs text-txt-main font-bold outline-none focus:border-brand-500 transition-all shadow-inner lowercase">
+                    <button onclick="window.Admin.addAllowedEmail()" id="btn-admin-add" class="bg-brand-600 hover:bg-brand-700 text-white px-4 rounded-xl font-bold shadow-md transition-all active:scale-95">
+                        <i class="ph-bold ph-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col min-h-0 flex-1">
+                <p class="text-[10px] font-bold text-txt-muted uppercase mb-2 tracking-wide px-1">Usuários Autorizados</p>
+                <div id="admin-email-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                    </div>
+            </div>
+
+        </div>
+    </dialog>
+
     <dialog id="modal-icon-picker" class="bg-transparent p-0 backdrop:bg-black/60 backdrop-blur-sm w-full max-w-sm rounded-[32px] shadow-2xl">
         <div class="bg-bg-surface p-6 border border-white/10 rounded-[32px] flex flex-col gap-5">
             <div class="flex justify-between items-center">
@@ -1505,6 +1579,27 @@
             <div id="quiz-history-list" class="flex-1 overflow-y-auto pr-2 space-y-5 custom-scrollbar pb-6">
                 </div>
 
+        </div>
+    </dialog>
+
+    <dialog id="modal-prof-attach" class="bg-transparent p-0 backdrop:bg-black/60 backdrop-blur-sm w-full max-w-2xl rounded-[32px] shadow-2xl">
+        <div class="bg-bg-surface p-8 border border-brand-500/30 rounded-[32px] flex flex-col h-[80vh] max-h-[600px] overflow-hidden relative">
+            <div class="flex justify-between items-center mb-6 shrink-0">
+                <h3 class="font-bold text-xl text-txt-main flex items-center gap-2"><i class="ph-bold ph-planet text-brand-500"></i> Meu Acervo Orbit</h3>
+                <button onclick="document.getElementById('modal-prof-attach').close()" class="w-8 h-8 rounded-full bg-bg-main text-txt-muted hover:text-red-500 flex items-center justify-center transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+
+            <p class="text-sm text-txt-muted mb-4 shrink-0">Adicione os dados silenciosamente ao prompt para dar memória à IA.</p>
+
+            <div class="flex gap-2 bg-bg-main p-1.5 rounded-xl shrink-0 border border-white/5 mb-4 overflow-x-auto custom-scrollbar">
+                <button id="tab-attach-quiz" onclick="ProfessorIA.renderAttachList('quiz')" class="flex-1 py-2.5 px-3 rounded-lg text-sm font-bold bg-brand-50 text-brand-600 border border-brand-200/50 transition-all shadow-sm whitespace-nowrap">Questões</button>
+                <button id="tab-attach-map" onclick="ProfessorIA.renderAttachList('map')" class="flex-1 py-2.5 px-3 rounded-lg text-sm font-bold text-txt-muted hover:text-txt-main transition-all border border-transparent whitespace-nowrap">Mapas Mentais</button>
+                <button id="tab-attach-deck" onclick="ProfessorIA.renderAttachList('deck')" class="flex-1 py-2.5 px-3 rounded-lg text-sm font-bold text-txt-muted hover:text-txt-main transition-all border border-transparent whitespace-nowrap">Flashcards</button>
+                <button id="tab-attach-task" onclick="ProfessorIA.renderAttachList('task')" class="flex-1 py-2.5 px-3 rounded-lg text-sm font-bold text-txt-muted hover:text-txt-main transition-all border border-transparent whitespace-nowrap">Tarefas</button>
+            </div>
+
+            <div id="prof-attach-list" class="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2 pb-4">
+                </div>
         </div>
     </dialog>
 
@@ -2095,8 +2190,9 @@
                     <div class="mt-6 pt-5 border-t border-white/5 space-y-3">
                         <label class="block text-xs font-bold text-txt-muted uppercase tracking-wider">Modelo de Inteligência</label>
                         <select id="sett-ai-model" onchange="Settings.saveAiModel(this.value)" class="w-full bg-bg-main border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-txt-main focus:border-brand-500 outline-none transition-all appearance-none cursor-pointer">
-                            <option value="gemini-3-flash-preview" selected>Gemini 3.0 Flash (Equilíbrio Fronteira)</option>
+                            <option value="gemini-3-flash-preview" selected>Gemini 3.0 Flash (Pensa Mais)</option>
                             <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Ultra Rápido)</option>
+                            <option value="gemma-3-27b-it">Gemma 3 27b (Mais créditos e menos inteligente)</option>
                         </select>
                     </div>
 
@@ -2453,10 +2549,22 @@
     <div id="toast-area" class="fixed bottom-8 right-8 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
     <script type="module">
+
+        // -----------------------------------------------------------
+        // PROTEÇÃO ANTI-F12: GUARDA O APP NA MEMÓRIA E LIMPA A TELA
+        // -----------------------------------------------------------
+        let appLayoutNode = null;
+        document.addEventListener('DOMContentLoaded', () => {
+            appLayoutNode = document.getElementById('app-layout');
+            if (appLayoutNode) {
+                appLayoutNode.remove(); // Tira o HTML da vista dos curiosos
+            }
+        });
+
         // 1. IMPORTS
-        import { getAuth, signInAnonymously, signInWithCustomToken, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, deleteDoc} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getDatabase, ref, onValue, set, update, off, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";        
         
         // 2. CONFIGURAÇÃO (Com o nome antigo 'embeddedFirebaseConfig' para não quebrar o Store.init)
@@ -2481,6 +2589,9 @@
         window.orbitAuth = auth;
         window.orbitDoc = doc;
         window.orbitSetDoc = setDoc;
+        window.orbitDeleteDoc = deleteDoc;
+        window.orbitCollection = collection;
+        window.orbitGetDocs = getDocs;
         window.orbitSignOut = signOut;
         
         
@@ -3162,11 +3273,6 @@
                 return due.getDate() === tomorrow.getDate() && due.getMonth() === tomorrow.getMonth() && due.getFullYear() === tomorrow.getFullYear();
             }
         };
-
-        // Inicia o módulo quando a página carregar
-        document.addEventListener('DOMContentLoaded', () => {
-            window.ActivityManager.init();
-        });
 
         // =================================================================
         // BATALHA DE FLASHCARDS (MULTIPLAYER)
@@ -4889,11 +4995,8 @@
             }
         };
 
-        // =================================================================
-        // SIMULADO (Item 8)
-        // =================================================================
-        // =================================================================
-        // SIMULADO (COM IA E EXPLICAÇÕES DE GABARITO)
+       // =================================================================
+        // SIMULADO (COM IA E EXPLICAÇÕES DE GABARITO CORRIGIDO)
         // =================================================================
         window.Simulado = {
             currentQuestions: [],
@@ -4973,7 +5076,6 @@
                     const fileParts = await Promise.all(files.map(f => readAsBase64(f)));
                     const model = Store.state.settings.aiModel || 'gemini-3-flash-preview';
 
-                    // O PROMPT FOI REFORÇADO PARA OBRIGAR O 'EXPLANATION'
                     const prompt = `Atue como um professor elaborador de provas de Vestibular. 
                     Vou te enviar um material de estudo. Sua tarefa é CRIAR ${qtd} questões de múltipla escolha inéditas baseadas nele.
                     O tema geral é "${subject}".
@@ -5025,7 +5127,7 @@
                                 text: q.text,
                                 options: q.options,
                                 correctIndex: typeof q.correctIndex === 'number' ? q.correctIndex : 0,
-                                explanation: q.explanation || "O professor não deixou comentários para essa questão." // Salva no BD!
+                                explanation: q.explanation || "O professor não deixou comentários para essa questão." 
                             };
                             Store.state.quiz.push(newQ);
                             addedQuestions.push(newQ);
@@ -5118,65 +5220,81 @@
                             <p class="text-txt-main font-medium mb-6 leading-relaxed text-sm md:text-base whitespace-pre-wrap">${q.text}</p>
                             <div class="space-y-3">
                                 ${q.options.map((opt, i) => `
-                                    <label class="flex items-center gap-3 p-4 rounded-xl border border-white/5 bg-bg-main hover:border-brand-500 hover:bg-brand-500/5 cursor-pointer transition-all group">
-                                        <input type="radio" name="sim-q-${q.id}" value="${i}" class="accent-brand-600 w-4 h-4 cursor-pointer" onchange="Simulado.answers['${q.id}'] = ${i}">
-                                        <span class="w-6 h-6 rounded bg-bg-surface border border-white/10 flex items-center justify-center text-xs font-bold text-txt-muted group-hover:text-brand-600 uppercase shrink-0">${String.fromCharCode(97+i)}</span>
-                                        <span class="text-sm text-txt-main leading-snug">${opt}</span>
-                                    </label>
+                                    <div class="flex items-center w-full gap-2">
+                                        <label class="flex items-center gap-3 p-4 rounded-xl border border-white/5 bg-bg-main hover:border-brand-500 hover:bg-brand-500/5 cursor-pointer transition-all flex-1">
+                                            <input type="radio" name="sim-q-${q.id}" value="${i}" class="accent-brand-600 w-4 h-4 cursor-pointer" onchange="Simulado.answers['${q.id}'] = ${i}">
+                                            <span class="w-6 h-6 rounded bg-bg-surface border border-white/10 flex items-center justify-center text-xs font-bold text-txt-muted uppercase shrink-0">${String.fromCharCode(97+i)}</span>
+                                            <span id="opt-text-${q.id}-${i}" class="text-sm text-txt-main leading-snug transition-all">${opt}</span>
+                                        </label>
+                                        
+                                        <button onclick="Simulado.toggleIgnore('${q.id}', ${i})" class="w-12 h-12 flex items-center justify-center rounded-xl border border-white/5 bg-bg-main text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors shrink-0 shadow-sm" title="Riscar (Descartar alternativa)">
+                                            <i class="ph-bold ph-eye-slash text-lg" id="opt-icon-${q.id}-${i}"></i>
+                                        </button>
+                                    </div>
                                 `).join('')}
                             </div>
                         </div>
                     `;
                 });
                 container.innerHTML = html;
+
+                // --- MÁGICA ADICIONADA AQUI: Formata as perguntas e alternativas com KaTeX ---
+                setTimeout(() => {
+                    if (window.renderMathInElement) {
+                        try {
+                            renderMathInElement(container, {
+                                delimiters: [
+                                    {left: "$$", right: "$$", display: true}, {left: "\\[", right: "\\]", display: true},
+                                    {left: "$", right: "$", display: false}, {left: "\\(", right: "\\)", display: false}
+                                ], throwOnError: false, strict: "ignore", strict: "ignore"
+                            });
+                        } catch(e) { console.error("Erro KaTeX:", e); }
+                    }
+                }, 100);
+            },
+
+            toggleIgnore(qId, idx) {
+                // ... (mantenha essa função exatamente como está)
+                const textEl = document.getElementById(`opt-text-${qId}-${idx}`);
+                const iconEl = document.getElementById(`opt-icon-${qId}-${idx}`);
+                
+                if (textEl.classList.contains('line-through')) {
+                    textEl.classList.remove('line-through', 'opacity-30', 'text-txt-muted');
+                    iconEl.classList.replace('ph-eye', 'ph-eye-slash');
+                    iconEl.classList.remove('text-red-500');
+                } else {
+                    textEl.classList.add('line-through', 'opacity-30', 'text-txt-muted');
+                    iconEl.classList.replace('ph-eye-slash', 'ph-eye');
+                    iconEl.classList.add('text-red-500');
+                }
             },
 
             async finish() {
+                // ... (mantenha essa função exatamente como está)
                 if(!(await UI.confirm("Entregar Simulado", "Deseja entregar a prova e ver o resultado?", "Entregar", false))) return;
-                
                 let hits = 0;
-
-                // Calcula os acertos
-                this.currentQuestions.forEach((q) => {
-                    if(this.answers[q.id] === q.correctIndex) hits++;
-                });
-
+                this.currentQuestions.forEach((q) => { if(this.answers[q.id] === q.correctIndex) hits++; });
                 const score = Math.round((hits / this.currentQuestions.length) * 100);
-                
                 document.getElementById('sim-exam').classList.add('hidden');
                 document.getElementById('sim-exam').classList.remove('flex');
-                
                 document.getElementById('sim-result').classList.remove('hidden');
                 document.getElementById('sim-result').classList.add('flex');
-                
                 document.getElementById('sim-score-display').innerText = `${score}%`;
-                
                 let msg = "";
-                if(score === 100) msg = "Perfeito! Você destruiu!";
-                else if(score >= 80) msg = "Excelente desempenho!";
-                else if(score >= 50) msg = "Na média, continue estudando.";
-                else msg = "Precisa revisar mais...";
-                
+                if(score === 100) msg = "Perfeito! Você destruiu!"; else if(score >= 80) msg = "Excelente desempenho!"; else if(score >= 50) msg = "Na média, continue estudando."; else msg = "Precisa revisar mais...";
                 document.getElementById('sim-msg').innerText = `${msg} (${hits}/${this.currentQuestions.length} acertos)`;
-                
                 Store.state.user.xp += (hits * 10) + (score > 80 ? 100 : 0);
                 Store.save();
-
-                // Chama a nova função que constrói a tela de revisão
                 this.renderReview();
-                
                 const scrollArea = document.getElementById('content-scroll');
                 if (scrollArea) scrollArea.scrollTop = 0;
             },
 
-            // NOVA FUNÇÃO: Constrói a tela de revisão e verifica se precisa do botão Global de IA
             renderReview() {
                 let reviewHTML = '<h3 class="text-xl font-bold text-txt-main mb-4 flex items-center gap-2"><i class="ph-fill ph-chalkboard-teacher text-brand-500"></i> Correção Detalhada</h3>';
 
-                // Verifica se existe ALGUMA questão sem explicação
-                const needsExplanation = this.currentQuestions.some(q => !q.explanation || q.explanation.trim() === "");
+                const needsExplanation = this.currentQuestions.some(q => !q.explanation || typeof q.explanation !== 'string' || q.explanation.trim() === "");
 
-                // Se existir, injeta o botão global mágico no topo!
                 if (needsExplanation) {
                     reviewHTML += `
                         <div class="mb-8 p-6 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 rounded-[24px] flex flex-col sm:flex-row items-center justify-between gap-4 shadow-inner">
@@ -5199,11 +5317,13 @@
                     const colorClass = isCorrect ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-red-500/30 bg-red-500/5';
 
                     let explanationHTML = '';
-                    if (q.explanation && q.explanation.trim() !== "") {
+                    if (q.explanation && typeof q.explanation === 'string' && q.explanation.trim() !== "") {
+                        const formattedExplanation = window.ProfessorIA ? window.ProfessorIA.formatAIResponse(q.explanation) : q.explanation;
+                        
                         explanationHTML = `
                            <div class="mt-4 p-5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-txt-main text-sm leading-relaxed shadow-inner animate-fade-in">
                                <b class="flex items-center gap-2 mb-2 text-purple-500"><i class="ph-fill ph-sparkle"></i> Explicação do Professor (IA):</b>
-                               <span class="opacity-90 block whitespace-pre-wrap">${q.explanation}</span>
+                               <div class="opacity-90 overflow-hidden break-words ai-explanation-block">${formattedExplanation}</div>
                            </div>`;
                     } else {
                         explanationHTML = `
@@ -5236,15 +5356,29 @@
                     `;
                 });
 
-                document.getElementById('sim-review-area').innerHTML = reviewHTML;
+                const reviewArea = document.getElementById('sim-review-area');
+                reviewArea.innerHTML = reviewHTML;
+
+                // --- MÁGICA AQUI: Formata TUDO na área de revisão, não só os bloquinhos roxos ---
+                setTimeout(() => {
+                    if (window.renderMathInElement) {
+                        try {
+                            // Manda renderizar a tela de revisão inteira de uma vez!
+                            renderMathInElement(reviewArea, {
+                                delimiters: [
+                                    {left: "$$", right: "$$", display: true}, {left: "\\[", right: "\\]", display: true},
+                                    {left: "$", right: "$", display: false}, {left: "\\(", right: "\\)", display: false}
+                                ], throwOnError: false, strict: "ignore", strict: "ignore"
+                            });
+                        } catch(e) { console.error("Erro KaTeX:", e); }
+                    }
+                }, 200);
             },
 
-            // NOVA FUNÇÃO LOTE: Explica todas as questões vazias de uma vez só!
             async generateAllExplanations() {
                 const btn = document.getElementById('btn-global-explain');
                 
-                // Filtra apenas as que estão sem explicação
-                const questionsToExplain = this.currentQuestions.filter(q => !q.explanation || q.explanation.trim() === "");
+                const questionsToExplain = this.currentQuestions.filter(q => !q.explanation || typeof q.explanation !== 'string' || q.explanation.trim() === "");
                 if (questionsToExplain.length === 0) return;
 
                 const key = Store.state.settings.geminiKey;
@@ -5258,7 +5392,6 @@
                 try {
                     const model = Store.state.settings.aiModel || 'gemini-3-flash-preview';
                     
-                    // Monta um super-prompt mandando todas as questões para a IA de uma vez
                     const promptData = questionsToExplain.map((q) => `
                         ID: "${q.id}"
                         Matéria: ${q.topic}
@@ -5298,13 +5431,10 @@
                     aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
                     const explanations = JSON.parse(aiText);
 
-                    // Distribui as explicações recebidas para as questões certas
                     explanations.forEach(exp => {
-                        // Atualiza na memória local da prova atual
                         const qObj = this.currentQuestions.find(q => q.id == exp.id);
                         if (qObj) qObj.explanation = exp.explanation.replace(/\*\*/g, '');
                         
-                        // Atualiza no banco de dados geral (para ficar salvo pra sempre)
                         const storeQ = Store.state.quiz.find(q => q.id == exp.id);
                         if (storeQ) storeQ.explanation = exp.explanation.replace(/\*\*/g, '');
                     });
@@ -5312,7 +5442,6 @@
                     Store.save();
                     UI.toast("✅ Todas as explicações geradas com sucesso!", "success");
                     
-                    // Re-renderiza a tela de revisão (o botão global vai sumir e as roxinhas vão aparecer!)
                     this.renderReview();
 
                 } catch (e) {
@@ -5497,61 +5626,12 @@
                 const activeSched = this.state.schedules.find(s => s.id === this.state.activeScheduleId) || this.state.schedules[0];
                 this.state.week = activeSched.data;
 
-                this.connectFirebase(embeddedFirebaseConfig);
-                
                 // MÁGICA: O MOTOR ÚNICO DE TEMPO E OFENSIVA
                 this.processDailyLogin();
                 this.cleanTrash();
 
-                // Aplica Configurações Iniciais Visuais
-                if(this.state.settings.aiModel) {
-                    const selectModel = document.getElementById('sett-ai-model');
-                    if(selectModel) selectModel.value = this.state.settings.aiModel;
-                }
-
-                Settings.setTheme(this.state.settings.theme);
-                window.Timer.set(this.state.settings.pomodoroTime || 25)
-
-                if(this.state.settings.accentColor) Settings.setAccentColor(this.state.settings.accentColor, false);
-                else Settings.updateAccentUI(null); 
-                
-                if(this.state.settings.animations === false) {
-                    Settings.toggleAnimations(false);
-                    const toggle = document.getElementById('toggle-animations');
-                    if(toggle) toggle.checked = false;
-                }
-
-                // ATIVA O WALLPAPER SE HOUVER
-                if(window.Settings && window.Settings.applyWallpaper) Settings.applyWallpaper();
-                
-                setTimeout(() => {
-                    document.getElementById('loading-screen').classList.add('opacity-0', 'pointer-events-none');
-                    document.getElementById('app-layout').classList.remove('opacity-0');
-                }, 800);
-
-                const btnEstat = document.getElementById('nav-estatisticas');
-                const lockEstat = document.getElementById('lock-estatisticas');
-
-                if (btnEstat && lockEstat) {
-                    if (this.state.unlocks && this.state.unlocks.advanced_stats) {
-                        // Usuário comprou! Destranca
-                        lockEstat.classList.add('hidden');
-                        btnEstat.onclick = () => { window.router('estatisticas'); Analytics.render(); };
-                        btnEstat.classList.remove('opacity-50');
-                    } else {
-                        // Bloqueado
-                        lockEstat.classList.remove('hidden');
-                        btnEstat.onclick = () => { UI.toast("Vá à Loja para desbloquear o Analytics VIP!", "warning"); router('loja'); };
-                    }
-                }
-
-                UI.renderAll();
-                setTimeout(() => MindMap.renderExplorer(), 100);
-
-                if (this.state.settings.geminiKey) {
-                    const inputKey = document.getElementById('sett-gemini-key');
-                    if(inputKey) inputKey.value = this.state.settings.geminiKey;
-                }
+                // APENAS INICIA A CONEXÃO (A UI SÓ VAI LIGAR LÁ DENTRO SE APROVADO)
+                this.connectFirebase(embeddedFirebaseConfig);
             },
 
             async processDailyLogin() {
@@ -5641,46 +5721,108 @@
             },
 
             async connectFirebase(config) {
+                // Você pode colocar um e-mail fake aqui. O que vai mandar agora é o Banco de Dados!
+                const ADMIN_EMAIL = "null@gmail.com";
+
                 try {
                     this.firebase.auth = window.orbitAuth;
                     this.firebase.db = window.orbitDb;
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'orbit-v7';
+                    const appId = 'orbit-v7';
                     
-                    try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(this.firebase.auth, __initial_auth_token);
-                        }
-                    } catch (e) {
-                        console.warn("Token ignorado");
-                    }
+                    window.orbitSetDoc = setDoc;
+                    window.orbitDoc = doc;
 
-                    import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(({ doc, onSnapshot }) => {
-                        
-                        onAuthStateChanged(this.firebase.auth, (u) => {
-                            const placeholderLogin = document.getElementById('placeholder-login');
-                            const btnAuthSidebar = document.getElementById('btn-auth-sidebar');
-                            const settAvatar = document.getElementById('sett-user-avatar');
-                            const settName = document.getElementById('sett-user-name');
-                            const settBtn = document.getElementById('sett-btn-auth');
-                            const settSub = document.getElementById('sett-user-sub');
-                            
-                            if(u && !u.isAnonymous) {
-                                // --- USUÁRIO LOGADO ---
-                                this.firebase.userRef = doc(this.firebase.db, 'artifacts', appId, 'users', u.uid, 'data', 'orbit_state');
-                                
-                                document.getElementById('user-name').innerText = u.displayName || "Usuário";
-                                document.getElementById('user-avatar').src = u.photoURL || "https://ui-avatars.com/api/?name=User&background=random";
-                                
-                                if(btnAuthSidebar) {
-                                    btnAuthSidebar.innerHTML = '<i class="ph-bold ph-sign-out text-lg"></i>';
-                                    btnAuthSidebar.title = "Sair da Conta";
-                                    btnAuthSidebar.classList.add('text-txt-main', 'hover:scale-105', 'bg-red-500');
-                                    btnAuthSidebar.classList.remove('text-txt-muted');
+                    onAuthStateChanged(this.firebase.auth, async (u) => {
+                        const lockScreen = document.getElementById('lock-screen');
+                        const lockLoading = document.getElementById('lock-loading');
+                        const lockContent = document.getElementById('lock-content');
+                        const lockErrorArea = document.getElementById('lock-error-area');
+                        const lockErrorMsg = document.getElementById('lock-error-msg');
+                        const oldLoadingScreen = document.getElementById('loading-screen');
+
+                        if (oldLoadingScreen) {
+                            oldLoadingScreen.classList.add('opacity-0', 'pointer-events-none');
+                            setTimeout(() => oldLoadingScreen.remove(), 500);
+                        }
+
+                        if(u && !u.isAnonymous) {
+                            try {
+                                let isAuthorized = false;
+                                let isAdmin = false;
+
+                                const userDoc = await getDoc(doc(this.firebase.db, 'allowed_users', u.email));
+                                if (userDoc.exists()) {
+                                    isAuthorized = true;
+                                    if (userDoc.data().isAdmin === true) isAdmin = true;
                                 }
 
+                                if (u.email === ADMIN_EMAIL) {
+                                    isAuthorized = true;
+                                    isAdmin = true;
+                                }
+
+                                if (!isAuthorized) {
+                                    // 1. MOSTRA A TELA VERMELHA PRIMEIRO
+                                    if(lockLoading) lockLoading.classList.add('hidden');
+                                    if(lockContent) {
+                                        lockContent.classList.remove('hidden');
+                                        lockContent.classList.add('flex');
+                                    }
+                                    if(lockErrorArea) lockErrorArea.classList.remove('hidden');
+                                    if(lockErrorMsg) lockErrorMsg.innerText = `O e-mail ${u.email} não tem permissão para acessar.`;
+                                    
+                                    // 2. AVISA O SISTEMA QUE FOI EXPULSÃO (A MÁGICA TÁ AQUI)
+                                    window.isKickingOut = true; 
+                                    window.orbitSignOut(this.firebase.auth);
+                                    return;
+                                }
+
+                                // === PASSOU NA SEGURANÇA! DEVOLVE O HTML PRA TELA ===
+                                if (appLayoutNode && !document.getElementById('app-layout')) {
+                                    document.body.appendChild(appLayoutNode);
+                                    setTimeout(() => document.getElementById('app-layout').classList.remove('opacity-0'), 100);
+                                    
+                                    if(window.MindMap) window.MindMap.init();
+                                    if(window.Flashcards) window.Flashcards.init();
+                                    if(window.ActivityManager) window.ActivityManager.init();
+                                    
+                                    Settings.setTheme(this.state.settings.theme || 'light');
+                                    if(this.state.settings.accentColor) Settings.setAccentColor(this.state.settings.accentColor, false);
+                                    if(this.state.settings.animations === false) Settings.toggleAnimations(false);
+                                    if(window.Timer) window.Timer.set(this.state.settings.pomodoroTime || 25);
+                                    
+                                    UI.renderAll(); 
+                                    if(window.MindMap) MindMap.renderExplorer();
+                                    
+                                    // BÔNUS: Notificação de boas-vindas quando for liberado!
+                                    setTimeout(() => UI.toast(`Bem-vindo(a), ${u.displayName || 'Aluno'}!`, "success"), 500);
+                                }
+
+                                if(lockScreen) {
+                                    lockScreen.classList.add('opacity-0', 'pointer-events-none');
+                                    setTimeout(() => lockScreen.classList.add('hidden'), 500);
+                                }
+
+                                const btnAdmin = document.getElementById('nav-admin');
+                                if (btnAdmin) {
+                                    if (isAdmin) btnAdmin.classList.replace('hidden', 'flex');
+                                    else btnAdmin.classList.replace('flex', 'hidden');
+                                }
+
+                                this.firebase.userRef = doc(this.firebase.db, 'artifacts', appId, 'users', u.uid, 'data', 'orbit_state');
+                                
+                                const userNameEl = document.getElementById('user-name');
+                                const userAvatarEl = document.getElementById('user-avatar');
+                                if(userNameEl) userNameEl.innerText = u.displayName || "Usuário";
+                                if(userAvatarEl) userAvatarEl.src = u.photoURL || "https://ui-avatars.com/api/?name=User&background=random";
+                                
+                                const settAvatar = document.getElementById('sett-user-avatar');
+                                const settName = document.getElementById('sett-user-name');
+                                const settBtn = document.getElementById('sett-btn-auth');
+                                const settSub = document.getElementById('sett-user-sub');
+                                
                                 if(settAvatar) settAvatar.src = u.photoURL || "https://ui-avatars.com/api/?name=User&background=random";
                                 if(settName) settName.innerText = u.displayName || "Usuário";
-                                if(placeholderLogin) placeholderLogin.innerText = Store.state.user.subName || "Estudante";
                                 if(settSub) settSub.innerText = u.email || "Sincronização ativa";
                                 if(settBtn) {
                                     settBtn.innerHTML = '<i class="ph-bold ph-sign-out text-base"></i> Sair da Conta';
@@ -5690,44 +5832,56 @@
                                 onSnapshot(this.firebase.userRef, (snap) => {
                                     if(snap.exists()) {
                                         this.state = {...this.state, ...snap.data()};
-
                                         const active = this.state.schedules?.find(s => s.id === this.state.activeScheduleId) || this.state.schedules?.[0];
                                         if (active) this.state.week = active.data;
-
+                                        
                                         UI.renderAll();
-                                        
-                                        // ADICIONE ESTA LINHA: Garante que se o fundo sumir no Firebase, some na tela na hora!
                                         if (window.Settings && window.Settings.applyWallpaper) Settings.applyWallpaper();
-                                        
-                                        MindMap.renderExplorer();
-                                        if(MindMap.currentMap) MindMap.render();
+                                        if(window.MindMap) {
+                                            MindMap.renderExplorer();
+                                            if(MindMap.currentMap) MindMap.render();
+                                        }
                                     } else {
-                                        // MÁGICA 2: Se é o primeiro login da conta, empurra os XP locais pra nuvem!
                                         this.save();
                                     }
                                 });
-                            } else {
-                                // --- VISITANTE ---
-                                document.getElementById('user-name').innerText = "Entrar com Google";
-                                
-                                if(btnAuthSidebar) {
-                                    btnAuthSidebar.innerHTML = '<i class="ph-bold ph-sign-in text-lg"></i>';
-                                    btnAuthSidebar.title = "Fazer Login";
-                                    btnAuthSidebar.classList.remove('text-red-500', 'hover:bg-red-50');
-                                    btnAuthSidebar.classList.add('text-txt-muted', 'hover:bg-brand-50');
-                                }
 
-                                if(settAvatar) settAvatar.src = "https://i.ibb.co/WvDK1ByC/google-icon-130924-removebg-preview.png";
-                                if(settName) settName.innerText = "Entrar com Google";
-                                if(settSub) settSub.innerText = "Sincronização na nuvem desativada";
-                                if(settBtn) {
-                                    settBtn.innerHTML = '<i class="ph-bold ph-google-logo text-base"></i> Entrar com Google';
-                                    settBtn.className = "w-full sm:w-auto px-6 py-2.5 bg-brand-600 text-white text-xs font-bold rounded-xl hover:scale-105 transition-colors shadow-md flex items-center justify-center gap-2 shrink-0";
+                            } catch (error) {
+                                console.error("Falha ao checar permissão:", error);
+                                window.isKickingOut = true;
+                                window.orbitSignOut(this.firebase.auth);
+                                if(lockLoading) lockLoading.classList.add('hidden');
+                                if(lockContent) {
+                                    lockContent.classList.remove('hidden');
+                                    lockContent.classList.add('flex');
                                 }
+                                if(lockErrorArea) lockErrorArea.classList.remove('hidden');
+                                if(lockErrorMsg) lockErrorMsg.innerText = "Erro ao acessar o banco de dados de segurança.";
                             }
-                        });
+
+                        } else {
+                            // NINGUÉM LOGADO
+                            if(lockLoading) lockLoading.classList.add('hidden');
+                            if(lockContent) {
+                                lockContent.classList.remove('hidden');
+                                lockContent.classList.add('flex');
+                            }
+                            
+                            // SÓ APAGA O ERRO SE NÃO FOR UMA EXPULSÃO!
+                            if(lockErrorArea && !window.isKickingOut) {
+                                lockErrorArea.classList.add('hidden');
+                            }
+                            window.isKickingOut = false; // Reseta a flag
+                            
+                            const appNode = document.getElementById('app-layout');
+                            if (appNode) appNode.remove();
+                            
+                            if(lockScreen) lockScreen.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+                        }
                     });
-                } catch(e) { console.error("Erro Firebase", e); UI.toast("Erro na conexão Cloud", "error"); }
+                } catch(e) { 
+                    console.error("Erro Firebase", e); 
+                }
             },
             
             incrementStreak() { this.save(); },
@@ -5750,20 +5904,40 @@
         };
 
         // =================================================================
-        // AUTH
+        // AUTH (SISTEMA DE POPUP COM ESCOLHA OBRIGATÓRIA DE CONTA)
         // =================================================================
         window.Auth = {
             login() {
                 if(Store.firebase.auth) {
                     const provider = new GoogleAuthProvider();
-                    signInWithPopup(Store.firebase.auth, provider)
-                        .then((result) => {
-                            UI.toast("Conectado: " + result.user.displayName, "success");
-                            // Recarrega para garantir sync limpo se necessário, ou deixa o listener lidar
-                        })
-                        .catch(e => UI.toast("Erro login Google: " + e.message, "error"));
+                    
+                    // A MÁGICA CONTINUA AQUI: Obriga o Google a mostrar a lista de e-mails
+                    provider.setCustomParameters({
+                        prompt: 'select_account'
+                    });
+                    
+                    const lockBtn = document.querySelector('#lock-content button');
+                    const errArea = document.getElementById('lock-error-area'); 
+                    
+                    if(errArea) errArea.classList.add('hidden');
+
+                    const originalHtml = lockBtn ? lockBtn.innerHTML : '';
+                    if(lockBtn) {
+                        lockBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> Conectando...';
+                        lockBtn.disabled = true;
+                    }
+
+                    signInWithPopup(Store.firebase.auth, provider).catch(e => {
+                        if(lockBtn) {
+                            lockBtn.innerHTML = originalHtml;
+                            lockBtn.disabled = false;
+                        }
+                        if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+                            UI.toast("Erro no login: " + e.message, "error");
+                        }
+                    });
                 } else {
-                    UI.toast("Erro no módulo Auth", "error");
+                    UI.toast("Servidor de autenticação offline.", "error");
                 }
             },
             logout() {
@@ -5791,9 +5965,6 @@
                 document.getElementById('stat-lvl-display').innerText = state.user.level;
                 document.getElementById('stat-xp-total').innerText = `${UI.formatNumber(state.user.xp)} XP Total`;
 
-                // ==========================================
-                // MÁGICA DO FILTRO DE TEMPO
-                // ==========================================
                 let limitTimestamp = 0;
                 if (filterDays !== 'all') {
                     const limitDate = new Date();
@@ -5801,7 +5972,6 @@
                     limitTimestamp = limitDate.getTime();
                 }
 
-                // Função ninja que extrai a data de criação direto do ID (ex: 'act-17000000000')
                 const getCreationTime = (id) => {
                     if (!id) return 0;
                     if (typeof id === 'number') return id;
@@ -5979,32 +6149,70 @@
                 return new Promise((resolve) => {
                     const modal = document.getElementById('modal-alert');
                     document.getElementById('alert-title').innerText = title;
-                    document.getElementById('alert-message').innerHTML = message; // Aceita HTML para pular linhas (<br>)
+                    
+                    // CORRIGIDO: innerHTML permite ler <b>, <br>, etc.
+                    document.getElementById('alert-message').innerHTML = message; 
                     
                     const iconEl = document.getElementById('alert-icon');
                     
-                    // Muda as cores dependendo do tipo de aviso
                     if (type === 'error') {
                         iconEl.className = "w-16 h-16 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-4 text-3xl";
                         iconEl.innerHTML = '<i class="ph-bold ph-x-circle"></i>';
                     } else if (type === 'warning') {
                         iconEl.className = "w-16 h-16 rounded-full bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 text-orange-500 flex items-center justify-center mx-auto mb-4 text-3xl";
                         iconEl.innerHTML = '<i class="ph-bold ph-warning"></i>';
-                    } else { // info ou success
+                    } else { 
                         iconEl.className = "w-16 h-16 rounded-full bg-brand-50 dark:bg-brand-500/10 border border-brand-100 dark:border-brand-500/20 text-brand-500 flex items-center justify-center mx-auto mb-4 text-3xl";
                         iconEl.innerHTML = '<i class="ph-bold ph-info"></i>';
                     }
 
                     const btnOk = document.getElementById('btn-alert-ok');
                     
-                    // Limpa eventos antigos
                     const cleanup = () => {
                         btnOk.onclick = null;
                         modal.onclose = null;
                     };
 
                     btnOk.onclick = () => { cleanup(); modal.close(); resolve(); };
-                    modal.onclose = () => { cleanup(); resolve(); }; // Caso aperte "ESC"
+                    modal.onclose = () => { cleanup(); resolve(); };
+
+                    modal.showModal();
+                });
+            },
+
+            confirm(title, message, btnText = "Confirmar", isDanger = true) {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('modal-confirm');
+                    document.getElementById('confirm-title').innerText = title;
+                    
+                    // CORRIGIDO: Aqui estava innerText, por isso não lia o negrito!
+                    document.getElementById('confirm-message').innerHTML = message; 
+                    
+                    const btnAction = document.getElementById('btn-confirm-action');
+                    const btnCancel = document.getElementById('btn-confirm-cancel');
+                    const iconEl = document.getElementById('confirm-icon');
+                    
+                    btnAction.innerText = btnText;
+
+                    if (isDanger) {
+                        btnAction.className = "flex-1 bg-red-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-red-500/30 hover:scale-105 transition-all";
+                        iconEl.className = "w-16 h-16 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-4 text-3xl";
+                        iconEl.innerHTML = '<i class="ph-bold ph-trash"></i>';
+                    } else {
+                        btnAction.className = "flex-1 bg-brand-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-brand-500/30 hover:scale-105 transition-all";
+                        iconEl.className = "w-16 h-16 rounded-full bg-brand-50 dark:bg-brand-500/10 border border-brand-100 dark:border-brand-500/20 text-brand-500 flex items-center justify-center mx-auto mb-4 text-3xl";
+                        iconEl.innerHTML = '<i class="ph-bold ph-question"></i>';
+                    }
+
+                    const cleanup = () => {
+                        btnAction.onclick = null;
+                        btnCancel.onclick = null;
+                        modal.onclose = null;
+                    };
+
+                    btnAction.onclick = () => { cleanup(); modal.close(); resolve(true); };
+                    btnCancel.onclick = () => { cleanup(); modal.close(); resolve(false); };
+                    modal.onclose = () => { cleanup(); resolve(false); }; 
 
                     modal.showModal();
                 });
@@ -6181,43 +6389,6 @@
                         }
                     }, 300);
                 }, 3500);
-            },
-            confirm(title, message, btnText = "Confirmar", isDanger = true) {
-                return new Promise((resolve) => {
-                    const modal = document.getElementById('modal-confirm');
-                    document.getElementById('confirm-title').innerText = title;
-                    document.getElementById('confirm-message').innerText = message;
-                    
-                    const btnAction = document.getElementById('btn-confirm-action');
-                    const btnCancel = document.getElementById('btn-confirm-cancel');
-                    const iconEl = document.getElementById('confirm-icon');
-                    
-                    btnAction.innerText = btnText;
-
-                    // Muda as cores dependendo se é uma ação perigosa (excluir) ou normal (iniciar/finalizar)
-                    if (isDanger) {
-                        btnAction.className = "flex-1 bg-red-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-red-500/30 hover:scale-105 transition-all";
-                        iconEl.className = "w-16 h-16 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 text-red-500 flex items-center justify-center mx-auto mb-4 text-3xl";
-                        iconEl.innerHTML = '<i class="ph-bold ph-trash"></i>';
-                    } else {
-                        btnAction.className = "flex-1 bg-brand-600 text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-brand-500/30 hover:scale-105 transition-all";
-                        iconEl.className = "w-16 h-16 rounded-full bg-brand-50 dark:bg-brand-500/10 border border-brand-100 dark:border-brand-500/20 text-brand-500 flex items-center justify-center mx-auto mb-4 text-3xl";
-                        iconEl.innerHTML = '<i class="ph-bold ph-question"></i>';
-                    }
-
-                    // Limpa eventos antigos para não encavalar cliques
-                    const cleanup = () => {
-                        btnAction.onclick = null;
-                        btnCancel.onclick = null;
-                        modal.onclose = null;
-                    };
-
-                    btnAction.onclick = () => { cleanup(); modal.close(); resolve(true); };
-                    btnCancel.onclick = () => { cleanup(); modal.close(); resolve(false); };
-                    modal.onclose = () => { cleanup(); resolve(false); }; // Caso aperte "ESC"
-
-                    modal.showModal();
-                });
             },
 
             prompt(title, placeholder = "", defaultValue = "") {
@@ -7635,8 +7806,6 @@
             }
         };
 
-setTimeout(() => MindMap.init(), 500);
-
         // =================================================================
         // LIXEIRA & SETTINGS
         // =================================================================
@@ -7782,7 +7951,6 @@ setTimeout(() => MindMap.init(), 500);
                 }
             },
 
-            // Adicione isso dentro do const Settings = { ... } (pode ser logo abaixo de saveAiModel)
             saveCustomTitle() {
                 const novoTitulo = document.getElementById('input-custom-title').value.trim();
                 if (novoTitulo) {
@@ -8076,6 +8244,19 @@ setTimeout(() => MindMap.init(), 500);
                 }).join('');
                 
                 this.updateQuizManageButton();
+
+                setTimeout(() => {
+                    if (window.renderMathInElement) {
+                        try {
+                            renderMathInElement(list, {
+                                delimiters: [
+                                    {left: "$$", right: "$$", display: true}, {left: "\\[", right: "\\]", display: true},
+                                    {left: "$", right: "$", display: false}, {left: "\\(", right: "\\)", display: false}
+                                ], throwOnError: false, strict: "ignore"
+                            });
+                        } catch(e) {}
+                    }
+                }, 100);
             },
 
             // --- SISTEMA DE SELEÇÃO E EXCLUSÃO DO BANCO ---
@@ -8640,7 +8821,7 @@ setTimeout(() => MindMap.init(), 500);
         window.toggleZen = () => {
             const sb = document.getElementById('sidebar'); const hdr = document.querySelector('header'); const menu = document.getElementById('sidebarMenu');
             if(sb.classList.contains('zen-hidden')) { sb.classList.remove('zen-hidden'); hdr.classList.remove('zen-hidden'); menu.classList.remove('hidden'); UI.toast("Modo Zen Desativado"); } 
-            else { sb.classList.add('zen-hidden'); UI.toast("Modo Zen Ativado (Z para sair)"); menu.classList.add('hidden');}
+            else { sb.classList.add('zen-hidden'); UI.toast("Modo Zen Ativado"); menu.classList.add('hidden');}
         };
         window.distributePomodoro = async () => {
             const min = await UI.prompt("Distribuir Tempo", "Tempo total em minutos", "120"); 
@@ -9004,7 +9185,7 @@ setTimeout(() => MindMap.init(), 500);
         };
 
         // =================================================================
-        // PROFESSOR IA (GEMMA 3) - MOTOR BLINDADO
+        // PROFESSOR IA (GEMMA 3) - MOTOR COM ARTIFACTS E EDIÇÃO LIMPA
         // =================================================================
         window.ProfessorIA = {
             hasAcceptedWarning: false,
@@ -9012,16 +9193,17 @@ setTimeout(() => MindMap.init(), 500);
             activeChatId: null,
             selectedImageBase64: null,
             selectedImageMime: null,
+            internalAttachments: [], 
             rawMessages: {},
             
             initialHistory: [
                 { 
                     role: "user", 
-                    parts: [{ text: "REGRA ABSOLUTA: Você é o 'Professor IA' no app Orbit. Ajude o aluno APENAS com assuntos acadêmicos. Se eu enviar uma imagem, analise com perfeição. Use a linguagem Markdown. Para matemática, use LaTeX com os delimitadores $ para inline e $$ para blocos." }] 
+                    parts: [{ text: "REGRA ABSOLUTA: Você é o 'Professor IA' no app Orbit. Ajude o aluno APENAS com assuntos acadêmicos.\n\nREGRAS DE MATEMÁTICA: Use LaTeX ($ inline e $$ bloco). Variáveis com subscrito (ex: t_som) obrigatoriamente com chaves no LaTeX: $t_{som}$.\n\nREGRAS DE IMAGENS E DESENHOS: Você POSSUI um motor de renderização interno no app! Se o aluno pedir para desenhar ou gerar diagrama, É PROIBIDO dizer que você é um modelo de texto. Você DEVE criar a imagem gerando um bloco de código ```svg (geometria, física, artes) ou ```html (tabelas e cards). Não peça desculpas, não explique limitações, apenas entregue o código perfeito." }] 
                 },
                 { 
                     role: "model", 
-                    parts: [{ text: "Entendido. Como Professor IA, analisarei textos e imagens com precisão. Usarei formatação markdown limpa e LaTeX ($ e $$) para matemática." }] 
+                    parts: [{ text: "Compreendido! Responderei usando LaTeX para matemática. Se o aluno pedir um desenho, gráfico ou diagrama, atuarei como um gerador visual criando a ilustração com códigos ```svg ou ```html de altíssima qualidade e design moderno, sem dar desculpas." }] 
                 }
             ],
             chatHistory: [],
@@ -9048,58 +9230,36 @@ setTimeout(() => MindMap.init(), 500);
                 window.router('professor');
             },
 
-            // --- CONTROLE DA SIDEBAR (MOBILE E DESKTOP) ---
             toggleSidebar() {
                 const sb = document.getElementById('prof-sidebar');
                 const overlay = document.getElementById('prof-mobile-overlay');
-                
                 if (!sb) return;
-
-                // Verifica se é tela de celular (< 768px) ou computador (>= 768px)
                 if (window.innerWidth < 768) {
-                    // LÓGICA MOBILE: Desliza o menu pra dentro/fora
-                    if (sb.classList.contains('-translate-x-[120%]')) {
-                        sb.classList.remove('-translate-x-[120%]');
-                        if(overlay) overlay.classList.remove('hidden');
-                    } else {
-                        sb.classList.add('-translate-x-[120%]');
-                        if(overlay) overlay.classList.add('hidden');
-                    }
+                    if (sb.classList.contains('-translate-x-[120%]')) { sb.classList.remove('-translate-x-[120%]'); if(overlay) overlay.classList.remove('hidden'); } 
+                    else { sb.classList.add('-translate-x-[120%]'); if(overlay) overlay.classList.add('hidden'); }
                 } else {
-                    // LÓGICA DESKTOP: Esconde/Mostra a barra lateral trocando o 'flex' por 'hidden'
-                    if (sb.classList.contains('md:hidden')) {
-                        sb.classList.remove('md:hidden');
-                        sb.classList.add('md:flex');
-                    } else {
-                        sb.classList.add('md:hidden');
-                        sb.classList.remove('md:flex');
-                    }
+                    if (sb.classList.contains('md:hidden')) { sb.classList.remove('md:hidden'); sb.classList.add('md:flex'); } 
+                    else { sb.classList.add('md:hidden'); sb.classList.remove('md:flex'); }
                 }
             },
 
             forceCloseSidebar() {
                 const sb = document.getElementById('prof-sidebar');
                 const overlay = document.getElementById('prof-mobile-overlay');
-                
-                // Só força o fechamento se for Mobile. No PC, deixamos o menu aberto para o aluno navegar mais rápido.
                 if (window.innerWidth < 768) {
-                    if (sb && !sb.classList.contains('-translate-x-[120%]')) {
-                        sb.classList.add('-translate-x-[120%]');
-                    }
+                    if (sb && !sb.classList.contains('-translate-x-[120%]')) sb.classList.add('-translate-x-[120%]');
                     if (overlay) overlay.classList.add('hidden');
                 }
             },
 
-            // --- RENOMEAR CHAT ---
             renameChat() {
                 const chat = Store.state.profChats.find(c => c.id === this.activeChatId);
                 if(!chat) return;
-                
                 UI.prompt("Renomear Conversa", "Qual o novo nome deste assunto?", chat.title).then(newName => {
                     if(newName && newName.trim() !== '') {
                         chat.title = newName.trim();
                         document.getElementById('prof-current-chat-title').innerText = chat.title;
-                        this.saveCurrentChatState(); // Salva forçado
+                        this.saveCurrentChatState();
                         UI.toast("Conversa renomeada com sucesso!", "success");
                     }
                 });
@@ -9107,33 +9267,20 @@ setTimeout(() => MindMap.init(), 500);
 
             createNewChat(render = true) {
                 const newId = 'chat-' + Date.now();
-                Store.state.profChats.unshift({
-                    id: newId,
-                    title: "Nova Conversa",
-                    updatedAt: Date.now(),
-                    history: JSON.parse(JSON.stringify(this.initialHistory))
-                });
-                
+                Store.state.profChats.unshift({ id: newId, title: "Nova Conversa", updatedAt: Date.now(), history: JSON.parse(JSON.stringify(this.initialHistory)) });
                 this.activeChatId = newId;
                 Store.save();
-                
-                if(render) {
-                    this.loadChat(newId);
-                    this.forceCloseSidebar();
-                }
+                if(render) { this.loadChat(newId); this.forceCloseSidebar(); }
             },
 
             loadChat(id) {
                 this.activeChatId = id;
                 const chat = Store.state.profChats.find(c => c.id === id);
-                
-                // Força uma cópia real do histórico para evitar bugs de referência
-                this.chatHistory = chat && chat.history 
-                    ? JSON.parse(JSON.stringify(chat.history)) 
-                    : JSON.parse(JSON.stringify(this.initialHistory));
-                
+                this.chatHistory = chat && chat.history ? JSON.parse(JSON.stringify(chat.history)) : JSON.parse(JSON.stringify(this.initialHistory));
                 this.rawMessages = {};
                 this.removeImage();
+                this.internalAttachments = []; 
+                this.renderAttachmentBadges(); 
                 
                 const titleEl = document.getElementById('prof-current-chat-title');
                 if(titleEl) titleEl.innerText = chat ? chat.title : 'Nova Conversa';
@@ -9144,60 +9291,60 @@ setTimeout(() => MindMap.init(), 500);
                 
                 let hasVisibleMessages = false;
                 
-                // Reconstrói mensagens pulando as regras de sistema (índice 0 e 1)
                 for (let i = 2; i < this.chatHistory.length; i++) {
                     hasVisibleMessages = true;
                     const msg = this.chatHistory[i];
                     
                     if (msg.parts && msg.parts.length > 0) {
                         const textParts = msg.parts.map(p => p.text || '').join('\n').trim();
-                        const msgId = this.appendMessage(msg.role === 'user' ? 'user' : 'model', textParts, false);
-                        
+                        const msgId = this.appendMessage(msg.role === 'user' ? 'user' : 'model', textParts, false, null, i);
                         if (msg.role === 'model') {
                             this.rawMessages[msgId] = textParts;
-                            this.injectCopyButton(msgId);
+                            this.injectActions(msgId, i);
                         }
                     }
                 }
 
                 if (!hasVisibleMessages) {
-                    box.innerHTML = `
-                        <div class="flex self-start max-w-[85%] animate-fade-in">
-                            <div class="w-8 h-8 rounded-full bg-brand-500 text-white flex items-center justify-center shrink-0 mt-1 mr-3 shadow-md"><i class="ph-bold ph-robot"></i></div>
-                            <div class="bg-bg-surface border border-white/5 text-txt-main px-5 py-3.5 rounded-2xl rounded-tl-none shadow-sm text-sm leading-relaxed">
-                                Olá! Sou o Professor IA. Qual a sua dúvida? Fórmulas e fotos do caderno são bem-vindas!
-                            </div>
-                        </div>
-                    `;
+                    box.innerHTML = `<div class="flex self-start max-w-[85%] animate-fade-in"><div class="w-8 h-8 rounded-full bg-brand-500 text-white flex items-center justify-center shrink-0 mt-1 mr-3 shadow-md"><i class="ph-bold ph-robot"></i></div><div class="bg-bg-surface border border-white/5 text-txt-main px-5 py-3.5 rounded-2xl rounded-tl-none shadow-sm text-sm leading-relaxed">Olá! Sou o Professor IA. Qual a sua dúvida? Posso desenhar diagramas e mapas para você!</div></div>`;
                 }
 
                 this.renderChatList();
-                
-                // Aplica formatação matemática no chat inteiro
                 setTimeout(() => {
                     if (window.renderMathInElement) {
-                        try {
-                            renderMathInElement(box, {
-                                delimiters: [
-                                    {left: "$$", right: "$$", display: true}, {left: "\\[", right: "\\]", display: true},
-                                    {left: "$", right: "$", display: false}, {left: "\\(", right: "\\)", display: false}
-                                ], throwOnError: false
-                            });
-                        } catch (e) { console.error("KaTeX Erro:", e); }
+                        try { renderMathInElement(box, { delimiters: [ {left: "$$", right: "$$", display: true}, {left: "\\[", right: "\\]", display: true}, {left: "$", right: "$", display: false}, {left: "\\(", right: "\\)", display: false} ], throwOnError: false, strict: "ignore" }); } catch (e) {}
                     }
+                    if (window.hljs) box.querySelectorAll('pre code').forEach((block) => { hljs.highlightElement(block); });
                     box.scrollTop = box.scrollHeight;
                 }, 100);
+            },
+
+            scrollToBottom() {
+                const box = document.getElementById('prof-chat-box');
+                if (box) box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
+            },
+
+            handleScroll() {
+                const box = document.getElementById('prof-chat-box');
+                const btn = document.getElementById('btn-scroll-bottom');
+                if (!box || !btn) return;
+                const isNearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 100;
+                if (isNearBottom) {
+                    btn.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+                    btn.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+                } else {
+                    btn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+                    btn.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+                }
             },
 
             async deleteChat(id, event) {
                 event.stopPropagation(); 
                 if(await UI.confirm("Apagar Chat", "Tem certeza que deseja excluir permanentemente esta conversa?", "Apagar", true)) {
                     Store.state.profChats = Store.state.profChats.filter(c => c.id !== id);
-                    
                     if(Store.state.profChats.length === 0) this.createNewChat(true);
                     else if (this.activeChatId === id) this.loadChat(Store.state.profChats[0].id);
                     else this.renderChatList();
-                    
                     Store.save();
                 }
             },
@@ -9205,50 +9352,22 @@ setTimeout(() => MindMap.init(), 500);
             renderChatList(query = '') {
                 const list = document.getElementById('prof-chat-list');
                 if(!list || !Store.state.profChats) return;
-
                 let chats = Store.state.profChats;
                 if(query) chats = chats.filter(c => c.title.toLowerCase().includes(query.toLowerCase()));
-
-                if(chats.length === 0) {
-                    list.innerHTML = `<div class="text-center text-xs text-txt-muted p-4 italic opacity-70">Nenhuma conversa encontrada.</div>`;
-                    return;
-                }
-
+                if(chats.length === 0) { list.innerHTML = `<div class="text-center text-xs text-txt-muted p-4 italic opacity-70">Nenhuma conversa encontrada.</div>`; return; }
                 list.innerHTML = chats.map(c => {
                     const isActive = c.id === this.activeChatId;
-                    const style = isActive 
-                        ? 'bg-brand-500/10 border-brand-500 text-brand-600 shadow-sm' 
-                        : 'bg-bg-main border-white/5 text-txt-muted hover:border-brand-500/50 hover:text-txt-main';
-                    
+                    const style = isActive ? 'bg-brand-500/10 border-brand-500 text-brand-600 shadow-sm' : 'bg-bg-main border-white/5 text-txt-muted hover:border-brand-500/50 hover:text-txt-main';
                     const dateObj = new Date(c.updatedAt);
                     const dateStr = dateObj.toLocaleDateString() === new Date().toLocaleDateString() ? dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : dateObj.toLocaleDateString();
-
-                    // O onclick agora força o fechamento do sidebar imediatamente após abrir o chat
-                    return `
-                    <div onclick="ProfessorIA.loadChat('${c.id}'); ProfessorIA.forceCloseSidebar();" class="p-3 rounded-2xl border ${style} cursor-pointer transition-all flex flex-col gap-1 relative group">
-                        <button onclick="ProfessorIA.deleteChat('${c.id}', event)" class="absolute top-2 right-2 text-txt-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1" title="Apagar">
-                            <i class="ph-bold ph-trash"></i>
-                        </button>
-                        <h4 class="font-bold text-sm truncate pr-6">${c.title}</h4>
-                        <span class="text-[10px] uppercase font-bold tracking-wider opacity-60">${dateStr}</span>
-                    </div>
-                    `;
+                    return `<div onclick="ProfessorIA.loadChat('${c.id}'); ProfessorIA.forceCloseSidebar();" class="p-3 rounded-2xl border ${style} cursor-pointer transition-all flex flex-col gap-1 relative group"><button onclick="ProfessorIA.deleteChat('${c.id}', event)" class="absolute top-2 right-2 text-txt-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1" title="Apagar"><i class="ph-bold ph-trash"></i></button><h4 class="font-bold text-sm truncate pr-6">${c.title}</h4><span class="text-[10px] uppercase font-bold tracking-wider opacity-60">${dateStr}</span></div>`;
                 }).join('');
             },
 
-            // --- LÓGICA DE SALVAMENTO BLINDADA ---
             cleanHistoryForStorage() {
-                // Cria um clone profundo absoluto para evitar vazamento de memória
                 const historyClone = JSON.parse(JSON.stringify(this.chatHistory));
-                
                 return historyClone.map(msg => {
-                    if (msg.parts) {
-                        msg.parts = msg.parts.map(p => {
-                            // Substitui imagens pesadas por um texto fixo
-                            if (p.inline_data) return { text: "[Imagem Anexada pelo Aluno]" };
-                            return p;
-                        });
-                    }
+                    if (msg.parts) { msg.parts = msg.parts.map(p => { if (p.inline_data) return { text: "[Imagem Anexada pelo Aluno]" }; return p; }); }
                     return msg;
                 });
             },
@@ -9259,15 +9378,186 @@ setTimeout(() => MindMap.init(), 500);
                     Store.state.profChats[chatIndex].history = this.cleanHistoryForStorage();
                     Store.state.profChats[chatIndex].updatedAt = Date.now();
                     Store.save();
-                    this.renderChatList(); // Atualiza a barra lateral (data e titulo)
+                    this.renderChatList();
                 }
+            },
+
+            toggleAttachMenu() {
+                const menu = document.getElementById('prof-attach-menu');
+                const icon = document.getElementById('icon-toggle-attach');
+                if (menu.classList.contains('hidden')) {
+                    menu.classList.remove('hidden');
+                    icon.classList.add('rotate-45');
+                } else {
+                    menu.classList.add('hidden');
+                    icon.classList.remove('rotate-45');
+                }
+            },
+
+            promptGenerateImage() {
+                UI.prompt("Gerar Diagrama com IA", "O que você quer desenhar? (Ex: Gráfico de MRU, Célula animal)", "").then(text => {
+                    if (text && text.trim() !== '') {
+                        const input = document.getElementById('prof-chat-input');
+                        input.value = `[GERAR_DIAGRAMA]: ${text.trim()}`;
+                        this.sendMessage();
+                    }
+                });
+            },
+
+            openAttachModal() {
+                document.getElementById('modal-prof-attach').showModal();
+                this.renderAttachList('quiz'); 
+            },
+
+            renderAttachList(type) {
+                const listEl = document.getElementById('prof-attach-list');
+                const tabs = ['quiz', 'map', 'deck', 'task'];
+                
+                tabs.forEach(t => {
+                    const btn = document.getElementById('tab-attach-' + t);
+                    if(btn) {
+                        if(t === type) btn.className = "flex-1 py-2.5 px-3 rounded-lg text-sm font-bold bg-brand-50 text-brand-600 border border-brand-200/50 transition-all shadow-sm whitespace-nowrap";
+                        else btn.className = "flex-1 py-2.5 px-3 rounded-lg text-sm font-bold text-txt-muted hover:text-txt-main transition-all border border-transparent whitespace-nowrap";
+                    }
+                });
+
+                let html = '';
+                if (type === 'quiz') {
+                    const quiz = Store.state.quiz || [];
+                    if(quiz.length === 0) { html = '<p class="text-center text-txt-muted text-sm mt-10 italic">Nenhuma questão salva.</p>'; }
+                    else {
+                        html = quiz.map(q => `
+                            <div class="bg-bg-panel p-4 rounded-xl border border-white/5 flex justify-between items-center gap-4 hover:border-brand-500/50 transition-colors shadow-sm">
+                                <div class="flex-1 min-w-0"><span class="text-[10px] font-bold text-brand-500 uppercase tracking-widest mb-1 block bg-brand-500/10 px-2 py-0.5 rounded w-max">${q.topic || 'Geral'}</span><p class="text-sm text-txt-main font-medium truncate pr-4">${q.text}</p></div>
+                                <button onclick="ProfessorIA.attachItem('quiz', '${q.id}')" class="shrink-0 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-md active:scale-95"><i class="ph-bold ph-plus"></i> Add</button>
+                            </div>
+                        `).join('');
+                    }
+                } else if (type === 'map') {
+                    const maps = Store.state.mindmaps || [];
+                    if(maps.length === 0) { html = '<p class="text-center text-txt-muted text-sm mt-10 italic">Nenhum mapa mental.</p>'; }
+                    else {
+                        html = maps.map(m => `
+                            <div class="bg-bg-panel p-4 rounded-xl border border-white/5 flex justify-between items-center gap-4 hover:border-brand-500/50 transition-colors shadow-sm">
+                                <div class="flex-1 min-w-0"><span class="text-[10px] font-bold text-brand-500 uppercase tracking-widest mb-1 block bg-brand-500/10 px-2 py-0.5 rounded w-max">${m.subject || 'Geral'}</span><p class="text-sm text-txt-main font-bold truncate">${m.name}</p></div>
+                                <button onclick="ProfessorIA.attachItem('map', '${m.id}')" class="shrink-0 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-md active:scale-95"><i class="ph-bold ph-plus"></i> Add</button>
+                            </div>
+                        `).join('');
+                    }
+                } else if (type === 'deck') {
+                    const decks = Store.state.decks || [];
+                    if(decks.length === 0) { html = '<p class="text-center text-txt-muted text-sm mt-10 italic">Nenhum baralho criado.</p>'; }
+                    else {
+                        html = decks.map(d => `
+                            <div class="bg-bg-panel p-4 rounded-xl border border-white/5 flex justify-between items-center gap-4 hover:border-brand-500/50 transition-colors shadow-sm">
+                                <div class="flex-1 min-w-0"><p class="text-sm text-txt-main font-bold truncate">${d.name}</p><p class="text-[10px] text-txt-muted">${d.cards.length} cartas</p></div>
+                                <button onclick="ProfessorIA.attachItem('deck', '${d.id}')" class="shrink-0 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-md active:scale-95"><i class="ph-bold ph-plus"></i> Add</button>
+                            </div>
+                        `).join('');
+                    }
+                } else if (type === 'task') {
+                    const acts = Store.state.activities || [];
+                    const pendingActs = acts.filter(a => !a.completed);
+                    if(pendingActs.length === 0) { html = '<p class="text-center text-txt-muted text-sm mt-10 italic">Nenhuma atividade pendente.</p>'; }
+                    else {
+                        html = `
+                            <div class="bg-bg-panel p-4 rounded-xl border border-brand-500/30 flex justify-between items-center gap-4 shadow-sm mb-4">
+                                <div class="flex-1 min-w-0"><p class="text-sm text-brand-500 font-bold truncate"><i class="ph-bold ph-list-checks"></i> Enviar TODAS as pendências juntas</p></div>
+                                <button onclick="ProfessorIA.attachItem('all_tasks', null)" class="shrink-0 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-md active:scale-95"><i class="ph-bold ph-plus"></i> Add Tudo</button>
+                            </div>
+                        `;
+                        html += pendingActs.map(t => `
+                            <div class="bg-bg-panel p-4 rounded-xl border border-white/5 flex justify-between items-center gap-4 hover:border-brand-500/50 transition-colors shadow-sm">
+                                <div class="flex-1 min-w-0"><span class="text-[10px] font-bold text-txt-muted uppercase tracking-widest mb-1 block bg-bg-main px-2 py-0.5 rounded w-max">${t.subject}</span><p class="text-sm text-txt-main font-medium truncate pr-4">${t.title}</p></div>
+                                <button onclick="ProfessorIA.attachItem('task', '${t.id}')" class="shrink-0 bg-bg-surface border border-white/10 hover:border-brand-500 text-txt-main px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95"><i class="ph-bold ph-plus"></i> Add</button>
+                            </div>
+                        `).join('');
+                    }
+                }
+                listEl.innerHTML = html;
+            },
+
+            attachItem(type, id) {
+                let content = "";
+                let shortTitle = "";
+                let icon = "";
+
+                if (type === 'quiz') {
+                    const q = Store.state.quiz.find(item => item.id == id);
+                    if(q) {
+                        shortTitle = `Questão: ${q.topic}`;
+                        icon = "ph-exam";
+                        let opts = q.options.map((o, i) => `${String.fromCharCode(65+i)}) ${o}`).join('\n');
+                        content = `[Questão de ${q.topic}]\nPergunta: ${q.text}\nAlternativas:\n${opts}\nGabarito Oficial: ${String.fromCharCode(65+q.correctIndex)})\nExplicação Antiga: ${q.explanation || 'Nenhuma'}\n`;
+                    }
+                } else if (type === 'map') {
+                    const m = Store.state.mindmaps.find(item => item.id == id);
+                    if(m) {
+                        shortTitle = `Mapa: ${m.name}`;
+                        icon = "ph-tree-structure";
+                        let nodesText = m.nodes.map(n => `- ${n.text}`).join('\n');
+                        content = `[Mapa Mental: ${m.name}]\nConteúdo:\n${nodesText}\n`;
+                    }
+                } else if (type === 'deck') {
+                    const d = Store.state.decks.find(item => item.id == id);
+                    if(d) {
+                        shortTitle = `Baralho: ${d.name}`;
+                        icon = "ph-cards";
+                        let cardsTxt = d.cards.map((c, i) => `Carta ${i+1}: Q: ${c.front} | R: ${c.back}`).join('\n');
+                        content = `[Baralho de Flashcards: ${d.name}]\n${cardsTxt}\n`;
+                    }
+                } else if (type === 'task') {
+                    const t = Store.state.activities.find(item => item.id == id);
+                    if(t) {
+                        shortTitle = `Tarefa: ${t.subject}`;
+                        icon = "ph-check-square-offset";
+                        content = `[Tarefa de ${t.subject}]\nFazer: ${t.title}\nPrazo: ${t.dueDate || 'Sem prazo'}\nPrioridade: ${t.priority}\n`;
+                    }
+                } else if (type === 'all_tasks') {
+                    const pending = Store.state.activities.filter(a => !a.completed);
+                    shortTitle = "Todas as Tarefas";
+                    icon = "ph-list-checks";
+                    content = `[LISTA DE TODAS AS TAREFAS PENDENTES DO ALUNO]\n` + pending.map(t => `- [${t.subject}] ${t.title} (Prazo: ${t.dueDate || 'Nenhum'})`).join('\n');
+                }
+
+                if (content) {
+                    this.internalAttachments.push({ type, id, title: shortTitle, content, icon });
+                    this.renderAttachmentBadges();
+                    document.getElementById('modal-prof-attach').close();
+                    UI.toast("Anexado ao prompt!", "success");
+                    document.getElementById('prof-chat-input').focus();
+                }
+            },
+
+            removeInternalAttachment(index) {
+                this.internalAttachments.splice(index, 1);
+                this.renderAttachmentBadges();
+            },
+
+            renderAttachmentBadges() {
+                const container = document.getElementById('prof-internal-attachments');
+                if (!container) return;
+                if (this.internalAttachments.length === 0) {
+                    container.classList.add('hidden');
+                    container.innerHTML = '';
+                    return;
+                }
+                container.classList.remove('hidden');
+                container.innerHTML = this.internalAttachments.map((att, i) => `
+                    <div class="flex items-center gap-2 bg-brand-500/10 border border-brand-500/30 text-brand-600 px-3 py-1.5 rounded-xl shadow-sm animate-scale-in">
+                        <i class="ph-fill ${att.icon} text-sm"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest truncate max-w-[120px]">${att.title}</span>
+                        <button onclick="ProfessorIA.removeInternalAttachment(${i})" class="w-5 h-5 rounded-full hover:bg-brand-500 hover:text-white flex items-center justify-center transition-colors shrink-0 ml-1">
+                            <i class="ph-bold ph-x text-[10px]"></i>
+                        </button>
+                    </div>
+                `).join('');
             },
 
             handleImageSelect(input) {
                 const file = input.files[0];
                 if (!file) return;
-                if (!file.type.startsWith('image/')) { UI.toast("Apenas imagens são permitidas.", "error"); return; }
-
+                if (!file.type.startsWith('image/')) { UI.toast("Apenas imagens.", "error"); return; }
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     this.selectedImageBase64 = e.target.result;
@@ -9289,20 +9579,108 @@ setTimeout(() => MindMap.init(), 500);
             copyText(msgId) {
                 const textToCopy = this.rawMessages[msgId];
                 if (textToCopy) {
-                    navigator.clipboard.writeText(textToCopy).then(() => UI.toast("Explicação copiada!", "success")).catch(() => UI.toast("Erro ao copiar.", "error"));
+                    navigator.clipboard.writeText(textToCopy).then(() => UI.toast("Copiado!", "success")).catch(() => UI.toast("Erro.", "error"));
                 }
+            },
+
+            editMessage(historyIndex) {
+                if (historyIndex === null || historyIndex === undefined) return;
+                const msg = this.chatHistory[historyIndex];
+                if (!msg || msg.role !== 'user') return;
+
+                let text = '';
+                msg.parts.forEach(p => { if (p.text) text += p.text; });
+
+                const corteAnexo = text.indexOf("[DADOS ANEXADOS PELO USUÁRIO PARA ANÁLISE]:");
+                if (corteAnexo !== -1) {
+                    text = text.substring(0, corteAnexo).trim();
+                }
+                text = text.replace("[Imagem Anexada pelo Aluno]", "").trim();
+
+                const bubble = document.getElementById(`msg-bubble-${historyIndex}`);
+                if (!bubble) return;
+
+                const editBtn = document.getElementById(`btn-edit-${historyIndex}`);
+                if(editBtn) editBtn.style.display = 'none';
+
+                bubble.className = "bg-bg-surface border border-brand-500 shadow-lg px-4 py-3 rounded-[20px] rounded-tr-none w-full md:min-w-[400px] flex flex-col gap-2 transition-all";
+                bubble.innerHTML = `
+                    <textarea id="edit-input-${historyIndex}" class="w-full bg-transparent text-txt-main text-sm outline-none resize-none custom-scrollbar min-h-[60px] font-medium" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); ProfessorIA.submitEdit(${historyIndex}); }">${text}</textarea>
+                    <div class="flex justify-end gap-2 mt-2 pt-2 border-t border-white/5">
+                        <button onclick="ProfessorIA.cancelEdit()" class="px-4 py-2 rounded-xl text-xs font-bold text-txt-muted hover:bg-bg-main transition-colors">Cancelar</button>
+                        <button onclick="ProfessorIA.submitEdit(${historyIndex})" class="px-5 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white hover:bg-brand-700 transition-colors shadow-sm">Atualizar</button>
+                    </div>
+                `;
+                
+                const textarea = document.getElementById(`edit-input-${historyIndex}`);
+                textarea.focus();
+                textarea.selectionStart = textarea.value.length;
+            },
+
+            cancelEdit() {
+                this.loadChat(this.activeChatId);
+            },
+
+            submitEdit(historyIndex) {
+                const textarea = document.getElementById(`edit-input-${historyIndex}`);
+                if (!textarea) return;
+                
+                let newText = textarea.value.trim();
+                if (!newText) return; 
+                
+                const oldMsg = this.chatHistory[historyIndex];
+                
+                let oldBase64 = null;
+                let oldMime = null;
+                oldMsg.parts.forEach(p => {
+                    if (p.inline_data) {
+                        oldBase64 = "data:" + p.inline_data.mime_type + ";base64," + p.inline_data.data;
+                        oldMime = p.inline_data.mime_type;
+                    }
+                });
+                const currentAttachments = oldMsg.orbit_attachments || [];
+
+                this.chatHistory = this.chatHistory.slice(0, historyIndex);
+
+                let fullPromptToAPI = newText;
+                if (currentAttachments.length > 0) {
+                    let hiddenContext = "\n\n[DADOS ANEXADOS PELO USUÁRIO PARA ANÁLISE]:\n";
+                    currentAttachments.forEach(att => { hiddenContext += `--- ${att.title} ---\n${att.content}\n\n`; });
+                    fullPromptToAPI += hiddenContext;
+                }
+
+                let userParts = [];
+                if (fullPromptToAPI) userParts.push({ text: fullPromptToAPI });
+                if (oldBase64) {
+                    userParts.push({ inline_data: { mime_type: oldMime, data: oldBase64.split(',')[1] } });
+                }
+
+                this.chatHistory.push({ role: "user", parts: userParts, orbit_attachments: currentAttachments });
+                this.saveCurrentChatState();
+                
+                this.loadChat(this.activeChatId);
+                this.triggerAI();
+            },
+
+            retryMessage(historyIndex) {
+                if (historyIndex === null || historyIndex === undefined) return;
+                this.chatHistory = this.chatHistory.slice(0, historyIndex);
+                this.saveCurrentChatState();
+                this.loadChat(this.activeChatId);
+                this.triggerAI();
+                UI.toast("A IA está repensando a resposta...", "info");
             },
 
             async sendMessage() {
                 if (this.isProcessing) return;
                 
                 const inputEl = document.getElementById('prof-chat-input');
-                const text = inputEl.value.trim();
+                let text = inputEl.value.trim();
                 const key = Store.state.settings.geminiKey;
 
-                if (!text && !this.selectedImageBase64) return;
+                if (!text && !this.selectedImageBase64 && this.internalAttachments.length === 0) return;
                 if (!key) {
-                    UI.alert("API Key Necessária", "Configure sua chave do Google (Gemini) nas configurações.", "warning").then(() => { window.openSettings(); Settings.tab('data'); });
+                    UI.alert("API Key Necessária", "Configure sua chave do Google nas configurações.", "warning").then(() => { window.openSettings(); Settings.tab('data'); });
                     return;
                 }
 
@@ -9311,19 +9689,32 @@ setTimeout(() => MindMap.init(), 500);
                 
                 const currentImgBase64 = this.selectedImageBase64;
                 const currentImgMime = this.selectedImageMime;
-                
-                this.appendMessage('user', text, false, currentImgBase64);
-                this.removeImage();
+                const currentAttachments = [...this.internalAttachments]; 
 
-                // 1. ADICIONA A PERGUNTA DO USUÁRIO
+                // Aqui nós guardamos apenas o texto cru (ex: [GERAR_DIAGRAMA]: tema) no histórico do app!
+                let fullPromptToAPI = text; 
+
+                if (currentAttachments.length > 0) {
+                    let hiddenContext = "\n\n[DADOS ANEXADOS PELO USUÁRIO PARA ANÁLISE]:\n";
+                    currentAttachments.forEach(att => { hiddenContext += `--- ${att.title} ---\n${att.content}\n\n`; });
+                    fullPromptToAPI += hiddenContext;
+                }
+                
+                const userIndex = this.chatHistory.length; 
+                this.appendMessage('user', fullPromptToAPI, false, currentImgBase64, userIndex); 
+                
+                this.removeImage();
+                this.internalAttachments = []; 
+                this.renderAttachmentBadges(); 
+
                 let userParts = [];
-                if (text) userParts.push({ text: text });
+                if (fullPromptToAPI) userParts.push({ text: fullPromptToAPI }); 
                 if (currentImgBase64) {
                     userParts.push({ inline_data: { mime_type: currentImgMime, data: currentImgBase64.split(',')[1] } });
                 }
-                this.chatHistory.push({ role: "user", parts: userParts });
+                
+                this.chatHistory.push({ role: "user", parts: userParts, orbit_attachments: currentAttachments });
 
-                // TÍTULO AUTOMÁTICO NA PRIMEIRA MENSAGEM
                 const chatObj = Store.state.profChats.find(c => c.id === this.activeChatId);
                 if (chatObj && chatObj.title === "Nova Conversa" && text) {
                     chatObj.title = text.substring(0, 25) + (text.length > 25 ? '...' : '');
@@ -9331,22 +9722,49 @@ setTimeout(() => MindMap.init(), 500);
                     if(titleEl) titleEl.innerText = chatObj.title;
                 }
 
-                // 2. SALVA O ESTADO IMEDIATAMENTE (Garante que sua pergunta foi salva)
                 this.saveCurrentChatState();
+                this.triggerAI(); 
+            },
 
+            async triggerAI() {
+                if (this.isProcessing) return;
                 this.isProcessing = true;
-                const btn = document.getElementById('btn-prof-send');
-                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i>';
-                btn.classList.add('opacity-50');
                 
+                const key = Store.state.settings.geminiKey;
+                const btn = document.getElementById('btn-prof-send');
+                const inputEl = document.getElementById('prof-chat-input');
+
+                if (btn) { btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i>'; btn.classList.add('opacity-50'); }
                 const loadingId = this.appendMessage('model', 'Analisando...', true);
 
                 try {
                     const model = 'gemma-3-27b-it'; 
+
+                    // A MÁGICA DO PROMPT VISUAL ACONTECE AQUI, APENAS NA HORA DE IR PRO GOOGLE
+                    const apiHistory = this.chatHistory.map(m => {
+                        const newParts = m.parts.map(p => {
+                            if (p.text && p.text.startsWith("[GERAR_DIAGRAMA]:")) {
+                                const subject = p.text.replace("[GERAR_DIAGRAMA]:", "").trim();
+                                return { text: `[COMANDO DE SISTEMA: O aluno solicitou um diagrama/atividade do tema: "${subject}". AJA COMO UM DESIGNER UI/UX SÊNIOR. Gere APENAS UM ÚNICO BLOCO de código \`\`\`svg ou \`\`\`html.
+
+REGRAS DE DESIGN PREMIUM (OBRIGATÓRIAS):
+1. SEJA ULTRA COLORIDO E MODERNO: Use gradientes do Tailwind (ex: bg-gradient-to-br from-blue-50 to-indigo-100), sombras suaves (shadow-xl), bordas arredondadas (rounded-3xl) e cores vibrantes. Pare de fazer coisas cinzas e feias!
+2. ALTURA LIVRE: NUNCA USE "h-screen" ou "h-full" no container principal! Isso corta a imagem pela metade na tela do aluno. Deixe a altura fluir naturalmente usando apenas paddings (ex: p-8, flex flex-col, gap-6).
+3. VÁ DIRETO AO PONTO: É estritamente PROIBIDO gerar as tags <html>, <head> ou <body>. O sistema já injeta o Tailwind e o KaTeX. Retorne APENAS a <div class="w-full max-w-2xl mx-auto..."> que engloba o seu design.
+4. PROIBIDO <img> DA INTERNET: Desenhe as formas físicas/matemáticas criando tags <svg> VETORIAIS DENTRO do seu HTML, com preenchimentos coloridos e bordas grossas (ex: fill="#dbeafe" stroke="#3b82f6" stroke-width="3").
+5. LATEX MÁGICO: Use $ e $$ para matemática e física, eu farei a renderização automaticamente na tela.
+
+Entregue estritamente o código do Card, parecendo um app profissional e vibrante. Não escreva textos fora do código.]` };
+                            }
+                            return p;
+                        });
+                        return { role: m.role, parts: newParts };
+                    });
+
                     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: this.chatHistory })
+                        body: JSON.stringify({ contents: apiHistory })
                     });
 
                     const data = await response.json();
@@ -9355,75 +9773,211 @@ setTimeout(() => MindMap.init(), 500);
                     let aiText = data.candidates[0].content.parts[0].text;
                     aiText = aiText.replace(/User:[\s\S]*$/g, '').replace(/Model:/g, '').trim();
 
-                    // 3. ADICIONA A RESPOSTA DA IA
                     this.chatHistory.push({ role: "model", parts: [{ text: aiText }] });
-                    this.updateMessage(loadingId, aiText);
-
-                    // 4. SALVA O ESTADO NOVAMENTE (Garante que a resposta da IA foi salva)
+                    
+                    const newIndex = this.chatHistory.length - 1;
+                    this.updateMessage(loadingId, aiText, newIndex);
+                    
                     this.saveCurrentChatState();
 
                 } catch (error) {
-                    this.updateMessage(loadingId, `<span class="text-red-500"><i class="ph-bold ph-warning"></i> Erro: ${error.message}</span>`);
-                    this.chatHistory.pop(); // Remove a pergunta porque deu erro
-                    this.saveCurrentChatState(); // Salva a remoção
+                    this.updateMessage(loadingId, `<span class="text-red-500"><i class="ph-bold ph-warning"></i> Erro: ${error.message}</span>`, null);
+                    this.chatHistory.pop(); 
+                    this.saveCurrentChatState();
                 } finally {
                     this.isProcessing = false;
-                    btn.innerHTML = '<i class="ph-bold ph-paper-plane-right text-xl"></i>';
-                    btn.classList.remove('opacity-50');
-                    inputEl.focus();
+                    if (btn) { btn.innerHTML = '<i class="ph-bold ph-paper-plane-right text-xl"></i>'; btn.classList.remove('opacity-50'); }
+                    if(inputEl) inputEl.focus();
                 }
             },
 
             formatAIResponse(text) {
                 if (!text) return '';
+                if (text.includes('<span class="text-red-500">')) return text;
+
                 let html = text;
+                
                 html = html.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-black/20 p-3 rounded-xl overflow-x-auto border border-white/5 my-3 text-[11px] font-mono text-brand-300 shadow-inner"><code>$1</code></pre>');
+                
+                const codeBlocks = [];
+                html = html.replace(/```([\w-]*)\n?([\s\S]*?)```/g, (match, lang, code) => {
+                    codeBlocks.push({ lang, code });
+                    return `___CODEBLOCK_${codeBlocks.length - 1}___`;
+                });
+
+                const mathBlocks = [];
+                const saveMath = (match) => {
+                    mathBlocks.push(match);
+                    return `___MATHBLOCK_${mathBlocks.length - 1}___`;
+                };
+                html = html.replace(/\$\$\n?([\s\S]*?)\n?\$\$/g, saveMath); 
+                html = html.replace(/\\\[([\s\S]*?)\\\]/g, saveMath);       
+                html = html.replace(/\$([^$]+?)\$/g, saveMath);             
+                html = html.replace(/\\\(([\s\S]*?)\\\)/g, saveMath);       
+
+                const corteAnexo = html.indexOf("[DADOS ANEXADOS PELO USUÁRIO PARA ANÁLISE]:");
+                if (corteAnexo !== -1) html = html.substring(0, corteAnexo).trim();
+
                 html = html.replace(/`([^`\n]+)`/g, '<code class="bg-black/20 text-brand-400 px-1.5 py-0.5 rounded font-mono text-[11px] border border-white/5">$1</code>');
-                html = html.replace(/\*\*(.*?)\*\*/g, '<b class="font-extrabold text-brand-500">$1</b>');
-                html = html.replace(/\*(.*?)\*/g, '<i class="opacity-80">$1</i>');
+                
                 html = html.replace(/^### (.*$)/gim, '<h4 class="text-base font-bold mt-5 mb-2 text-txt-main">$1</h4>');
                 html = html.replace(/^## (.*$)/gim, '<h3 class="text-lg font-extrabold mt-6 mb-3 text-txt-main border-b border-white/5 pb-2">$1</h3>');
-                html = html.replace(/^\* (.*$)/gim, '<li class="ml-5 list-disc marker:text-brand-500 mb-1.5">$1</li>');
-                html = html.replace(/^- (.*$)/gim, '<li class="ml-5 list-disc marker:text-brand-500 mb-1.5">$1</li>');
+                
+                html = html.replace(/^(\s*)([\*\-])(\s*)(.*$)/gim, (match, indent, bullet, spaceAfter, text) => {
+                    if (spaceAfter.length === 0 && text.trim().endsWith('*')) { return match; }
+                    const margin = indent.length > 0 ? 'ml-10 text-[13px] opacity-90' : 'ml-5';
+                    return `<li class="${margin} list-disc marker:text-brand-500 mb-1.5">${text}</li>`;
+                });
+                
+                html = html.replace(/^(\s*)\d+\.\s*(.*$)/gim, (match, indent, text) => {
+                    const margin = indent.length > 0 ? 'ml-10 text-[13px] opacity-90' : 'ml-5';
+                    return `<li class="${margin} list-decimal marker:text-brand-500 mb-1.5">${text}</li>`;
+                });
+
+                html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<b class="font-extrabold text-brand-500 italic opacity-90">$1</b>');
+                html = html.replace(/\*\*(.*?)\*\*/g, '<b class="font-extrabold text-brand-500">$1</b>');
+                html = html.replace(/\*(.*?)\*/g, '<i class="opacity-80">$1</i>');
+                html = html.replace(/\b([a-zA-Z])_([a-zA-Z0-9]+)\b/g, '$1<sub>$2</sub>'); 
                 
                 html = html.split(/\n\n+/).map(p => {
-                    if(p.includes('<li') || p.includes('<pre')) return `<div class="my-3">${p}</div>`;
+                    if(p.includes('<li') || p.includes('___CODEBLOCK_') || p.includes('___MATHBLOCK_') || p.includes('<h')) return `<div class="my-3">${p}</div>`;
                     return `<p class="mb-4 leading-relaxed">${p.replace(/\n/g, '<br>')}</p>`;
                 }).join('');
+
+                html = html.replace(/___MATHBLOCK_(\d+)___/g, (match, index) => {
+                    return mathBlocks[index];
+                });
+
+                html = html.replace(/___CODEBLOCK_(\d+)___/g, (match, index) => {
+                    const { lang, code } = codeBlocks[index];
+                    const rawCode = code.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+                    const b64Code = btoa(unescape(encodeURIComponent(rawCode)));
+                    
+                    let previewHTML = '';
+                    const language = lang ? lang.toLowerCase() : '';
+                    
+                    if (language === 'svg' || language === 'xml') {
+                        return `
+                        <div class="mt-4 bg-[#ffffff] rounded-xl p-4 flex items-center justify-center overflow-hidden border border-white/10 relative group shadow-lg min-h-[150px]">
+                            <div class="absolute top-2 left-2 bg-brand-500 text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-widest z-10 opacity-40 group-hover:opacity-100 transition-opacity flex items-center gap-1 shadow-sm"><i class="ph-bold ph-magic-wand"></i> Imagem Gerada</div>
+                            <div class="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="navigator.clipboard.writeText(decodeURIComponent(escape(atob('${b64Code}')))); UI.toast('Código SVG copiado!', 'success')" class="bg-black/50 hover:bg-brand-500 text-white p-2 rounded-lg backdrop-blur-md transition-colors shadow-md text-[10px] flex items-center gap-1 font-bold uppercase tracking-widest"><i class="ph-bold ph-copy text-sm"></i> SVG</button>
+                            </div>
+                            <div class="w-full h-full flex items-center justify-center max-h-[400px] hover:scale-[1.02] transition-transform duration-300">
+                                ${rawCode}
+                            </div>
+                        </div>`;
+                    }
+
+                    else if (language === 'html' || language === 'htm') {
+                        
+                        // MÁGICA DO ANTIVÍRUS: Se a IA tentar dar o golpe do Imgur, nós bloqueamos a imagem e avisamos!
+                        let safeHtmlCode = rawCode.replace(/<img[^>]*>/gi, '<div style="background:#fee2e2; color:#dc2626; padding:16px; border-radius:12px; border:2px dashed #f87171; text-align:center; font-family:sans-serif; margin: 10px 0;"><b>⚠️ Alucinação Bloqueada</b><br>A IA ficou com preguiça de desenhar e tentou usar um link falso de imagem.<br>Por favor, clique em <b>Repensar</b>.</div>');
+
+                        // Injeta os motores do Orbit (Tailwind e Matemática) dentro da janela da IA
+                        const dependencias = `
+                            <script src="https://cdn.tailwindcss.com"><${'/'}script>
+                            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+                            <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"><${'/'}script>
+                            <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"><${'/'}script>
+                            <style>
+                                /* Domina o fundo da IA para garantir que nada corte e fique lindo */
+                                body { 
+                                    padding: 1.5rem; 
+                                    display: flex; 
+                                    justify-content: center; 
+                                    align-items: flex-start; 
+                                    min-height: 100vh; 
+                                    margin: 0; 
+                                    background: transparent; 
+                                    font-family: ui-sans-serif, system-ui, sans-serif;
+                                }
+                            </style>
+                            <script>
+                                setTimeout(() => {
+                                    if(window.renderMathInElement) {
+                                        renderMathInElement(document.body, {
+                                            delimiters: [ {left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false} ],
+                                            throwOnError: false, strict: "ignore"
+                                        });
+                                    }
+                                }, 800);
+                            <${'/'}script>
+                        `;
+                        
+                        const fullHTML = dependencias + safeHtmlCode;
+                        const safeIframeCode = fullHTML.replace(/"/g, '&quot;');
+                        
+                        // Removi o "allow-same-origin" para sumir com o erro amarelo do console!
+                        return `
+                        <div class="mt-4 bg-[#ffffff] rounded-xl flex flex-col overflow-hidden border border-white/10 relative group shadow-lg">
+                            <div class="absolute top-2 left-2 bg-brand-500 text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-widest z-10 opacity-40 group-hover:opacity-100 transition-opacity flex items-center gap-1 shadow-sm pointer-events-none"><i class="ph-bold ph-browser"></i> Interface Gerada</div>
+                            <div class="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="navigator.clipboard.writeText(decodeURIComponent(escape(atob('${b64Code}')))); UI.toast('Código HTML copiado!', 'success')" class="bg-black/50 hover:bg-brand-500 text-white p-2 rounded-lg backdrop-blur-md transition-colors shadow-md text-[10px] flex items-center gap-1 font-bold uppercase tracking-widest"><i class="ph-bold ph-copy text-sm"></i> HTML</button>
+                            </div>
+                            <iframe srcdoc="${safeIframeCode}" class="w-full h-[450px] border-none bg-white resize-y" sandbox="allow-scripts"></iframe>
+                        </div>`;
+                    }
+
+                    return `
+                    <div class="relative group my-4 shadow-lg">
+                        <div class="absolute top-0 right-0 bg-white/10 px-3 py-1.5 rounded-bl-xl rounded-tr-xl text-[10px] font-bold text-txt-muted flex items-center gap-3 z-10 backdrop-blur-md transition-colors hover:bg-white/20">
+                            <span class="uppercase tracking-widest opacity-70">${lang || 'código'}</span>
+                            <button onclick="navigator.clipboard.writeText(decodeURIComponent(escape(atob('${b64Code}')))); UI.toast('Código copiado!', 'success')" class="text-white hover:text-brand-400 transition-colors flex items-center gap-1 cursor-pointer pointer-events-auto">
+                                <i class="ph-bold ph-copy"></i> Copiar
+                            </button>
+                        </div>
+                        <pre class="bg-[#282c34] pt-8 pb-4 px-4 rounded-xl overflow-x-auto border border-white/5 text-[12px] font-mono shadow-inner"><code class="language-${lang || 'plaintext'}">${code}</code></pre>
+                    </div>`;
+                });
 
                 return html;
             },
 
-            appendMessage(sender, text, isTyping = false, imageBase64 = null) {
+            appendMessage(sender, text, isTyping = false, imageBase64 = null, historyIndex = null) {
                 const box = document.getElementById('prof-chat-box');
                 const id = 'msg-' + Date.now() + Math.random().toString(36).substring(7);
                 let html = '';
                 
                 if (sender === 'user') {
-                    let formattedUser = text ? text.replace(/\n/g, '<br>') : '';
+                    let visualText = text;
+                    
+                    // Tratamento visual SE for um comando de diagrama (esconde a tag e mostra o ícone de mágica)
+                    if (visualText.startsWith("[GERAR_DIAGRAMA]:")) {
+                        const subject = visualText.replace("[GERAR_DIAGRAMA]:", "").trim();
+                        visualText = `<div class="flex items-center gap-2"><i class="ph-fill ph-magic-wand text-brand-300"></i> <span>Criar Diagrama: <b class="text-white">${subject}</b></span></div>`;
+                    }
+
+                    const corteAnexo = visualText.indexOf("[DADOS ANEXADOS PELO USUÁRIO PARA ANÁLISE]:");
+                    if (corteAnexo !== -1) {
+                        visualText = visualText.substring(0, corteAnexo).trim() + '\n<div class="mt-2 text-[10px] bg-black/10 border border-white/10 px-2 py-1 rounded inline-flex items-center gap-1 opacity-80"><i class="ph-fill ph-paperclip"></i> Itens Anexados Ocultamente</div>';
+                    }
+
+                    let formattedUser = visualText ? visualText.replace(/\n/g, '<br>') : '';
                     let imgHTML = '';
                     
                     if (imageBase64) {
-                        imgHTML = `<img src="${imageBase64}" class="w-full max-w-[200px] rounded-xl mb-2 border border-white/10 shadow-sm object-cover" />`;
-                    } else if (text.includes("[Imagem Anexada pelo Aluno]")) {
-                        imgHTML = `<div class="text-xs opacity-70 italic flex items-center gap-1 mb-2 bg-black/10 px-3 py-1.5 rounded-lg border border-white/5"><i class="ph-bold ph-image"></i> Imagem anexada e analisada</div>`;
+                        imgHTML = `<img title="Imagem" src="${imageBase64}" class="w-full max-w-[200px] rounded-xl mb-2 border border-white/10 shadow-sm object-cover" />`;
+                    } else if (visualText.includes("[Imagem Anexada pelo Aluno]")) {
+                        imgHTML = `<div class="text-xs opacity-70 italic flex items-center gap-1 mb-2 bg-black/10 px-3 py-1.5 rounded-lg border border-white/5"><i class="ph-bold ph-image"></i> Imagem na nuvem</div>`;
                         formattedUser = formattedUser.replace("[Imagem Anexada pelo Aluno]", "").trim(); 
                     }
 
                     if (!formattedUser && !imgHTML) return id;
 
                     html = `
-                    <div class="flex self-end max-w-[85%] animate-fade-in">
-                        <div class="bg-brand-600 text-white px-5 py-3.5 rounded-[20px] rounded-tr-none shadow-md text-sm leading-relaxed flex flex-col items-end">
+                    <div class="flex self-end max-w-[95%] animate-fade-in group justify-end w-full" id="msg-container-${historyIndex}">
+                        <button id="btn-edit-${historyIndex}" onclick="ProfessorIA.editMessage(${historyIndex})" class="mr-2 mt-2 w-8 h-8 rounded-full bg-bg-main border border-white/5 text-txt-muted hover:text-brand-500 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center shadow-sm shrink-0" title="Editar Pergunta">
+                            <i class="ph-bold ph-pencil-simple"></i>
+                        </button>
+                        <div id="msg-bubble-${historyIndex}" class="bg-brand-600 text-white px-5 py-3.5 rounded-[20px] rounded-tr-none shadow-md text-sm leading-relaxed flex flex-col items-end w-max max-w-full transition-all">
                             ${imgHTML}
-                            ${formattedUser}
+                            <span class="text-left w-full">${formattedUser}</span>
                         </div>
                     </div>`;
                 } else {
                     html = `
-                    <div class="flex self-start max-w-[95%] md:max-w-[85%] w-full group animate-fade-in" id="wrapper-${id}">
-                        <div class="w-8 h-8 rounded-full bg-brand-500 text-white flex items-center justify-center shrink-0 mt-1 mr-3 shadow-md ${isTyping ? 'animate-pulse' : ''}"><i class="ph-bold ph-robot"></i></div>
+                    <div class="flex self-start max-w-[95%] md:max-w-[95%] w-full group animate-fade-in" id="wrapper-${id}">
                         <div class="flex flex-col gap-1.5 w-full min-w-0">
                             <div id="${id}" class="bg-bg-surface border border-white/5 text-txt-main px-5 py-4 rounded-[20px] rounded-tl-none shadow-sm text-sm w-full overflow-hidden ${isTyping ? 'opacity-70' : ''}">
                                 ${this.formatAIResponse(text)}
@@ -9438,29 +9992,33 @@ setTimeout(() => MindMap.init(), 500);
                 return id;
             },
 
-            injectCopyButton(id) {
+            injectActions(id, historyIndex) {
                 const actionDiv = document.getElementById(`actions-${id}`);
                 if (actionDiv) {
                     actionDiv.classList.replace('opacity-0', 'group-hover:opacity-100');
                     actionDiv.innerHTML = `
                         <button onclick="ProfessorIA.copyText('${id}')" class="text-[10px] flex items-center gap-1 text-txt-muted hover:text-brand-500 font-bold uppercase tracking-widest transition-colors bg-bg-surface px-3 py-1.5 rounded-lg border border-white/5 shadow-sm">
-                            <i class="ph-bold ph-copy text-sm"></i> Copiar Resposta
+                            <i class="ph-bold ph-copy text-sm"></i> Copiar
                         </button>
+                        ${historyIndex !== null ? `
+                        <button onclick="ProfessorIA.retryMessage(${historyIndex})" class="text-[10px] flex items-center gap-1 text-txt-muted hover:text-brand-500 font-bold uppercase tracking-widest transition-colors bg-bg-surface px-3 py-1.5 rounded-lg border border-white/5 shadow-sm" title="Gerar outra resposta">
+                            <i class="ph-bold ph-arrows-clockwise text-sm"></i> Repensar
+                        </button>
+                        ` : ''}
                     `;
                 }
             },
 
-            updateMessage(id, text) {
+            updateMessage(id, text, historyIndex) {
                 const msgDiv = document.getElementById(id);
                 if (msgDiv) {
                     msgDiv.classList.remove('opacity-70');
                     const wrapper = document.getElementById(`wrapper-${id}`);
-                    if(wrapper) wrapper.querySelector('.w-8.h-8').classList.remove('animate-pulse');
                     
                     this.rawMessages[id] = text;
                     msgDiv.innerHTML = this.formatAIResponse(text);
                     
-                    if (!text.includes('Erro:')) this.injectCopyButton(id);
+                    if (!text.includes('Erro:')) this.injectActions(id, historyIndex);
                     
                     if (window.renderMathInElement) {
                         try {
@@ -9468,17 +10026,19 @@ setTimeout(() => MindMap.init(), 500);
                                 delimiters: [
                                     {left: "$$", right: "$$", display: true}, {left: "\\[", right: "\\]", display: true},
                                     {left: "$", right: "$", display: false}, {left: "\\(", right: "\\)", display: false}
-                                ], throwOnError: false
+                                ], throwOnError: false, strict: "ignore"
                             });
                         } catch (e) {}
                     }
+                    if (window.hljs) {
+                        msgDiv.querySelectorAll('pre code').forEach((block) => { hljs.highlightElement(block); });
+                    }
                     const box = document.getElementById('prof-chat-box');
-                    setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
+                    if (box) setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
                 }
             }
         };
 
-        // Escutador de Enter
         document.addEventListener('keydown', function(e) {
             const inputEl = document.getElementById('prof-chat-input');
             if (e.key === 'Enter' && !e.shiftKey && document.activeElement === inputEl) {
@@ -9528,8 +10088,8 @@ setTimeout(() => MindMap.init(), 500);
                 // Mapeia os baralhos para HTML
                 grid.innerHTML = Store.state.decks.map(d => `
                     <div class="bg-card p-6 rounded-2xl border border-slate-200/10 hover:border-brand-500 transition-all group relative">
-                        <button onclick="Flashcards.deleteDeck('${d.id}')" class="absolute top-4 right-4 text-txt-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-trash"></i></button>
-                        <button onclick="Flashcards.shareDeck('${d.id}')" class="absolute top-4 right-10 text-txt-muted hover:text-brand-600 opacity-0 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-share-network"></i></button>
+                        <button title="Deletar deck" onclick="Flashcards.deleteDeck('${d.id}')" class="absolute top-4 right-4 text-txt-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-trash"></i></button>
+                        <button title="Compartilhar deck" onclick="Flashcards.shareDeck('${d.id}')" class="absolute top-4 right-10 text-txt-muted hover:text-brand-600 opacity-0 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-share-network"></i></button>
                         <h3 class="font-bold text-lg text-txt-main mb-1">${d.name}</h3>
                         <p class="text-xs text-txt-muted mb-4">${d.cards.length} cartas</p>
                         <div class="flex gap-2">
@@ -9671,7 +10231,7 @@ setTimeout(() => MindMap.init(), 500);
         };
 
         // Inicializa após 1 segundo
-        setTimeout(() => { if(window.Flashcards) window.Flashcards.init(); }, 1000);
+
 
         // =================================================================
         // HABILITAR TAB NA REDAÇÃO (INDENTAÇÃO DE PARÁGRAFO)
@@ -9868,6 +10428,110 @@ setTimeout(() => MindMap.init(), 500);
                 });
             }
         });
+
+        // =================================================================
+        // SISTEMA DE ADMINISTRAÇÃO BLINDADO (AÇÕES EXCLUSIVAS DO DONO)
+        // =================================================================
+        window.Admin = {
+            openPanel() {
+                document.getElementById('modal-admin-panel').showModal();
+                this.loadAllowedEmails(); // Baixa a lista sempre que a janela abre
+            },
+
+            async loadAllowedEmails() {
+                const listEl = document.getElementById('admin-email-list');
+                listEl.innerHTML = '<div class="flex flex-col items-center justify-center py-10 text-txt-muted gap-2"><i class="ph-bold ph-spinner animate-spin text-2xl text-brand-500"></i><p class="text-xs font-bold uppercase tracking-widest">Lendo Servidor...</p></div>';
+                
+                try {
+                    // Tenta puxar TODOS os documentos da pasta 'allowed_users'
+                    // Se o Firebase detectar que não é o dono, a promessa CAI pro 'catch' na hora!
+                    const querySnapshot = await window.orbitGetDocs(window.orbitCollection(window.orbitDb, 'allowed_users'));
+                    
+                    let html = '';
+                    querySnapshot.forEach((docSnap) => {
+                        const email = docSnap.id;
+                        const data = docSnap.data();
+                        
+                        // Etiqueta visual para destacar você
+                        const isAdminBadge = data.isAdmin ? '<span class="bg-brand-500 text-white text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-widest shadow-sm">Dono</span>' : '';
+                        
+                        // Protege para você não apagar a si mesmo sem querer
+                        const deleteBtn = data.isAdmin ? 
+                            `<button title="Bloqueado" disabled class="w-9 h-9 rounded-lg bg-bg-main border border-white/5 opacity-30 cursor-not-allowed flex items-center justify-center shrink-0"><i class="ph-bold ph-lock"></i></button>` : 
+                            `<button onclick="window.Admin.removeEmail('${email}')" class="w-9 h-9 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center shrink-0 active:scale-95" title="Revogar Acesso"><i class="ph-bold ph-trash"></i></button>`;
+
+                        html += `
+                            <div class="flex justify-between items-center bg-bg-panel p-3 rounded-xl border border-white/5 shadow-sm group hover:border-brand-500/30 transition-colors">
+                                <div class="flex flex-col overflow-hidden pr-2">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <i class="ph-fill ph-user-circle text-txt-muted text-lg"></i>
+                                        ${isAdminBadge}
+                                    </div>
+                                    <span class="text-xs font-bold text-txt-main truncate">${email}</span>
+                                </div>
+                                ${deleteBtn}
+                            </div>
+                        `;
+                    });
+                    
+                    if(html === '') html = '<div class="text-center py-6 text-xs text-txt-muted italic">Apenas você está no sistema.</div>';
+                    listEl.innerHTML = html;
+
+                } catch (error) {
+                    console.error("Tentativa de invasão detectada:", error);
+                    listEl.innerHTML = '<div class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-center"><i class="ph-bold ph-warning-octagon text-3xl text-red-500 mb-2"></i><p class="text-xs font-bold text-red-500">Acesso Bloqueado pelo Firewall do Firebase.<br>Você não tem permissão para listar usuários.</p></div>';
+                }
+            },
+
+            async addAllowedEmail() {
+                const emailInput = document.getElementById('admin-new-email');
+                const email = emailInput.value.trim().toLowerCase();
+                const btn = document.getElementById('btn-admin-add');
+
+                if (!email || !email.includes('@')) {
+                    UI.toast("Digite um e-mail válido.", "error");
+                    return;
+                }
+
+                const originalBtn = btn.innerHTML;
+                btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i>';
+                btn.disabled = true;
+
+                try {
+                    // Grava no Firebase
+                    await window.orbitSetDoc(window.orbitDoc(window.orbitDb, 'allowed_users', email), {
+                        addedAt: Date.now(),
+                        addedBy: window.orbitAuth.currentUser.email,
+                        isAdmin: false // Convidados nunca são admin
+                    });
+                    
+                    UI.toast(`Acesso liberado para: ${email}`, "success");
+                    emailInput.value = '';
+                    this.loadAllowedEmails(); // Recarrega a lista na tela na mesma hora
+                } catch (error) {
+                    console.error("Erro Admin Add:", error);
+                    UI.alert("Acesso Negado", "O Firebase bloqueou sua tentativa de adicionar um usuário.", "error");
+                } finally {
+                    btn.innerHTML = originalBtn;
+                    btn.disabled = false;
+                }
+            },
+
+            async removeEmail(email) {
+                if(await UI.confirm("Revogar Acesso", `Tem certeza que deseja banir o e-mail <b>${email}</b> do sistema? Eles não poderão mais acessar a plataforma.`, "Banir", true)) {
+                    
+                    try {
+                        // Deleta do banco de dados na nuvem
+                        await window.orbitDeleteDoc(window.orbitDoc(window.orbitDb, 'allowed_users', email));
+                        UI.toast(`Acesso revogado: ${email}`, "info");
+                        this.loadAllowedEmails(); // Atualiza a lista
+                    } catch(error) {
+                        console.error("Erro Admin Remove:", error);
+                        UI.toast("Erro ao excluir usuário. Falta de permissão.", "error");
+                    }
+                }
+            }
+        };
 
         Store.init();
     </script>
