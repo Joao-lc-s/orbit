@@ -1,0 +1,46 @@
+name: Publicar Orbit no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+      - name: Validar que segredos não foram publicados
+        shell: bash
+        run: |
+          if grep -RInE --exclude-dir=.git --exclude='SECURITY.md' '(GEMINI_API_KEY|FIRECRAWL_API_KEY|YOUTUBE_API_KEY|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)' .; then
+            echo 'Possível segredo detectado. Publicação interrompida.'
+            exit 1
+          fi
+      - name: Montar artefato público
+        shell: bash
+        run: |
+          mkdir -p _site
+          cp index.html orbit.html main.js orbit-dark.css gemini.png .nojekyll _site/
+      - name: Empacotar site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v4
