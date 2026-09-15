@@ -28,7 +28,7 @@ jobs:
       - name: Validar que segredos não foram publicados
         shell: bash
         run: |
-          if grep -RInE --exclude-dir=.git --exclude='SECURITY.md' '(GEMINI_API_KEY|FIRECRAWL_API_KEY|YOUTUBE_API_KEY|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)' .; then
+          if grep -RInE --exclude-dir=.git --exclude-dir=.github --exclude='SECURITY.md' '(GEMINI_API_KEY|FIRECRAWL_API_KEY|YOUTUBE_API_KEY|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)' .; then
             echo 'Possível segredo detectado. Publicação interrompida.'
             exit 1
           fi
